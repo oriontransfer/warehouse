@@ -22,6 +22,10 @@ io.sockets.on('connection', function (socket) {
 	});
 	
 	setInterval(function() {
-		socket.emit('news', { time: new Date() + '' });
-	}, 1000);
+		var message = { time: new Date() + '' };
+		
+		console.log("Sending news", message);
+		
+		socket.emit('news', message);
+	}, 10000);
 });
