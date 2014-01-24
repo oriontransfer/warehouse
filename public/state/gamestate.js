@@ -1,10 +1,11 @@
 /// *** Class Gamestate ***
 /// The state of the gmae map is stored in this Class
-function WorldState() {
+function WorldState(tilemap) {
 	this.players = new Array();
 	this.projectiles = new Array();
 	this.playerIDCounter = 0;
 	this.protectileIDCounter = 0;
+	this.tilemap = tilemap;
 }
 
 WorldState.prototype.update = function(dt){
@@ -35,12 +36,20 @@ PlayerState.Motion = {
 	RUNNING: 2,
 	STOPPED: 3,
 };
+PlayerState.HEALTH = 100;
 
 function PlayerState(initialLocation, name, ID) {
 	this.ID = ID;
+
+	//Positional
 	this.position = initialLocation;
 	this.direction = new Vec2(0, 0);
+
+	//Internal state / control state
 	this.motion = Motion.STOPPED;
+	this.health = HEALTH;
+	this.isMakingNoise  = false;
+
 
 	this.name = name;
 }
@@ -48,6 +57,10 @@ function PlayerState(initialLocation, name, ID) {
 
 PlayerState.prototype.setName = function(name) {
 	this.name = name;
+}
+
+PlayerState.prototype.doDamage(damage){
+	this.health -= damage;
 }
 
 // PlayerState.prototype.setLocation = function(x, y) {
@@ -75,10 +88,15 @@ PlayState.prototype.update = function(dt){
 	if(this.motion == Motion.WALKING){
 		Vec2.scale(locationChange, dt * WALKING_SPEED);
 		Vec2.add(this.position, locationChange);
+		this.isMakingNoise = true;
 	}
 	if(this.motion == Motion.RUNNING){
 		Vec2.scale(locationChange, dt * WALKING_SPEED);
 		Vec2.add(this.position, locationChange);
+		this.isMakingNoise = true;
+	}
+	if(this.motion == Motion.STOPPED){
+		this.isMakingNoise = false;
 	}
 }
 

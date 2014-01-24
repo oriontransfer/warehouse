@@ -1,12 +1,16 @@
 
 /// *** class Tile ***
 /// This class is used for representing a single 2D tile on the TileMap.
-function Tile (cost, identity, special) {
+/// Added worldsize to specify the size of the tile in world coordinates. Requires vec2 --Leigh
+function Tile (cost, identity, special, worldsize) {
 	this.cost = cost;
 	this.special = special;
 	
 	this.identity = identity;
 	this.offset = 0;
+	if(worldsize){
+		this.worldsize = worldsize;
+	}
 }
 
 Tile.prototype.blocked = function () {
