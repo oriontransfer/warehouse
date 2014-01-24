@@ -59,7 +59,16 @@ PlayerState.prototype.setDirection = function(x, y){
 	this.direction.x = x;
 	this.direction.y = y;
 }
+/**
+* Set the motion state for the player. Refer to PlayerState.Motion for valid states.*
+*/
+PlayerState.prototype.setMotionState = function(state) {
+	this.motion = state;
+}
 
+/**
+* Function that updates the player state variables.
+*/
 PlayState.prototype.update = function(dt){
 	var locationChange = new Vec2(direction.x, direction.y);
 

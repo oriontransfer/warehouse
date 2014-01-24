@@ -21,6 +21,10 @@ Vec2.add = function(left, right) {
 	return [left[0] + right[0], left[1] + right[1]];
 }
 
+Vec2.subtract = function(left, right) {
+	return [left[0] - right[0], left[1] - right[1]];
+}
+
 Vec2.scale = function(left, scalar) {
 	left[0] *= scalar;
 	left[1] *= scalar;
