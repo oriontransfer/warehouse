@@ -6,7 +6,7 @@ Tileshift = {
 	levels: {},
 	controller: null,
 	
-	socket: io.connect('http://localhost:8000'),
+	socket: io.connect(window.location.protocol + '//' + window.location.host),
 	
 	addLevel: function(level) {
 		this.levels[level.name] = level;
