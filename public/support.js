@@ -21,6 +21,11 @@ Vec2.add = function(left, right) {
 	return [left[0] + right[0], left[1] + right[1]];
 }
 
+Vec2.scale = function(left, scalar) {
+	left[0] *= scalar;
+	left[1] *= scalar;
+}
+
 Vec2.euclidianDistance = function(left, right) {
 	var dx = left[0] - right[0], dy = left[1] - right[1];
 	return Math.sqrt(dx*dx + dy*dy);
