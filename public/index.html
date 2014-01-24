@@ -79,10 +79,37 @@
 		<script src="levels/hearts.js" type="text/javascript"></script>
 		
 		<script type="text/javascript">
-			window.onload = function() {
-				Tileshift.run();
-			}
+			//window.onload = function() {
+			//	Tileshift.run();
+			//}
+			
+			var host = location.protocol + '//' + location.host;
+			var socket = io.connect(host);
+			socket.on('news', function (data) {
+				var times = document.getElementById('times');
+				var children, i;
+
+				// Initialize empty list.
+				if (times.className == 'empty') {
+					times.className = '';
+					times.innerHTML = '';
+				}
+
+				// Add timestamp.
+				var li = document.createElement('li');
+				li.innerHTML = data.time;
+				times.appendChild(li);
+
+				// Ensure that the list contains no more than 5 items.
+				var children = times.children;
+				while (children.length > 5) {
+				times.removeChild(children[0]);
+				}
+			});
 		</script>
+		
+		<ul id="times" class="empty">
+		</ul>
 		
 		<div style="display: none">
 			<div id="start">
