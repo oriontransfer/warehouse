@@ -6,6 +6,8 @@ Tileshift = {
 	levels: {},
 	controller: null,
 	
+	socket: io.connect('http://localhost:8000'),
+	
 	addLevel: function(level) {
 		this.levels[level.name] = level;
 	},
@@ -147,6 +149,8 @@ Tileshift.Controller.prototype.resetLevel = function() {
 }
 
 Tileshift.Controller.prototype.handleEvent = function(event) {
+	Tileshift.socket.emit('handleEvent', { event: event });
+	
 	if (this.currentLevel) {
 		this.currentLevel.onUserEvent(event);
 	}
