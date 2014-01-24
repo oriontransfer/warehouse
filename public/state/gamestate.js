@@ -22,6 +22,10 @@ WorldState.prototype.update = function(dt){
 WorldState.prototype.addPlayer(name, startingLocation){
 	var newPlayer = new PlayerState(startingLocation, name, this.playerIDCounter++);
 	this.players.push(newPlayer);
+
+	Vec2 tileInside = Vec2(startingLocation[0] / this.tileMap.tileSize[0], startingLocation[1] / this.tileMap.tileSize[1]);
+	newPlayer.tileInside = this.tileMap.get(tileInside);
+	tileInside.playersInTile.push(newPlayer);
 }
 
 WorldState.prototype.addProjectile = function(startingLocation, startingSpeed ,startingDirection){
@@ -50,7 +54,7 @@ function PlayerState(initialLocation, name, ID) {
 	this.health = HEALTH;
 	this.isMakingNoise  = false;
 
-
+	this.tileInside = null;
 	this.name = name;
 }
 

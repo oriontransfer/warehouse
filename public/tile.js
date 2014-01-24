@@ -1,16 +1,15 @@
 
 /// *** class Tile ***
 /// This class is used for representing a single 2D tile on the TileMap.
-/// Added worldsize to specify the size of the tile in world coordinates. Requires vec2 --Leigh
-function Tile (cost, identity, special, worldsize) {
+
+function Tile (cost, identity, special) {
 	this.cost = cost;
 	this.special = special;
 	
 	this.identity = identity;
 	this.offset = 0;
-	if(worldsize){
-		this.worldsize = worldsize;
-	}
+
+	this.playersInTile = new Array();
 }
 
 Tile.prototype.blocked = function () {
@@ -101,16 +100,16 @@ Widget.Layer.prototype.allLocations = function() {
 }
 
 // TileMap data model - contains tiles.
+/// Added tilesize to specify the size of the tiles in world coordinates. Requires vec2 --Leigh
 function TileMap (size, edges) {
 	// [rows, cols]
-	this.size = size;
 	
 	if (edges) {
 		this.edges = edges.splice(0);
 	} else {
 		this.edges = new Array(size[0] * size[1]);
 	}
-	
+
 	this.layers = {};
 }
 
