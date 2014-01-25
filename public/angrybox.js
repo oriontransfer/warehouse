@@ -1,4 +1,3 @@
-
 // A list of possible user events:
 Event = {
 	NONE: 0,
@@ -12,6 +11,22 @@ Event = {
 };
 
 AngryBox = {
+	assets: {},
+	
+	loadAssets: function(callback) {
+		var loader = new THREE.JSONLoader();
+		
+		loader.onLoadComplete = callback;
+		
+		loader.load("models/crate/crate.js", function(geometry, materials) {
+			var faceMaterial = new THREE.MeshFaceMaterial(materials);
+			//var faceMaterial = new THREE.MeshPhongMaterial(materials);
+			//var faceMaterial = new THREE.MeshNormalMaterial()
+			
+			AngryBox.assets.crate = new THREE.Mesh(geometry, faceMaterial);
+		});
+	},
+	
 	controller: {
 		scene: new THREE.Scene(),
 		camera: new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000),

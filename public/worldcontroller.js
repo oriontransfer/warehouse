@@ -3,10 +3,14 @@ function WorldController() {
 	this.worldState = new WorldState();
 	this.currentPlayer = null;
 	
-	this.scene = new THREE.Scene(),
+	this.scene = new THREE.Scene();
 	
-	this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000),
-	this.camera.position.z = 5;
+	var ambientLight = new THREE.AmbientLight(0xFFFFFF);
+	this.scene.add(ambientLight);
+	
+	this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+	
+	this.camera.position.z = 10;
 	
 	this.playerGeometryController = new GeometryController(this.scene, this.worldState.players);
 	
