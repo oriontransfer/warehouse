@@ -355,6 +355,7 @@ function Projectile(startingLocation, speed, direction, emittedFrom, ID) {
 	//Positional
 	this.position = startingLocation;
 	this.direction = direction;
+	this.direction.normalize();
 	this.speed = speed;
 	this.bodyEmittedFrom = emittedFrom;
 	this.worldInside = null;
@@ -363,19 +364,20 @@ function Projectile(startingLocation, speed, direction, emittedFrom, ID) {
 
 Projectile.ORIGIN = new CANNON.Vec3(0,0,0); //constant used for distance calculations
 Projectile.LIFETIME_MS = 0.5;
-Projectile.KNOCK_BACK = 10;
+Projectile.KNOCK_BACK = 40000;
 
 Projectile.prototype.update = function(dt){
 	this.position.copy(Projectile.ORIGIN);
 	this.ray = this.direction.mult(this.speed);
-	this.ray.z = 0;
+	///this.ray.z = 0;
 
 	var ray = new CANNON.Ray(Projectile.ORIGIN, this.ray);
 	var intersections = ray.intersectBodies(this.worldInside.world.bodies)
 	
 	for(var i = 0; i < intersections.length; i+=1){
 		if(intersections[i] != this.bodyEmittedFrom){
-			intersections[i].applyForce(intersections[i].body.position, this.direction.mult(Projectile.KNOCK_BACK));
+			intersections[i].body.applyForce(intersections[i].body.position, this.direction.mult(Projectile.KNOCK_BACK));
+			i = intersections.length+1;
 		}
 	}
 	this.position = this.position.vadd(this.direction.mult(this.speed));
