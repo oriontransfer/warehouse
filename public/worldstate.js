@@ -101,7 +101,7 @@ WorldState.prototype.update = function(dt){
 	});
 }
 
-WorldState.addBoxGeometry = function(locationVEC3, halfExtentsVEC3, shader){
+WorldState.addBoxGeometry = function(locationVEC3, halfExtentsVEC3, mass, shader){
 	var newGeometry = new GeometryState(shader, this.geometryIDCounter++);
 	this.geometry.add(newGeometry);
 
@@ -111,7 +111,7 @@ WorldState.addBoxGeometry = function(locationVEC3, halfExtentsVEC3, shader){
 
 	//Create box shape and add it to the world.
 	var boxShape = new CANNON.Box(halfExtentsVEC3);
-	var boxBody = new CANNON.RigidBody(WorldState.PLAYER_MASS, boxShape, this.boxPhysicsMaterial);
+	var boxBody = new CANNON.RigidBody(mass, boxShape, this.boxPhysicsMaterial);
 
 	boxBody.position = locationVEC3;
 	//Store references to each other for call backs.
@@ -215,7 +215,7 @@ PlayerState.RUNNING_ROT_SPEED = 0.05;
 PlayerState.MAX_WALKING_SPEED = .1;
 PlayerState.MAX_RUNNING_SPEED = 40;
 PlayerState.FIRE_RATE_PER_SECOND = 1;
-PlayerState.BULLET_SPEED = 100;
+PlayerState.BULLET_SPEED = 1;
 PlayerState.Motion = {
 	WALKING: 1,
 	STOPPED: 2,
@@ -270,7 +270,7 @@ PlayerState.prototype.setRotationState = function(state, direction) {
 PlayerState.ORIGIN = new CANNON.Vec3(0,0,0); //constant used for distance calculations
 PlayerState.combinedDirectionBuffer = new CANNON.Vec3(0,0,0);//Combined direction stores a direction based on key input.
 PlayerState.combinedDirection = new CANNON.Vec3(0,0,0);
-PlayerState.FORWARD = new CANNON.Vec3(0,-1,0);
+PlayerState.FORWARD = new CANNON.Vec3(0,1,0);
 PlayerState.finalImpulseDir = new CANNON.Vec3(0,0,0);
 PlayerState.lastShotTime = 0;
 
@@ -279,16 +279,16 @@ PlayerState.prototype.update = function(dt){
 	this.position = this.rigidBody.position;
 	this.rotationQuat = this.rigidBody.quaternion;
 	//this.rotationQuat.vmult(PlayerState.FORWARD, this.direction);
-	PlayerState.lastShotTime += dt;
-
+	
 	if(this.isShooting){
-		if(1/PlayerState.FIRE_RATE_PER_SECOND < PlayerState.lastShotTime){
+		if(PlayerState.FIRE_RATE_PER_SECOND < PlayerState.lastShotTime){
 			bulletDirection = this.rotationQuat.vmult(PlayerState.FORWARD);
-			bulletPosition = this.rigidBody.position.vadd(bulletDirection.mult(2.0));
-			this.worldInside.addProjectile(bulletPosition, PlayerState.BULLET_SPEED, bulletDirection, this);
-			lastShotTime = 0;
+			//bulletPosition = this.rigidBody.position.vadd(bulletDirection.mult(2.0));
+			this.worldInside.addProjectile(this.rigidBody.position, PlayerState.BULLET_SPEED, bulletDirection, this);
+			PlayerState.lastShotTime = 0;
 		}
 	}
+	PlayerState.lastShotTime += dt;
 	//PlayerState.combinedDirectionBuffer.set(0,0,0);
 
 	switch(this.motionDirection){
@@ -362,20 +362,26 @@ function Projectile(startingLocation, speed, direction, emittedFrom, ID) {
 }
 
 Projectile.ORIGIN = new CANNON.Vec3(0,0,0); //constant used for distance calculations
-Projectile.RAY = new CANNON.Vec3(0,0,0);
-Projectile.LIFETIME_MS = 500;
+Projectile.LIFETIME_MS = 0.5;
 
 Projectile.prototype.update = function(dt){
 	this.position.copy(Projectile.ORIGIN);
-	Projectile.RAY = this.position.vadd(this.direction.mult(this.speed));
+	this.ray = this.direction.mult(this.speed);
+	this.ray.z = 0;
 
-	var ray = new CANNON.Ray(Projectile.ORIGIN, Projectile.RAY);
+	var ray = new CANNON.Ray(Projectile.ORIGIN, this.ray);
 	var intersections = ray.intersectBodies(this.worldInside.world.bodies)
 	
+	for(var i = 0; i < intersections)
 	this.position = this.position.vadd(this.direction.mult(this.speed));
 
 	if(this.timeAlive > Projectile.LIFETIME_MS){
-		this.worldInside
+		this.worldInside.removeProjectile(this);
+		console.log('Particle has died');
+	}
+
+	if(intersections.length > 0){
+		console.log('Particle has collided!');
 	}
 
 	this.timeAlive += dt;
@@ -385,7 +391,7 @@ function GeometryState(shader, ID){
 	this.ID = ID;
 	this.position = null;
 	this.rotationQuat = null;
-
+	this.ray = null
 	this.rigidBody = null;
 
 	this.shader = "";
