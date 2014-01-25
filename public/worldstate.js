@@ -366,11 +366,11 @@ function Projectile(startingLocation, speed, direction, emittedFrom, ID) {
 	this.speed = speed;
 	this.bodyEmittedFrom = emittedFrom;
 	this.worldInside = null;
-	this.timeaAlive = 0;
+	//this.timeaAlive = 0;
 }
 
 Projectile.ORIGIN = new CANNON.Vec3(0,0,0); //constant used for distance calculations
-Projectile.LIFETIME_MS = 0.5;
+//Projectile.LIFETIME_MS = 0.5;
 Projectile.KNOCK_BACK = 40000;
 Projectile.DAMAGE = 30;
 Projectile.bodiesToIntersect = new Array();
@@ -397,24 +397,26 @@ Projectile.prototype.update = function(dt){
 			intersections[i].body.applyForce(intersections[i].body.position, this.direction.mult(Projectile.KNOCK_BACK));
 			if(intersections[i].body.userData && intersections[i].body.userData instanceof PlayerState){
 				intersections[i].body.userData.doDamage(Projectile.DAMAGE);
+				console.log('Damage done', Projectile.DAMAGE);
 			}
 		
 			i = intersections.length+1;
-			this.timeAlive = Projectile.LIFETIME_MS+1;
+			//this.timeAlive = Projectile.LIFETIME_MS+1;
 		}
 	}
 	this.position = this.position.vadd(this.direction.mult(this.speed));
 
-	if(this.timeAlive > Projectile.LIFETIME_MS){
+	//this.timeAlive += dt;
+	//if(this.timeAlive > Projectile.LIFETIME_MS){
 		this.worldInside.removeProjectile(this);
 		console.log('Particle has died');
-	}
+	//}
 
-	if(intersections.length > 0){
-		console.log('Particle has collided!');
-	}
+	//if(intersections.length > 0){
+	//	console.log('Particle has collided!');
+	//}
 
-	this.timeAlive += dt;
+	
 }
 
 function GeometryState(shader, ID){
