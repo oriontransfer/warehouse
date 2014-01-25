@@ -73,7 +73,7 @@ AngryBox = {
 		document.body.appendChild(this.renderer.domElement);
 
 		this.timestep = 1.0/30.0;
-		setInterval(this.timestep, this.update.bind(this));
+		this.timer = setInterval(this.update.bind(this), this.timestep);
 
 		this.render();
 	},
