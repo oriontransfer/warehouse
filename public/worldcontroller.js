@@ -29,6 +29,9 @@ WorldController.prototype.update = function(dt) {
 	this.worldState.update(dt);
 	
 	this.playerGeometryController.update();
+	
+	this.currentPlayer.rigidBody.position.copy(this.camera.position);
+	this.camera.position.z = 10;
 
 	//console.log(this.currentPlayer.position.x);
 
