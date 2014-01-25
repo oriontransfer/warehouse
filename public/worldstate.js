@@ -200,6 +200,7 @@ function PlayerState(name, ID) {
 	this.isMakingNoise  = false;
 	this.isRunning = false;
 	this.isShooting = false;
+	this.isAlive = true;
 
 	this.worldInside = null;
 	this.name = name;
@@ -347,6 +348,11 @@ PlayerState.prototype.update = function(dt){
 	}
 	else this.isMakingNoise = true;
 
+	if(this.health <= 0 && this.isAlive){
+		console.log('Player has died');
+		this.isAlive = false;
+	}
+
 }
 
 function Projectile(startingLocation, speed, direction, emittedFrom, ID) {
@@ -359,12 +365,13 @@ function Projectile(startingLocation, speed, direction, emittedFrom, ID) {
 	this.speed = speed;
 	this.bodyEmittedFrom = emittedFrom;
 	this.worldInside = null;
-	this.timeAlive = 0;
+	this.timeaAlive = 0;
 }
 
 Projectile.ORIGIN = new CANNON.Vec3(0,0,0); //constant used for distance calculations
 Projectile.LIFETIME_MS = 0.5;
 Projectile.KNOCK_BACK = 40000;
+Projectile.DAMAGE = 30;
 
 Projectile.prototype.update = function(dt){
 	this.position.copy(Projectile.ORIGIN);
@@ -377,7 +384,9 @@ Projectile.prototype.update = function(dt){
 	for(var i = 0; i < intersections.length; i+=1){
 		if(intersections[i] != this.bodyEmittedFrom){
 			intersections[i].body.applyForce(intersections[i].body.position, this.direction.mult(Projectile.KNOCK_BACK));
+			intersections[i].body.userData.doDamage(Projectile.DAMAGE);
 			i = intersections.length+1;
+			this.timeAlive = Projectile.LIFETIME_MS+1;
 		}
 	}
 	this.position = this.position.vadd(this.direction.mult(this.speed));
