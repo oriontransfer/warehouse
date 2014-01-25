@@ -213,8 +213,8 @@ PlayerState.WALKING_SPEED = 4000;
 PlayerState.RUNNING_SPEED = 8000;
 PlayerState.WALKING_ROT_SPEED = 1;
 PlayerState.RUNNING_ROT_SPEED = 0.05;
-PlayerState.MAX_WALKING_SPEED = .1;
-PlayerState.MAX_RUNNING_SPEED = 40;
+PlayerState.MAX_WALKING_SPEED = 4002;
+PlayerState.MAX_RUNNING_SPEED = 8004;
 PlayerState.FIRE_RATE_PER_SECOND = 1;
 PlayerState.BULLET_SPEED = 1;
 PlayerState.Motion = {
@@ -315,7 +315,7 @@ PlayerState.prototype.update = function(dt){
 
 	//this.rotationQuat.vmult(PlayerState.combinedDirectionBuffer, PlayerState.combinedDirection);
 
-	if(this.motion == PlayerState.Motion.WALKING && this.rigidBody.velocity.distanceTo(PlayerState.ORIGIN) < PlayerState.WALKING_SPEED){
+	if(this.motion == PlayerState.Motion.WALKING){
 		var impulseDirection = new CANNON.Vec3(0,0,0);
 		//this.position.copy(impulseDirection);
 
@@ -325,11 +325,12 @@ PlayerState.prototype.update = function(dt){
 
 		this.rotationQuat.vmult(impulseDirection, PlayerState.finalImpulseDir);
 
+		var finalLength = this.rigidBody.velocity.vadd(PlayerState.finalImpulseDir).distanceTo(PlayerState.ORIGIN);
 		var position = new CANNON.Vec3(0,0);
 		this.position.copy(position);
 		//position.y -= 0.5;
 		///this.rigidBody.applyForce(new CANNON.Vec3(0,0,10000), this.position);
-		this.rigidBody.applyForce(PlayerState.finalImpulseDir, position);
+		if(finalLength < ((!this.isRunning) ? PlayerState.MAX_WALKING_SPEED : PlayerState.MAX_RUNNING_SPEED))this.rigidBody.applyForce(PlayerState.finalImpulseDir, position);
 
 	}
 
@@ -349,7 +350,7 @@ PlayerState.prototype.update = function(dt){
 	else this.isMakingNoise = true;
 
 	if(this.health <= 0 && this.isAlive){
-		console.log('Player has died');
+		//console.log('Player has died');
 		this.isAlive = false;
 	}
 
@@ -396,11 +397,11 @@ Projectile.prototype.update = function(dt){
 
 	if(this.timeAlive > Projectile.LIFETIME_MS){
 		this.worldInside.removeProjectile(this);
-		console.log('Particle has died');
+		//console.log('Particle has died');
 	}
 
 	if(intersections.length > 0){
-		console.log('Particle has collided!');
+		//console.log('Particle has collided!');
 	}
 
 	this.timeAlive += dt;

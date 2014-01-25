@@ -205,7 +205,7 @@ WorldController.prototype.handleEvent = function(event, action){
 				else this.currentPlayer.isShooting = false;
 			break;
 			case EventType.FAST:
-				console.log("FAST ");
+				//console.log("FAST ");
 				if(action) this.currentPlayer.isRunning = true;
 				else this.currentPlayer.isRunning = false;
 			break;
