@@ -137,7 +137,7 @@ WorldState.prototype.addPlayer = function(name, startingLocationVEC3){
 
 	boxBody.angularDamping = WorldState.ANGULAR_DAMPING;
 	//boxBody.material = this.boxPhysicsMaterial;
-	//startingLocationVEC3.z += 5.0;
+	startingLocationVEC3.z += 1;
 	startingLocationVEC3.copy(boxBody.position);
 
 	//Store references to each other for call backs.
@@ -350,7 +350,7 @@ PlayerState.prototype.update = function(dt){
 	else this.isMakingNoise = true;
 
 	if(this.health <= 0 && this.isAlive){
-		//console.log('Player has died');
+		console.log('Player has died');
 		this.isAlive = false;
 	}
 
@@ -373,14 +373,24 @@ Projectile.ORIGIN = new CANNON.Vec3(0,0,0); //constant used for distance calcula
 Projectile.LIFETIME_MS = 0.5;
 Projectile.KNOCK_BACK = 40000;
 Projectile.DAMAGE = 30;
-
+Projectile.bodiesToIntersect = new Array();
 Projectile.prototype.update = function(dt){
+
+	//Fill the bodies to intersect array
+	while(Projectile.bodiesToIntersect.length > 0){
+		Projectile.bodiesToIntersect.pop();
+	}
+
+	this.worldInside.players.forEach(function(player){
+		Projectile.bodiesToIntersect.push(player.rigidBody);
+	});
+
 	this.position.copy(Projectile.ORIGIN);
 	this.ray = this.direction.mult(this.speed);
 	///this.ray.z = 0;
 
 	var ray = new CANNON.Ray(Projectile.ORIGIN, this.ray);
-	var intersections = ray.intersectBodies(this.worldInside.world.bodies)
+	var intersections = ray.intersectBodies(Projectile.bodiesToIntersect);
 	
 	for(var i = 0; i < intersections.length; i+=1){
 		if(intersections[i] != this.bodyEmittedFrom){
@@ -397,11 +407,11 @@ Projectile.prototype.update = function(dt){
 
 	if(this.timeAlive > Projectile.LIFETIME_MS){
 		this.worldInside.removeProjectile(this);
-		//console.log('Particle has died');
+		console.log('Particle has died');
 	}
 
 	if(intersections.length > 0){
-		//console.log('Particle has collided!');
+		console.log('Particle has collided!');
 	}
 
 	this.timeAlive += dt;
