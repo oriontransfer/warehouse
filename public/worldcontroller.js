@@ -11,12 +11,10 @@ function WorldController() {
 	this.playerGeometryController = new GeometryController(this.scene, this.worldState.players);
 	
 	this.currentPlayer = this.worldState.addPlayer("Mr Pickles", new CANNON.Vec3(0, 0, 0));
+	this.player2 	   = this.worldState.addPlayer("Mr Pickles", new CANNON.Vec3(5, 5, 0));
+	this.player3       = this.worldState.addPlayer("Mr Pickles", new CANNON.Vec3(-5, 5, 0));
 	
-	//this.visibilityController = new VisibilityController(this.currentPlayer, this.worldState);
-	// this.worldState.world.bodies
-	// -> [CANNON.RigidBody, CANNON.RigidBody]
-	// this.currentPlayer.rigidBody.shape
-	// CANNON.Box {type: 4, aabbmin: CANNON.Vec3, aabbmax: CANNON.Vec3, boundingSphereRadius: 0.692820323027551, boundingSphereRadiusNeedsUpdate: false…}
+	this.visibilityController = new VisibilityController(this.currentPlayer, this.worldState);
 }
 
 WorldController.prototype.setup = function() {
@@ -27,10 +25,7 @@ WorldController.prototype.update = function(dt) {
 	
 	this.playerGeometryController.update();
 	
-	// RD: Todo: add visibility controller
-	//this.visibilityController.update();
-	// this.currentPlayer.rigidBody.position
-	// this.currentPlayer.rigidBody.quaternion
+	this.visibilityController.update();
 }
 
 WorldController.prototype.render = function(renderer) {
