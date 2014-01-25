@@ -35,15 +35,15 @@ WorldState.prototype.initPhysics = function(){
 
 	var solver = new CANNON.GSSolver();
 
-	world.defaultContactMaterial.contactEquationStiffness = 1e9;
+	//world.defaultContactMaterial.contactEquationStiffness = 1e9;
     world.defaultContactMaterial.contactEquationRegularizationTime = 4;
 
     solver.iterations = 7;
     solver.tolerance = 0.1;
 
-    world.solver = solver;
+    world.solver = new CANNON.SplitSolver(solver);
 
-    world.gravity.set(0, 0, -20);
+    world.gravity.set(0, 0, -1);
 
 	world.broadphase = new CANNON.NaiveBroadphase();
 
@@ -51,14 +51,14 @@ WorldState.prototype.initPhysics = function(){
 	var boxPhysicsMaterial = new CANNON.ContactMaterial("BOX_PHY_MATERIAL");
 	this.boxPhysicsContactMaterial = new CANNON.ContactMaterial(boxPhysicsMaterial,
 																boxPhysicsMaterial,
-																0.0,
-																0.0);
+																0,
+																1.0);
 
 	var groundPhysicsMaterial = new CANNON.ContactMaterial("GROUND_PHY_MATERIAL");
 	this.groundPhysicsContactMaterial = new CANNON.ContactMaterial(groundPhysicsMaterial,
 																groundPhysicsMaterial,
-																0.0,
-																0.0);
+																0,
+																1.0);
 
 	world.addContactMaterial(this.boxPhysicsContactMaterial);
 	world.addContactMaterial(this.groundPhysicsContactMaterial);
@@ -177,7 +177,7 @@ function PlayerState(name, ID) {
 }
 
 //Const player variables.
-PlayerState.WALKING_SPEED = 250.0;
+PlayerState.WALKING_SPEED = 0.6;
 PlayerState.RUNNING_SPEED = 2.0;
 PlayerState.WALKING_ROT_SPEED = 0.1;
 PlayerState.RUNNING_ROT_SPEED = 0.05;
@@ -245,10 +245,10 @@ PlayerState.prototype.update = function(dt){
 
 	switch(this.motionDirection){
 		case PlayerState.Direction.FORWARD:
-			PlayerState.combinedDirectionBuffer.y = -1;
+			PlayerState.combinedDirectionBuffer.y = 1;
 		break;
 		case PlayerState.Direction.BACKWARD:
-			PlayerState.combinedDirectionBuffer.y = 1;
+			PlayerState.combinedDirectionBuffer.y = -1;
 		break;
 		case PlayerState.Direction.LEFT:
 			PlayerState.combinedDirectionBuffer.x = -1;
@@ -268,7 +268,7 @@ PlayerState.prototype.update = function(dt){
 		impulseDirection = impulseDirection.vadd(PlayerState.combinedDirectionBuffer);
 		impulseDirection = impulseDirection.mult(PlayerState.WALKING_SPEED);
 
-		this.rigidBody.applyForce(impulseDirection, this.position);
+		this.rigidBody.applyImpulse(impulseDirection, this.position);
 	}
 	if(this.motion == PlayerState.Motion.RUNNING && this.rigidBody.velocity.distanceTo(PlayerState.ORIGIN) < PlayerState.RUNNING_SPEED){
 		var impulseDirection = new CANNON.Vec3(0,0,0);
@@ -278,7 +278,7 @@ PlayerState.prototype.update = function(dt){
 		impulseDirection = impulseDirection.vadd(PlayerState.combinedDirectionBuffer);
 		impulseDirection = impulseDirection.mult(PlayerState.RUNNING_SPEED);
 
-		this.rigidBody.applyForce(impulseDirection, this.position);
+		this.rigidBody.applyImpulse(impulseDirection, this.position);
 	}
 
 	if(this.rotation == PlayerState.Motion.WALKING && this.rigidBody.velocity.distanceTo(PlayerState.ORIGIN) < PlayerState.WALKING_SPEED){
