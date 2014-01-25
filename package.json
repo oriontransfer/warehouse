@@ -5,7 +5,6 @@
   "dependencies": {
     "express": "3.0.0",
     "socket.io": "*",
-    "cannon": "git://github.com/schteppe/cannon.js#master",
-    "three": "0.58.10"
+    "cannon": "git://github.com/schteppe/cannon.js#master"
   }
 }
