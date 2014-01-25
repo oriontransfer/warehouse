@@ -372,7 +372,9 @@ Projectile.prototype.update = function(dt){
 	var ray = new CANNON.Ray(Projectile.ORIGIN, this.ray);
 	var intersections = ray.intersectBodies(this.worldInside.world.bodies)
 	
-	for(var i = 0; i < intersections)
+	for(var i = 0; i < intersections; i+=1){
+		
+	}
 	this.position = this.position.vadd(this.direction.mult(this.speed));
 
 	if(this.timeAlive > Projectile.LIFETIME_MS){
