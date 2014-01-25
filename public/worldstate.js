@@ -21,7 +21,7 @@ function WorldState() {
 
 //Const world variables
 WorldState.PLAYER_SIZE_HALF = 0.4;
-WorldState.PLAYER_MASS = 10;
+WorldState.PLAYER_MASS = 2515 * 0.5;
 
 WorldState.PROJECTILE_SIZE_HALF = 0.05;
 WorldState.PROJECTILE_MASS = 0;
@@ -31,34 +31,43 @@ WorldState.prototype.initPhysics = function(){
 
 	//Initialise the world
 	this.world = new CANNON.World();
+	this.world.broadphase = new CANNON.NaiveBroadphase();
 	var world = this.world;
 
 	var solver = new CANNON.GSSolver();
 
-	//world.defaultContactMaterial.contactEquationStiffness = 1e9;
-    world.defaultContactMaterial.contactEquationRegularizationTime = 4;
+	world.defaultContactMaterial.contactEquationStiffness = 1e8;
+    world.defaultContactMaterial.contactEquationRegularizationTime = 3;
 
-    solver.iterations = 7;
-    solver.tolerance = 0.1;
+    solver.iterations = 20;
+    solver.tolerance = 0;
 
-    world.solver = new CANNON.SplitSolver(solver);
+    world.solver = solver;
 
-    world.gravity.set(0, 0, -1);
+    world.gravity.set(0, 0, -9.8);
 
-	world.broadphase = new CANNON.NaiveBroadphase();
+	
 
 	//Initialise the physics contact materials.
 	var boxPhysicsMaterial = new CANNON.ContactMaterial("BOX_PHY_MATERIAL");
 	this.boxPhysicsContactMaterial = new CANNON.ContactMaterial(boxPhysicsMaterial,
 																boxPhysicsMaterial,
-																0,
-																1.0);
+																0.1,
+																0.3);
+
+	// Adjust constraint equation parameters
+    this.boxPhysicsContactMaterial.contactEquationStiffness = 1e8;
+    this.boxPhysicsContactMaterial.contactEquationRegularizationTime = 3;
 
 	var groundPhysicsMaterial = new CANNON.ContactMaterial("GROUND_PHY_MATERIAL");
 	this.groundPhysicsContactMaterial = new CANNON.ContactMaterial(groundPhysicsMaterial,
 																groundPhysicsMaterial,
-																0,
-																1.0);
+																0.1,
+																0.3);
+
+	// Adjust constraint equation parameters
+   	this.groundPhysicsContactMaterial.contactEquationStiffness = 1e8;
+    this.groundPhysicsContactMaterial.contactEquationRegularizationTime = 3;
 
 	world.addContactMaterial(this.boxPhysicsContactMaterial);
 	world.addContactMaterial(this.groundPhysicsContactMaterial);
@@ -177,7 +186,7 @@ function PlayerState(name, ID) {
 }
 
 //Const player variables.
-PlayerState.WALKING_SPEED = 0.6;
+PlayerState.WALKING_SPEED = 40000;
 PlayerState.RUNNING_SPEED = 2.0;
 PlayerState.WALKING_ROT_SPEED = 0.1;
 PlayerState.RUNNING_ROT_SPEED = 0.05;
@@ -268,7 +277,12 @@ PlayerState.prototype.update = function(dt){
 		impulseDirection = impulseDirection.vadd(PlayerState.combinedDirectionBuffer);
 		impulseDirection = impulseDirection.mult(PlayerState.WALKING_SPEED);
 
-		this.rigidBody.applyImpulse(impulseDirection, this.position);
+		var position = new CANNON.Vec3(0,0);
+		this.position.copy(position);
+		position.y -= 0.5;
+		//this.rigidBody.applyForce(new CANNON.Vec3(0,0,10000), this.position);
+		this.rigidBody.applyForce(impulseDirection, position);
+
 	}
 	if(this.motion == PlayerState.Motion.RUNNING && this.rigidBody.velocity.distanceTo(PlayerState.ORIGIN) < PlayerState.RUNNING_SPEED){
 		var impulseDirection = new CANNON.Vec3(0,0,0);

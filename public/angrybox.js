@@ -87,7 +87,7 @@ AngryBox = {
 		this.renderer.setSize(window.innerWidth, window.innerHeight);
 		document.body.appendChild(this.renderer.domElement);
 
-		this.timestep = 1.0/30.0;
+		this.timestep = 1.0/60.0;
 		this.timer = setInterval(this.update.bind(this), this.timestep);
 
 		this.render();
