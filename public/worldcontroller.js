@@ -20,11 +20,12 @@ function WorldController() {
 	this.worldState.addPlayer("Bob", new CANNON.Vec3(5, 5, 0));
 	this.worldState.addPlayer("John", new CANNON.Vec3(-5, 5, 0));
 	this.worldState.addPlayer("Peach", new CANNON.Vec3(-5, 2, 0));
-	
-	this.visibilityController = new VisibilityController(this.currentPlayer, this.worldState);
-	
+		
 	this.floorController = new FloorController(this.scene, [32, 12]);
 	this.floorController.generate();
+	
+	this.wallController = new WallController(this.scene, [32, 12]);
+	this.wallController.generate();
 }
 
 WorldController.prototype.setup = function() {
@@ -40,8 +41,6 @@ WorldController.prototype.update = function(dt) {
 	this.camera.position.y -= 2.5;
 
 	//console.log(this.currentPlayer.position.x);
-
-	this.visibilityController.update();
 }
 
 WorldController.prototype.render = function(renderer) {

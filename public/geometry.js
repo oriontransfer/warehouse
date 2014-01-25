@@ -105,3 +105,64 @@ FloorController.prototype.generate = function()
 		}
 	}
 }
+
+function WallController (scene, size)
+{
+	this.scene = scene;
+	this.size = size;
+	
+	this.random = new RandomGenerator(612351235);
+	
+	this.tiles = [
+		AngryBox.assets.get('wall-corner'),
+		AngryBox.assets.get('wall-window'),
+		AngryBox.assets.get('wall-supported')
+	];
+} 
+
+WallController.prototype.generate = function()
+{
+	//CORNERS
+	var corner_tile = this.tiles[0];
+	var corner_mesh_1 = new THREE.Mesh(corner_tile.geometry, corner_tile.material);
+	corner_mesh_1.position.x = (this.size[0]+1)*8 - 8 ;
+	corner_mesh_1.position.y = (this.size[1]-1)*8 + 8;	
+	corner_mesh_1.rotateOnAxis((new THREE.Vector3(0, 0, 1)).normalize(), D2R(270));		
+	this.scene.add(corner_mesh_1);
+	
+	var corner_mesh_2 = new THREE.Mesh(corner_tile.geometry, corner_tile.material);
+	corner_mesh_2.position.x = - 8 ;
+	corner_mesh_2.position.y = (this.size[1]-1)*8 + 8;		
+	this.scene.add(corner_mesh_2);
+		
+	//WALLS
+	for(var x = 1; x<this.size[0]+1; x+=1){
+		var rand = this.random.nextInteger(2)%2 + 1;
+		var tile = this.tiles[rand];
+		var mesh = new THREE.Mesh(tile.geometry, tile.material);
+		mesh.position.x = x * 8 - 8 ;
+		mesh.position.y = (this.size[1]-1)*8 + 8;		
+		this.scene.add(mesh);
+	}
+		
+	for(var y = 0; y<this.size[1]; y+=1){
+		//LEFT
+		var rand = this.random.nextInteger(2)%2 + 1;
+		var tile =  this.tiles[rand] ;
+		var mesh = new THREE.Mesh(tile.geometry, tile.material);
+		mesh.position.x = - 8;
+		mesh.position.y = y * 8 ;	
+		mesh.rotateOnAxis((new THREE.Vector3(0, 0, 1)).normalize(), D2R(90));
+		this.scene.add(mesh);
+		
+		//RIGHT
+		rand = this.random.nextInteger(2)%2 + 1;
+		tile =  this.tiles[rand] ;
+		mesh = new THREE.Mesh(tile.geometry, tile.material);
+		mesh.position.x = (this.size[0]+1)*8 - 8;
+		mesh.position.y = y * 8 ;	
+		mesh.rotateOnAxis((new THREE.Vector3(0, 0, 1)).normalize(), D2R(270));
+		this.scene.add(mesh);
+	}
+	
+}
