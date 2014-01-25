@@ -5,16 +5,36 @@ function WorldController() {
 	
 	this.scene = new THREE.Scene();
 	
-	var ambientLight = new THREE.AmbientLight(0xFFFFFF);
+	var ambientLight = new THREE.AmbientLight(0x222222);
 	this.scene.add(ambientLight);
 	
+	this.scene.fog = new THREE.Fog(0x59472b, 25, 40);
+	
 	this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-	
-	this.camera.position.z = 10;
-	
-    this.camera.rotateOnAxis((new THREE.Vector3(1, 0, 0)).normalize(), D2R(15));
+	this.camera.position.z = 20;
+    this.camera.rotateOnAxis((new THREE.Vector3(1, 0, 0)).normalize(), D2R(45));
 	
 	this.playerGeometryController = new GeometryController(this.scene, this.worldState.players);
+	
+	var light = new THREE.SpotLight(0xffffff, 3, 200, Math.PI / 5, 2.0);
+	light.target.position.set(0, 0, 0);
+
+	light.castShadow = true;
+
+	light.shadowCameraNear = 0.001;
+	light.shadowCameraFar = 1024;
+	light.shadowCameraFov = 75;
+	
+	light.shadowBias = 0.1;
+	light.shadowDarkness = 0.5;
+	
+	light.shadowMapWidth = 1024;
+	light.shadowMapHeight = 1024;
+	
+	light.shadowCameraVisible = true;
+	
+	this.playerLight = light;
+	this.scene.add(this.playerLight);
 	
 	this.currentPlayer = this.worldState.addPlayer("Mr Pickles", new CANNON.Vec3(0, 0, 0));
 	this.worldState.addPlayer("Bob", new CANNON.Vec3(5, 5, 0));
@@ -32,9 +52,76 @@ function WorldController() {
 	this.worldState.addBoxGeometry(new CANNON.Vec3(32*8-3,12*4,0), new CANNON.Vec3(1,12*4+4,100), 0, "");//right
 	this.worldState.addBoxGeometry(new CANNON.Vec3(32*4,12*8-3,0), new CANNON.Vec3(32*8,1,100), 0, "");//up
 	this.worldState.addBoxGeometry(new CANNON.Vec3(32*4,-5,0), new CANNON.Vec3(32*8,1,100), 0, "");//down
+	
+	this.createInterface();
 }
 
-WorldController.prototype.setup = function() {
+WorldController.prototype.setup = function(renderer) {
+	renderer.setClearColor(this.scene.fog.color, 1);
+	renderer.autoClear = false;
+}
+
+WorldController.prototype.createInterface = function() {
+	var aspect = window.innerWidth / window.innerHeight;
+
+	this.cameraOrtho = new THREE.OrthographicCamera(- aspect, aspect,  1, - 1, 1, 10);
+	this.cameraOrtho.position.z = 5;
+
+	var shader = THREE.UnpackDepthRGBAShader;
+	var uniforms = new THREE.UniformsUtils.clone(shader.uniforms);
+
+	uniforms.tDiffuse.value = this.playerLight.shadowMap;
+
+	var hudMaterial = new THREE.ShaderMaterial({vertexShader: shader.vertexShader, fragmentShader: shader.fragmentShader, uniforms: uniforms});
+	var hudHeight = 2 / 3;
+	var hudWidth = hudHeight * 1.0;
+
+	var hudGeo = new THREE.PlaneGeometry(hudWidth, hudHeight);
+	hudGeo.applyMatrix(new THREE.Matrix4().makeTranslation(hudWidth / 2, hudHeight / 2, 0));
+
+	this.hudMesh = new THREE.Mesh(hudGeo, hudMaterial);
+
+	this.hudMesh.position.x = this.cameraOrtho.left + 0.05;
+	this.hudMesh.position.y = this.cameraOrtho.bottom + 0.05;
+
+	this.sceneHUD = new THREE.Scene();
+	this.sceneHUD.add(this.hudMesh);
+
+	this.cameraOrtho.lookAt(this.sceneHUD.position);
+}
+
+WorldController.prototype.resizeWindow = function(width, height) {
+	var aspect = width / height;
+	
+	this.camera.aspect = aspect;
+	this.camera.updateProjectionMatrix();
+
+	this.cameraOrtho.left = -aspect;
+	this.cameraOrtho.right = aspect;
+	this.cameraOrtho.top = 1;
+	this.cameraOrtho.bottom = -1;
+	this.cameraOrtho.updateProjectionMatrix();
+
+	this.hudMesh.position.x = this.cameraOrtho.left + 0.05;
+	this.hudMesh.position.y = this.cameraOrtho.bottom + 0.05;
+}
+
+WorldController.prototype.updateCurrentPlayer = function() {
+	this.currentPlayer.rigidBody.position.copy(this.camera.position);
+	this.camera.position.z = 20;
+	this.camera.position.y -= 10;
+	
+	this.currentPlayer.rigidBody.position.copy(this.playerLight.position);
+	this.playerLight.position.z += 1.0;
+	
+	var rotation = new THREE.Quaternion();
+	
+	this.currentPlayer.rigidBody.quaternion.copy(rotation);
+	
+	var direction = new THREE.Vector3(0, 20, 0);
+	direction.applyQuaternion(rotation);
+	
+	this.playerLight.target.position.addVectors(this.currentPlayer.rigidBody.position, direction);
 }
 
 WorldController.prototype.update = function(dt) {
@@ -42,15 +129,17 @@ WorldController.prototype.update = function(dt) {
 	
 	this.playerGeometryController.update();
 	
-	this.currentPlayer.rigidBody.position.copy(this.camera.position);
-	this.camera.position.z = 10;
-	this.camera.position.y -= 2.5;
-
+	this.updateCurrentPlayer();
+	
 	//console.log(this.currentPlayer.position.x);
 }
 
 WorldController.prototype.render = function(renderer) {
+	renderer.clear();
 	renderer.render(this.scene, this.camera);
+	
+	renderer.clearDepth();
+	renderer.render(this.sceneHUD, this.cameraOrtho);
 }
 
 EventType = {

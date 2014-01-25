@@ -21,7 +21,10 @@ AngryBox = {
 		// ** Box **
 		this.assets.loadWithCallback('box', function(completeLoad) {
 			loader.load("models/box/model.js", function(geometry, materials) {
-				completeLoad(new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(materials)));
+				var faceMaterial = new THREE.MeshPhongMaterial( { color: 0xffdd99 } );
+				//new THREE.MeshFaceMaterial(materials))
+				
+				completeLoad({geometry: geometry, material: faceMaterial});
 			});
 		});
 		
@@ -36,7 +39,8 @@ AngryBox = {
 		
 		this.assets.loadWithCallback('floor-flat', function(completeLoad) {
 			loader.load("models/floor-flat/model.js", function(geometry, materials) {
-				var faceMaterial = new THREE.MeshFaceMaterial(materials);
+				//var faceMaterial = new THREE.MeshFaceMaterial(materials);
+				var faceMaterial = new THREE.MeshPhongMaterial( { color: 0xffdd99 } );
 				
 				completeLoad({geometry: geometry, material: faceMaterial});
 			});
@@ -113,13 +117,10 @@ AngryBox = {
 		
 		this.controller = controller;
 		
-		controller.setup("Angry Player", new CANNON.Vec3(0,0,0));
+		controller.setup(this.renderer);
 	},
 	
 	run: function(controller) {
-		if (controller) this.setController(controller);
-		else this.setController(this.controller);
-		
 		this.eventState[Event.FAST] = false;
 		
 		// Setup keyboard bindings:
@@ -129,24 +130,18 @@ AngryBox = {
 		
 		this.renderer = new THREE.WebGLRenderer();
 		
-		//this.renderer.shadowMapEnabled = true;
-		//this.renderer.shadowMapSoft = true;
-		//
-		//this.renderer.shadowCameraNear = 3;
-		//this.renderer.shadowCameraFar = 1024;
-		//this.renderer.shadowCameraFov = 50;
-		//
-		//this.renderer.shadowMapBias = 0.0039;
-		//this.renderer.shadowMapDarkness = 0.5;
-		//this.renderer.shadowMapWidth = 1024;
-		//this.renderer.shadowMapHeight = 1024;
-
+		this.renderer.shadowMapEnabled = true;
+		this.renderer.shadowMapType = THREE.PCFShadowMap;
+		
 		this.renderer.setSize(window.innerWidth, window.innerHeight);
 		document.body.appendChild(this.renderer.domElement);
-
+		
+		if (controller) this.setController(controller);
+		else this.setController(this.controller);
+		
 		this.timestep = 1.0/60.0;
 		this.timer = setInterval(this.update.bind(this), this.timestep);
-
+		
 		this.render();
 	},
 
@@ -209,6 +204,10 @@ AngryBox = {
 	},
 	
 	resizeWindow: function(e) {
-		console.log("Resize window:", e)
+		console.log("Resize window:", e);
+		
+		this.renderer.setSize(window.innerWidth, window.innerHeight);
+		
+		this.controller.resizeWindow(window.innerWidth, window.innerHeight);
 	},
 };

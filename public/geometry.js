@@ -43,6 +43,9 @@ GeometryController.prototype.onAdd = function(key, object)
 	var box = AngryBox.assets.get('box');
 	object.mesh = new THREE.Mesh(box.geometry, box.material);
 	
+	object.mesh.castShadow = true;
+	object.mesh.receiveShadow = true;
+	
 	this.scene.add(object.mesh);
 }
 
@@ -97,6 +100,9 @@ FloorController.prototype.generate = function()
 			console.log("tile", i, tile);
 			
 			var mesh = new THREE.Mesh(tile.geometry, tile.material);
+			
+			mesh.castShadow = false;
+			mesh.receiveShadow = true;
 			
 			mesh.position.x = x * 8;
 			mesh.position.y = y * 8;
