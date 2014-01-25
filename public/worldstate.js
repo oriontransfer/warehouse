@@ -19,7 +19,7 @@ function WorldState() {
 
 //Const world variables
 WorldState.PLAYER_SIZE_HALF = 0.4;
-WorldState.PLAYER_MASS = 1;
+WorldState.PLAYER_MASS = 10;
 
 WorldState.PROJECTILE_SIZE_HALF = 0.05;
 WorldState.PROJECTILE_MASS = 0;
@@ -50,13 +50,13 @@ WorldState.prototype.initPhysics = function(){
 	this.boxPhysicsContactMaterial = new CANNON.ContactMaterial(boxPhysicsMaterial,
 																boxPhysicsMaterial,
 																0.0,
-																0.3);
+																0.0);
 
 	var groundPhysicsMaterial = new CANNON.ContactMaterial("GROUND_PHY_MATERIAL");
 	this.groundPhysicsContactMaterial = new CANNON.ContactMaterial(groundPhysicsMaterial,
 																groundPhysicsMaterial,
 																0.0,
-																0.3);
+																0.0);
 
 	world.addContactMaterial(this.boxPhysicsContactMaterial);
 	world.addContactMaterial(this.groundPhysicsContactMaterial);
@@ -175,11 +175,11 @@ function PlayerState(name, ID) {
 }
 
 //Const player variables.
-PlayerState.WALKING_SPEED = 500.0;
+PlayerState.WALKING_SPEED = 250.0;
 PlayerState.RUNNING_SPEED = 2.0;
 PlayerState.WALKING_ROT_SPEED = 0.1;
 PlayerState.RUNNING_ROT_SPEED = 0.05;
-PlayerState.MAX_WALKING_SPEED = 40;
+PlayerState.MAX_WALKING_SPEED = .1;
 PlayerState.MAX_RUNNING_SPEED = 40;
 PlayerState.Motion = {
 	WALKING: 1,
@@ -232,7 +232,7 @@ PlayerState.prototype.setRotationState = function(state, direction) {
 PlayerState.ORIGIN = new CANNON.Vec3(0,0,0); //constant used for distance calculations
 PlayerState.combinedDirectionBuffer = new CANNON.Vec3(0,0,0);//Combined direction stores a direction based on key input.
 PlayerState.combinedDirection = new CANNON.Vec3(0,0,0);
-PlayerState.FORWARD = new CANNON.Vec3(0,0,-1);
+PlayerState.FORWARD = new CANNON.Vec3(0,-1,0);
 
 PlayerState.prototype.update = function(dt){
 	this.position = this.rigidBody.position;
@@ -256,27 +256,27 @@ PlayerState.prototype.update = function(dt){
 		break;
 	}
 
-	this.rotationQuat.vmult(PlayerState.combinedDirectionBuffer, PlayerState.combinedDirection);
+	//this.rotationQuat.vmult(PlayerState.combinedDirectionBuffer, PlayerState.combinedDirection);
 
 	if(this.motion == PlayerState.Motion.WALKING && this.rigidBody.velocity.distanceTo(PlayerState.ORIGIN) < PlayerState.WALKING_SPEED){
 		var impulseDirection = new CANNON.Vec3(0,0,0);
 		//this.position.copy(impulseDirection);
 
 		//impulseDirection = impulseDirection.vsub(this.direction);
-		impulseDirection = impulseDirection.vadd(PlayerState.combinedDirection);
+		impulseDirection = impulseDirection.vadd(PlayerState.combinedDirectionBuffer);
 		impulseDirection = impulseDirection.mult(PlayerState.WALKING_SPEED);
 
-		this.rigidBody.applyImpulse(impulseDirection, this.position);
+		this.rigidBody.applyForce(impulseDirection, this.position);
 	}
 	if(this.motion == PlayerState.Motion.RUNNING && this.rigidBody.velocity.distanceTo(PlayerState.ORIGIN) < PlayerState.RUNNING_SPEED){
 		var impulseDirection = new CANNON.Vec3(0,0,0);
 		//this.position.copy(impulseDirection);
 
 		//impulseDirection = impulseDirection.vsub(this.direction);
-		impulseDirection = impulseDirection.vadd(PlayerState.combinedDirection);
+		impulseDirection = impulseDirection.vadd(PlayerState.combinedDirectionBuffer);
 		impulseDirection = impulseDirection.mult(PlayerState.RUNNING_SPEED);
 
-		this.rigidBody.applyImpulse(impulseDirection, this.position);
+		this.rigidBody.applyForce(impulseDirection, this.position);
 	}
 
 	if(this.rotation == PlayerState.Motion.WALKING && this.rigidBody.velocity.distanceTo(PlayerState.ORIGIN) < PlayerState.WALKING_SPEED){
@@ -310,7 +310,7 @@ function Protectile(speed, direction, ID) {
 
 	//Positional
 	this.position = null;
-	this.direction = new CANNON.Vec3(0, 0, 0);
+	this.direction = new CANNON.Vec3(0, -1, 0);
 	this.rotationQuat = null;
 	this.speed = speed;
 
