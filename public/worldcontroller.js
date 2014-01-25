@@ -19,6 +19,9 @@ WorldController.prototype.setup = function() {
 WorldController.prototype.update = function(dt) {
 	this.worldState.update(dt);
 	this.geometryController.update();
+
+	console.log(this.currentPlayer.position.x);
+
 }
 
 WorldController.prototype.render = function(renderer) {

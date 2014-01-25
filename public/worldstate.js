@@ -106,7 +106,6 @@ WorldState.addBoxGeometry = function(locationVEC3, halfExtentsVEC3, shader){
 
 WorldState.prototype.addPlayer = function(name, startingLocationVEC3){
 	var newPlayer = new PlayerState(name, this.playerIDCounter++);
-	this.players.add(newPlayer);
 	// var tileInside = new Vec2(startingLocationVEC2[0] / this.tileMap.tileSize[0], startingLocationVEC2[1] / this.tileMap.tileSize[1]);
 	// newPlayer.tileInside = this.tileMap.get(tileInside);
 	// tileInside.playersInTile.push(newPlayer);
