@@ -384,7 +384,10 @@ Projectile.prototype.update = function(dt){
 	for(var i = 0; i < intersections.length; i+=1){
 		if(intersections[i] != this.bodyEmittedFrom){
 			intersections[i].body.applyForce(intersections[i].body.position, this.direction.mult(Projectile.KNOCK_BACK));
-			intersections[i].body.userData.doDamage(Projectile.DAMAGE);
+			if(intersections[i].body.userData && intersections[i].body.userData instanceof PlayerState){
+				intersections[i].body.userData.doDamage(Projectile.DAMAGE);
+			}
+		
 			i = intersections.length+1;
 			this.timeAlive = Projectile.LIFETIME_MS+1;
 		}
