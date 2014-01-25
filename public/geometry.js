@@ -34,12 +34,10 @@ GeometryController.prototype.onRemove = function(key, object)
 
 GeometryController.prototype.update = function()
 {
-	for (var key in this.container) {
-		var object = this.container[key];
-		
+	this.container.forEach(function(object) {
 		var mesh = object.mesh, rigidBody = object.rigidBody;
 		
 		rigidBody.position.copy(mesh.position);
 		rigidBody.quaternion.copy(mesh.quaternion);
-	}
+	});
 }
