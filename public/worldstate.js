@@ -25,7 +25,7 @@ WorldState.PLAYER_MASS = 2515 * 0.5;
 WorldState.ANGULAR_DAMPING = 0.99;
 
 WorldState.PROJECTILE_SIZE_HALF = 0.05;
-WorldState.PROJECTILE_MASS = 0;
+WorldState.PROJECTILE_MASS = 0.1;
 
 
 WorldState.prototype.initPhysics = function(){
@@ -61,8 +61,8 @@ WorldState.prototype.initPhysics = function(){
 	this.groundPhysicsMaterial = new CANNON.Material("GROUND_PHY_MATERIAL");
 	this.groundPhysicsContactMaterial = new CANNON.ContactMaterial(this.groundPhysicsMaterial,
 																this.boxPhysicsMaterial,
-																0.001,
-																0.3);
+																0.0005,
+																.3);
 
 	// this.boxPhysicsContactMaterial.frictionEquationStiffness = 1e8;
 	// this.boxPhysicsContactMaterial.frictionEquationRegularizationTime = 3;
@@ -144,6 +144,7 @@ WorldState.prototype.addPlayer = function(name, startingLocationVEC3){
 	boxBody.userData = newPlayer;
 	newPlayer.rigidBody = boxBody;
 	this.world.add(boxBody);
+	newPlayer.worldInside = this;
 	
 	this.players.push(newPlayer);
 	
@@ -187,8 +188,10 @@ function PlayerState(name, ID) {
 	this.rotationDirection = PlayerState.Direction.LEFT;
 	this.health = PlayerState.HEALTH;
 	this.isMakingNoise  = false;
+	this.isRunning = false;
+	this.isShooting = false;
 
-	this.tileInside = null;
+	this.worldInside = null;
 	this.name = name;
 
 	this.rigidBody; //The box has some sexy body.
@@ -196,15 +199,16 @@ function PlayerState(name, ID) {
 
 //Const player variables.
 PlayerState.WALKING_SPEED = 4000;
-PlayerState.RUNNING_SPEED = 6000;
+PlayerState.RUNNING_SPEED = 8000;
 PlayerState.WALKING_ROT_SPEED = 1;
 PlayerState.RUNNING_ROT_SPEED = 0.05;
 PlayerState.MAX_WALKING_SPEED = .1;
 PlayerState.MAX_RUNNING_SPEED = 40;
+PlayerState.FIRE_RATE_PER_SECOND = 1;
+PlayerState.BULLET_SPEED = 1000000;
 PlayerState.Motion = {
 	WALKING: 1,
-	RUNNING: 2,
-	STOPPED: 3,
+	STOPPED: 2,
 };
 PlayerState.Direction = {
 	FORWARD: 1,
@@ -226,6 +230,10 @@ PlayerState.prototype.doDamage = function(damage){
 // PlayerState.prototype.setLocation = function(x, y) {
 // 	this.position.x = x;
 // 	this.position.y = y;
+// }
+
+// PlayerState.prototype.setRunning = function(running){
+// 	this.
 // }
 
 PlayerState.prototype.setDirection = function(x, y){
@@ -253,12 +261,24 @@ PlayerState.ORIGIN = new CANNON.Vec3(0,0,0); //constant used for distance calcul
 PlayerState.combinedDirectionBuffer = new CANNON.Vec3(0,0,0);//Combined direction stores a direction based on key input.
 PlayerState.combinedDirection = new CANNON.Vec3(0,0,0);
 PlayerState.FORWARD = new CANNON.Vec3(0,-1,0);
+PlayerState.finalImpulseDir = new CANNON.Vec3(0,0,0);
+PlayerState.lastShotTime = 0;
+
 
 PlayerState.prototype.update = function(dt){
 	this.position = this.rigidBody.position;
 	this.rotationQuat = this.rigidBody.quaternion;
-	this.rotationQuat.vmult(PlayerState.FORWARD, this.direction);
+	//this.rotationQuat.vmult(PlayerState.FORWARD, this.direction);
+	PlayerState.lastShotTime += dt;
 
+	if(this.isShooting){
+		if(1/PlayerState.FIRE_RATE_PER_SECOND < PlayerState.lastShotTime){
+			bulletDirection = this.rotationQuat.vmult(PlayerState.FORWARD);
+			bulletPosition = this.rigidBody.Position.vadd(bulletDirection);
+			this.worldInside.addProjectile(bulletPosition, PlayerState.BULLET_SPEED, bulletDirection);
+			lastShotTime = 0;
+		}
+	}
 	//PlayerState.combinedDirectionBuffer.set(0,0,0);
 
 	switch(this.motionDirection){
@@ -290,24 +310,16 @@ PlayerState.prototype.update = function(dt){
 
 		//impulseDirection = impulseDirection.vsub(this.direction);
 		impulseDirection = impulseDirection.vadd(PlayerState.combinedDirectionBuffer);
-		impulseDirection = impulseDirection.mult(PlayerState.WALKING_SPEED);
+		impulseDirection = impulseDirection.mult(((this.isRunning) ? PlayerState.RUNNING_SPEED : PlayerState.WALKING_SPEED));
+
+		this.rotationQuat.vmult(impulseDirection, PlayerState.finalImpulseDir);
 
 		var position = new CANNON.Vec3(0,0);
 		this.position.copy(position);
-		position.y -= 0.5;
-		//this.rigidBody.applyForce(new CANNON.Vec3(0,0,10000), this.position);
-		this.rigidBody.applyForce(impulseDirection, position);
+		//position.y -= 0.5;
+		///this.rigidBody.applyForce(new CANNON.Vec3(0,0,10000), this.position);
+		this.rigidBody.applyForce(PlayerState.finalImpulseDir, position);
 
-	}
-	if(this.motion == PlayerState.Motion.RUNNING && this.rigidBody.velocity.distanceTo(PlayerState.ORIGIN) < PlayerState.RUNNING_SPEED){
-		var impulseDirection = new CANNON.Vec3(0,0,0);
-		//this.position.copy(impulseDirection);
-
-		//impulseDirection = impulseDirection.vsub(this.direction);
-		impulseDirection = impulseDirection.vadd(PlayerState.combinedDirectionBuffer);
-		impulseDirection = impulseDirection.mult(PlayerState.RUNNING_SPEED);
-
-		this.rigidBody.applyImpulse(impulseDirection, this.position);
 	}
 
 	if(this.rotation == PlayerState.Motion.WALKING){
@@ -318,15 +330,6 @@ PlayerState.prototype.update = function(dt){
 			this.rigidBody.angularVelocity.z = -PlayerState.WALKING_ROT_SPEED;
 		}
 		//this.rigidBody.applyImpulse(PlayerState.WALKING_SPEED, this.position);
-	}
-	if(this.rotation == PlayerState.Motion.RUNNING && this.rigidBody.velocity.distanceTo(PlayerState.ORIGIN) < PlayerState.RUNNING_SPEED){
-		var impulseDirection = new CANNON.Vec3(0,0,0);
-		//this.position.copy(impulseDirection);
-
-		//impulseDirection.vsub(this.direction);
-		impulseDirection.vadd(PlayerState.combinedDirection);
-
-		//this.rigidBody.applyImpulse(PlayerState.RUNNING_SPEED, this.position);
 	}
 
 	if(this.motion == PlayerState.Motion.STOPPED && this.rotation == PlayerState.Motion.STOPPED){

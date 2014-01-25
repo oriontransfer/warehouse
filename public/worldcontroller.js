@@ -46,10 +46,11 @@ EventType = {
 	POSITIONAL: 0,
 	ROTATIONAL: 2,
 	SHOOTING: 1,
+	FAST: 3,
 };
 
 WorldController.prototype.handleEvent = function(event, action){
-	console.log(event, action);
+	//console.log(event, action);
 
 	var motionState = null
 	var motionDirection = null;
@@ -87,6 +88,9 @@ WorldController.prototype.handleEvent = function(event, action){
 		case Event.SHOOT:
 			eventType = EventType.SHOOTING;
 		break;
+		case Event.FAST:
+			eventType = EventType.FAST;
+		break;
 	}
 	//if(eventType){
 		switch(eventType){
@@ -97,6 +101,13 @@ WorldController.prototype.handleEvent = function(event, action){
 				this.currentPlayer.setRotationState(motionState, motionDirection);
 			break;
 			case EventType.SHOOTING:
+				if(action)this.currentPlayer.isShooting = true;
+				else this.currentPlayer.isShooting = false;
+			break;
+			case EventType.FAST:
+				console.log("FAST ");
+				if(action) this.currentPlayer.isRunning = true;
+				else this.currentPlayer.isRunning = false;
 			break;
 		}
 	
