@@ -33,8 +33,6 @@ function GeometryController (scene, container)
 	this.shaders = {
 		basic: new THREE.MeshBasicMaterial({color: 0x00ff00})
 	}
-	
-	this.first = true;
 }
 
 GeometryController.prototype.onAdd = function(key, object)
@@ -42,7 +40,7 @@ GeometryController.prototype.onAdd = function(key, object)
 	var box = AngryBox.assets.get('box');
 	
 	object.mesh = new THREE.Mesh(box.geometry, box.material);
-	//object.mesh.receiveShadow = true;
+	object.mesh.receiveShadow = true;
 	object.mesh.castShadow = true;
 	
 	this.scene.add(object.mesh);
