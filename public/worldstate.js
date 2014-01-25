@@ -41,7 +41,7 @@ WorldState.prototype.initPhysics = function(){
 
     world.solver = solver;
 
-    world.gravity.set(0,-20, 0);
+    world.gravity.set(0, 0, -20);
 
 	world.broadphase = new CANNON.NaiveBroadphase();
 
@@ -64,7 +64,7 @@ WorldState.prototype.initPhysics = function(){
 	//Initialise the ground plane
 	var groundShape = new CANNON.Plane();
 	var groundBody = new CANNON.RigidBody(0, groundShape, this.groundPhysicsMaterial);
-	groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0),-Math.PI/2);
+	groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0,0,1),-Math.PI/2);
 	world.add(groundBody);
 }
 
@@ -175,8 +175,8 @@ function PlayerState(name, ID) {
 }
 
 //Const player variables.
-PlayerState.WALKING_SPEED = 0.1;
-PlayerState.RUNNING_SPEED = 0.2;
+PlayerState.WALKING_SPEED = 1.0;
+PlayerState.RUNNING_SPEED = 2.0;
 PlayerState.WALKING_ROT_SPEED = 0.1;
 PlayerState.RUNNING_ROT_SPEED = 0.05;
 PlayerState.MAX_WALKING_SPEED = 0.8;
@@ -258,42 +258,44 @@ PlayerState.prototype.update = function(dt){
 
 	this.rotationQuat.vmult(PlayerState.combinedDirectionBuffer, PlayerState.combinedDirection);
 
-	if(this.motion == PlayerState.Motion.WALKING && this.boxBody.velocity.distanceTo(origin) < WALKING_SPEED){
+	if(this.motion == PlayerState.Motion.WALKING && this.rigidBody.velocity.distanceTo(PlayerState.ORIGIN) < PlayerState.WALKING_SPEED){
 		var impulseDirection = new CANNON.Vec3(0,0,0);
-		this.position.copy(impulseDirection);
+		//this.position.copy(impulseDirection);
 
-		impulseDirection.vsub(this.direction);
-		impulseDirection.vadd(PlayerState.combinedDirection);
+		//impulseDirection = impulseDirection.vsub(this.direction);
+		impulseDirection = impulseDirection.vadd(PlayerState.combinedDirection);
+		impulseDirection.mult(PlayerState.WALKING_SPEED);
 
-		this.boxBody.applyForce(WALKING_SPEED, impulseDirection);
+		this.rigidBody.applyImpulse(impulseDirection, this.position);
 	}
-	if(this.motion == PlayerState.Motion.RUNNING && this.boxBody.velocity.distanceTo(origin) < RUNNING_SPEED){
+	if(this.motion == PlayerState.Motion.RUNNING && this.rigidBody.velocity.distanceTo(PlayerState.ORIGIN) < PlayerState.RUNNING_SPEED){
 		var impulseDirection = new CANNON.Vec3(0,0,0);
-		this.position.copy(impulseDirection);
+		//this.position.copy(impulseDirection);
 
-		impulseDirection.vsub(this.direction);
-		impulseDirection.vadd(PlayerState.combinedDirection);
+		//impulseDirection = impulseDirection.vsub(this.direction);
+		impulseDirection = impulseDirection.vadd(PlayerState.combinedDirection);
+		impulseDirection.mult(PlayerState.RUNNING_SPEED);
 
-		this.boxBody.applyForce(RUNNING_SPEED, impulseDirection);
+		this.rigidBody.applyImpulse(impulseDirection, this.position);
 	}
 
-	if(this.rotation == PlayerState.Motion.WALKING && this.boxBody.velocity.distanceTo(origin) < WALKING_SPEED){
+	if(this.rotation == PlayerState.Motion.WALKING && this.rigidBody.velocity.distanceTo(PlayerState.ORIGIN) < PlayerState.WALKING_SPEED){
 		var impulseDirection = new CANNON.Vec3(0,0,0);
-		this.position.copy(impulseDirection);
+		//this.position.copy(impulseDirection);
 
-		impulseDirection.vsub(this.direction);
+		//impulseDirection.vsub(this.direction);
 		impulseDirection.vadd(PlayerState.combinedDirection);
 
-		this.boxBody.applyForce(WALKING_SPEED, impulseDirection);
+		//this.rigidBody.applyImpulse(PlayerState.WALKING_SPEED, this.position);
 	}
-	if(this.rotation == PlayerState.Motion.RUNNING && this.boxBody.velocity.distanceTo(origin) < RUNNING_SPEED){
+	if(this.rotation == PlayerState.Motion.RUNNING && this.rigidBody.velocity.distanceTo(PlayerState.ORIGIN) < PlayerState.RUNNING_SPEED){
 		var impulseDirection = new CANNON.Vec3(0,0,0);
-		this.position.copy(impulseDirection);
+		//this.position.copy(impulseDirection);
 
-		impulseDirection.vsub(this.direction);
+		//impulseDirection.vsub(this.direction);
 		impulseDirection.vadd(PlayerState.combinedDirection);
 
-		this.boxBody.applyForce(RUNNING_SPEED, impulseDirection);
+		//this.rigidBody.applyImpulse(PlayerState.RUNNING_SPEED, this.position);
 	}
 
 	if(this.motion == PlayerState.Motion.STOPPED && this.rotation == PlayerState.Motion.STOPPED){
@@ -335,6 +337,6 @@ function GeometryState(shader, ID){
 }
 
 GeometryState.prototype.update = function(dt){
-	this.position = this.boxBody.position;
-	this.rotationQuat = this.boxBody.quaternion;
+	this.position = this.RigidBody.position;
+	this.rotationQuat = this.RigidBody.quaternion;
 }
