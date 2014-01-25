@@ -15,6 +15,8 @@ Container.prototype.pop = function(object) {
 Container.prototype.add = function(key, object) {
 	this.values[key] = object;
 	
+	var container = this;
+	
 	this.observers.forEach(function(observer) {
 		observer.onAdd(key, object, container);
 	});
@@ -22,6 +24,8 @@ Container.prototype.add = function(key, object) {
 
 Container.prototype.remove = function(key) {
 	var object = this.values[key];
+	
+	var container = this;
 	
 	this.observers.forEach(function(observer) {
 		observer.onRemove(key, object, container);

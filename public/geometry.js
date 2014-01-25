@@ -13,8 +13,8 @@ function GeometryController (scene, container)
 
 GeometryController.prototype.onAdd = function(key, object)
 {
-	var rigidbody = object.rigidbody;
-	var h = rigidBody.halfExtents;
+	var rigidBody = object.rigidBody;
+	var h = rigidBody.shape.halfExtents;
 	
 	var geometry = new THREE.CubeGeometry(h.x * 2.0, h.y * 2.0, h.z * 2.0);
 	
@@ -34,14 +34,12 @@ GeometryController.prototype.onRemove = function(key, object)
 
 GeometryController.prototype.update = function()
 {
-	var geometry = this.worldState.geometry;
-	
-	for (var key in geometry) {
-		var state = geometry[key];
-		var rigidbody = state.rigidbody;
-		var mesh = state.mesh;
+	for (var key in this.container) {
+		var object = this.container[key];
 		
-		rigidbody.position.copy(mesh.position);
-		rigidbody.quaternion.copy(mesh.quaternion);
+		var mesh = object.mesh, rigidBody = object.rigidBody;
+		
+		rigidBody.position.copy(mesh.position);
+		rigidBody.quaternion.copy(mesh.quaternion);
 	}
 }

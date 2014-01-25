@@ -90,7 +90,6 @@ WorldState.addPlaneGeometry = function(locationVEC3, directionVEC3){
 
 WorldState.prototype.addPlayer = function(name, startingLocationVEC2){
 	var newPlayer = new PlayerState(startingLocationVEC2, name, this.playerIDCounter++);
-	this.players.add(newPlayer.name, newPlayer);
 
 	// var tileInside = new Vec2(startingLocationVEC2[0] / this.tileMap.tileSize[0], startingLocationVEC2[1] / this.tileMap.tileSize[1]);
 	// newPlayer.tileInside = this.tileMap.get(tileInside);
@@ -108,10 +107,12 @@ WorldState.prototype.addPlayer = function(name, startingLocationVEC2){
 	}
 	//Store references to each other for call backs.
 	boxBody.userData = newPlayer;
-	newPlayer.boxBody = boxBody;
-
+	newPlayer.rigidBody = boxBody;
+	
 	this.world.add(boxBody);
-
+	
+	this.players.add(newPlayer.name, newPlayer);
+	
 	return newPlayer;
 }
 
