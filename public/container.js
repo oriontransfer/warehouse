@@ -4,6 +4,14 @@ function Container () {
 	this.observers = [];
 }
 
+Container.prototype.push = function(object) {
+	this.add(object.ID, object);
+}
+
+Container.prototype.pop = function(object) {
+	this.remove(object.ID, object);
+}
+
 Container.prototype.add = function(key, object) {
 	this.values[key] = object;
 	
