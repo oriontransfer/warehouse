@@ -126,6 +126,8 @@ WorldState.prototype.addProjectile = function(startingLocation, startingSpeed ,s
 //Const player variables.
 PlayerState.WALKING_SPEED = 0.1;
 PlayerState.RUNNING_SPEED = 0.2;
+PlayerState.WALKING_ROT_SPEED = 0.1;
+PlayerState.RUNNING_ROT_SPEED = 0.05;
 PlayerState.MAX_WALKING_SPEED = 0.8;
 PlayerState.MAX_RUNNING_SPEED = 0.8;
 PlayerState.Motion = {
