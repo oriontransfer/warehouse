@@ -153,5 +153,5 @@ function roundedRectPath(ctx, x, y, width, height, radius) {
 }
 
 function D2R(deg) {
-    return deg * Math.PI / 180;
-} 
+    return (deg * Math.PI) / 180;
+}

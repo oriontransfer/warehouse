@@ -21,8 +21,7 @@ AngryBox = {
 		// ** Box **
 		this.assets.loadWithCallback('box', function(completeLoad) {
 			loader.load("models/box/model.js", function(geometry, materials) {
-				var faceMaterial = new THREE.MeshPhongMaterial( { color: 0xffdd99 } );
-				//new THREE.MeshFaceMaterial(materials))
+				var faceMaterial = new THREE.MeshFaceMaterial(materials);
 				
 				completeLoad({geometry: geometry, material: faceMaterial});
 			});
@@ -39,8 +38,7 @@ AngryBox = {
 		
 		this.assets.loadWithCallback('floor-flat', function(completeLoad) {
 			loader.load("models/floor-flat/model.js", function(geometry, materials) {
-				//var faceMaterial = new THREE.MeshFaceMaterial(materials);
-				var faceMaterial = new THREE.MeshPhongMaterial( { color: 0xffdd99 } );
+				var faceMaterial = new THREE.MeshFaceMaterial(materials);
 				
 				completeLoad({geometry: geometry, material: faceMaterial});
 			});
@@ -128,10 +126,7 @@ AngryBox = {
 		window.addEventListener('keyup', this.handleUserInput.bind(this, false), false);
 		window.addEventListener('resize', this.resizeWindow.bind(this), false);
 		
-		this.renderer = new THREE.WebGLRenderer();
-		
-		this.renderer.shadowMapEnabled = true;
-		this.renderer.shadowMapType = THREE.PCFShadowMap;
+		this.renderer = new THREE.WebGLRenderer({antialias: true});
 		
 		this.renderer.setSize(window.innerWidth, window.innerHeight);
 		document.body.appendChild(this.renderer.domElement);

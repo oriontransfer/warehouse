@@ -33,18 +33,17 @@ function GeometryController (scene, container)
 	this.shaders = {
 		basic: new THREE.MeshBasicMaterial({color: 0x00ff00})
 	}
+	
+	this.first = true;
 }
 
 GeometryController.prototype.onAdd = function(key, object)
 {
-	var rigidBody = object.rigidBody;
-	var h = rigidBody.shape.halfExtents;
-	
 	var box = AngryBox.assets.get('box');
-	object.mesh = new THREE.Mesh(box.geometry, box.material);
 	
+	object.mesh = new THREE.Mesh(box.geometry, box.material);
+	//object.mesh.receiveShadow = true;
 	object.mesh.castShadow = true;
-	object.mesh.receiveShadow = true;
 	
 	this.scene.add(object.mesh);
 }
@@ -59,10 +58,13 @@ GeometryController.prototype.onRemove = function(key, object)
 GeometryController.prototype.update = function()
 {
 	this.container.forEach(function(object) {
-		var mesh = object.mesh, rigidBody = object.rigidBody;
+		if (object.mesh) {
+			var mesh = object.mesh, rigidBody = object.rigidBody;
 		
-		rigidBody.position.copy(mesh.position);
-		rigidBody.quaternion.copy(mesh.quaternion);
+			rigidBody.position.copy(mesh.position);
+			mesh.position.z -= 0.8;
+			rigidBody.quaternion.copy(mesh.quaternion);
+		}
 	});
 }
 
@@ -101,7 +103,6 @@ FloorController.prototype.generate = function()
 			
 			var mesh = new THREE.Mesh(tile.geometry, tile.material);
 			
-			mesh.castShadow = false;
 			mesh.receiveShadow = true;
 			
 			mesh.position.x = x * 8;
@@ -126,6 +127,12 @@ function WallController (scene, size)
 	];
 } 
 
+WallController.prototype.add = function(mesh)
+{
+	mesh.receiveShadow = true;
+	this.scene.add(mesh);
+}
+
 WallController.prototype.generate = function()
 {
 	//CORNERS
@@ -139,7 +146,7 @@ WallController.prototype.generate = function()
 	var corner_mesh_2 = new THREE.Mesh(corner_tile.geometry, corner_tile.material);
 	corner_mesh_2.position.x = - 8 ;
 	corner_mesh_2.position.y = (this.size[1]-1)*8 + 8;		
-	this.scene.add(corner_mesh_2);
+	this.add(corner_mesh_2);
 		
 	//WALLS
 	for(var x = 1; x<this.size[0]+1; x+=1){
@@ -148,7 +155,7 @@ WallController.prototype.generate = function()
 		var mesh = new THREE.Mesh(tile.geometry, tile.material);
 		mesh.position.x = x * 8 - 8 ;
 		mesh.position.y = (this.size[1]-1)*8 + 8;		
-		this.scene.add(mesh);
+		this.add(mesh);
 	}
 		
 	for(var y = 0; y<this.size[1]; y+=1){
@@ -159,7 +166,7 @@ WallController.prototype.generate = function()
 		mesh.position.x = - 8;
 		mesh.position.y = y * 8 ;	
 		mesh.rotateOnAxis((new THREE.Vector3(0, 0, 1)).normalize(), D2R(90));
-		this.scene.add(mesh);
+		this.add(mesh);
 		
 		//RIGHT
 		rand = this.random.nextInteger(2)%2 + 1;
@@ -168,7 +175,7 @@ WallController.prototype.generate = function()
 		mesh.position.x = (this.size[0]+1)*8 - 8;
 		mesh.position.y = y * 8 ;	
 		mesh.rotateOnAxis((new THREE.Vector3(0, 0, 1)).normalize(), D2R(270));
-		this.scene.add(mesh);
+		this.add(mesh);
 	}
 	
 }

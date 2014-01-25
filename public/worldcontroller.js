@@ -5,33 +5,34 @@ function WorldController() {
 	
 	this.scene = new THREE.Scene();
 	
-	var ambientLight = new THREE.AmbientLight(0x222222);
+	var ambientLight = new THREE.AmbientLight(0x111111);
 	this.scene.add(ambientLight);
 	
-	this.scene.fog = new THREE.Fog(0x59472b, 25, 40);
-	
-	this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+	//this.scene.fog = new THREE.Fog(0x59472b, 25, 40);
+	this.scene.fog = new THREE.Fog(0x000000, 25, 40);
+
+	this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 10, 100);
 	this.camera.position.z = 20;
     this.camera.rotateOnAxis((new THREE.Vector3(1, 0, 0)).normalize(), D2R(45));
 	
 	this.playerGeometryController = new GeometryController(this.scene, this.worldState.players);
 	
-	var light = new THREE.SpotLight(0xffffff, 3, 200, Math.PI / 5, 2.0);
-	light.target.position.set(0, 0, 0);
-
+	var light = new THREE.SpotLight(0xffffff, 1, 50, D2R(72/2), 2.0);
+	light.position.set(10, 10, 10);
+	light.target.position.set(5, 5, 0);
 	light.castShadow = true;
 
-	light.shadowCameraNear = 0.001;
-	light.shadowCameraFar = 1024;
-	light.shadowCameraFov = 75;
+	light.shadowCameraNear = 2.0;
+	light.shadowCameraFar = 40.0;
+	light.shadowCameraFov = 72.0;
 	
-	light.shadowBias = 0.1;
-	light.shadowDarkness = 0.5;
+	light.shadowBias = 0.00001;
+	light.shadowDarkness = 1.0;
 	
-	light.shadowMapWidth = 1024;
-	light.shadowMapHeight = 1024;
+	light.shadowMapWidth = 2048;
+	light.shadowMapHeight = 2048;
 	
-	light.shadowCameraVisible = true;
+	//light.shadowCameraVisible = true;
 	
 	this.playerLight = light;
 	this.scene.add(this.playerLight);
@@ -52,11 +53,12 @@ function WorldController() {
 	this.worldState.addBoxGeometry(new CANNON.Vec3(32*8-3,12*4,0), new CANNON.Vec3(1,12*4+4,100), 0, "");//right
 	this.worldState.addBoxGeometry(new CANNON.Vec3(32*4,12*8-3,0), new CANNON.Vec3(32*8,1,100), 0, "");//up
 	this.worldState.addBoxGeometry(new CANNON.Vec3(32*4,-5,0), new CANNON.Vec3(32*8,1,100), 0, "");//down
-	
-	this.createInterface();
 }
 
 WorldController.prototype.setup = function(renderer) {
+	renderer.shadowMapEnabled = true;
+	renderer.shadowMapType = THREE.PCFShadowMap;
+	
 	renderer.setClearColor(this.scene.fog.color, 1);
 	renderer.autoClear = false;
 }
@@ -74,7 +76,7 @@ WorldController.prototype.createInterface = function() {
 
 	var hudMaterial = new THREE.ShaderMaterial({vertexShader: shader.vertexShader, fragmentShader: shader.fragmentShader, uniforms: uniforms});
 	var hudHeight = 2 / 3;
-	var hudWidth = hudHeight * 1.0;
+	var hudWidth = hudHeight * this.playerLight.shadowMapWidth / this.playerLight.shadowMapHeight;
 
 	var hudGeo = new THREE.PlaneGeometry(hudWidth, hudHeight);
 	hudGeo.applyMatrix(new THREE.Matrix4().makeTranslation(hudWidth / 2, hudHeight / 2, 0));
@@ -112,7 +114,7 @@ WorldController.prototype.updateCurrentPlayer = function() {
 	this.camera.position.y -= 10;
 	
 	this.currentPlayer.rigidBody.position.copy(this.playerLight.position);
-	this.playerLight.position.z += 1.0;
+	this.playerLight.position.z += 0.6;
 	
 	var rotation = new THREE.Quaternion();
 	
@@ -138,8 +140,12 @@ WorldController.prototype.render = function(renderer) {
 	renderer.clear();
 	renderer.render(this.scene, this.camera);
 	
-	renderer.clearDepth();
-	renderer.render(this.sceneHUD, this.cameraOrtho);
+	/*if (this.sceneHUD) {
+		renderer.clearDepth();
+		renderer.render(this.sceneHUD, this.cameraOrtho);
+	} else {
+		this.createInterface();
+	}*/
 }
 
 EventType = {
