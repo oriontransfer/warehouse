@@ -14,6 +14,7 @@ Container.prototype.pop = function(object) {
 
 Container.prototype.add = function(key, object) {
 	this.values[key] = object;
+	this.length = this.values.length;
 	
 	var container = this;
 	
@@ -32,4 +33,11 @@ Container.prototype.remove = function(key) {
 	});
 	
 	delete this.values[key];
+	this.length = this.values.length;
+}
+
+Container.prototype.forEach = function(callback) {
+	for (var key in this.values) {
+		callback(this.values[key]);
+	}
 }
