@@ -17,6 +17,7 @@ GeometryController.prototype.onAdd = function(key, object)
 	var h = rigidBody.shape.halfExtents;
 	
 	object.mesh = new THREE.Mesh(AngryBox.assets.crate.geometry, AngryBox.assets.crate.material);
+	object.mesh.useQuaternion = true;
 	
 	this.scene.add(object.mesh);
 }

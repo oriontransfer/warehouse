@@ -18,7 +18,7 @@ AngryBox = {
 		
 		loader.onLoadComplete = callback;
 		
-		loader.load("models/crate/crate.js", function(geometry, materials) {
+		loader.load("models/box/box.js", function(geometry, materials) {
 			var faceMaterial = new THREE.MeshFaceMaterial(materials);
 			//var faceMaterial = new THREE.MeshPhongMaterial(materials);
 			//var faceMaterial = new THREE.MeshNormalMaterial()
