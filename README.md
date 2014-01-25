@@ -1,22 +1,20 @@
-Tileshift
-=========
+# Angry Box
 
-A platform game where the game world evolves around the player.
+A stealth game where you can only see a small part of the world.
 
+## Installation
 
-### Ideas ###
+	$ npm install
 
-- Doors controlled by a switch.
-- Arrow tiles that point in a specific direction.
+If you add new modules for the client to use:
+
+	$ npm install -g browserify
+	$ browserify public/index.js -o public/bundle.js
 
 ### Credits ###
 
 #### Developers ####
 
-- Samuel Williams: Tile Engine, Artificial Intelligence, Genetic Algorithms, Level Design, Story Design, Sound Engineering.
-- Steven Rutherford: Event Processing, Level Design, Procedural Generation.
-
-#### Artwork ####
-
-- http://pinkfirefly.deviantart.com/art/Magic-Overload-Castle-Tiles-195896065
-- http://www.lostgarden.com/2007/05/dancs-miraculously-flexible-game.html
+- Leigh Beattie
+- Ricardo
+- Samuel Williams
