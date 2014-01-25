@@ -5,7 +5,9 @@ function WorldState(tilemap) {
 	this.projectiles = new Array();
 	this.playerIDCounter = 0;
 	this.protectileIDCounter = 0;
-	this.tilemap = tilemap;
+	if(tilemap){}
+		this.tilemap = tilemap;
+	}
 	initPhysics();	
 	
 }
@@ -95,6 +97,8 @@ WorldState.prototype.addPlayer(name, startingLocation){
 	nerPlayer.boxBody = boxBody;
 
 	world.add(boxBody);
+
+	return newPlayer;
 }
 
 //Starting location and direction is a Vec3
@@ -129,6 +133,12 @@ PlayerState.Motion = {
 	RUNNING: 2,
 	STOPPED: 3,
 };
+PlayerState.Direction = {
+	FORWARD: 1,
+	BACKWARD: 2,
+	LEFT: 3,
+	RIGHT: 4,
+}
 PlayerState.HEALTH = 100;
 
 function PlayerState(initialLocation, name, ID) {
@@ -141,6 +151,9 @@ function PlayerState(initialLocation, name, ID) {
 
 	//Internal state / control state
 	this.motion = Motion.STOPPED;
+	this.motionDirection = Direction.FORWARD;
+	this.rotation = Motion.STOPPED;
+	this.rotationDirection = Direction.LEFT;
 	this.health = HEALTH;
 	this.isMakingNoise  = false;
 
@@ -172,8 +185,14 @@ PlayerState.prototype.setDirection = function(x, y){
 /**
 * Set the motion state for the player. Refer to PlayerState.Motion for valid states.*
 */
-PlayerState.prototype.setMotionState = function(state) {
+PlayerState.prototype.setMotionState = function(state, direction) {
 	this.motion = state;
+	this.motionDirection = direction;
+}
+
+PlayerState.prototype.setRotationState = function(state, direction) {
+	this.rotation = state;
+	this.rotationDirection = direction;
 }
 
 /**
@@ -192,7 +211,6 @@ PlayState.prototype.update = function(dt){
 		impulseDirection.vsub(this.direction);
 
 		this.boxBody.applyForce(WALKING_SPEED, impulseDirection);
-		this.isMakingNoise = true;
 	}
 	if(this.motion == Motion.RUNNING && this.boxBody.velocity.distanceTo(origin) < RUNNING_SPEED){
 		Vec3 impulseDirection = new Vec3(0,0);
@@ -201,11 +219,30 @@ PlayState.prototype.update = function(dt){
 		impulseDirection.vsub(this.direction);
 
 		this.boxBody.applyForce(RUNNING_SPEED, impulseDirection);
-		this.isMakingNoise = true;
 	}
-	if(this.motion == Motion.STOPPED){
+
+	if(this.rotation == Motion.WALKING && this.boxBody.velocity.distanceTo(origin) < WALKING_SPEED){
+		Vec3 impulseDirection = new Vec3(0,0);
+		this.position.copy(impulseDirection);
+
+		impulseDirection.vsub(this.direction);
+
+		this.boxBody.applyForce(WALKING_SPEED, impulseDirection);
+	}
+	if(this.rotation == Motion.RUNNING && this.boxBody.velocity.distanceTo(origin) < RUNNING_SPEED){
+		Vec3 impulseDirection = new Vec3(0,0);
+		this.position.copy(impulseDirection);
+
+		impulseDirection.vsub(this.direction);
+
+		this.boxBody.applyForce(RUNNING_SPEED, impulseDirection);
+	}
+
+	if(this.motion == Motion.STOPPED && this.rotation == Motion.STOPPED){
 		this.isMakingNoise = false;
 	}
+	else this.isMakingNoise = true;
+
 }
 
 function Protectile(speed, direction, ID) {
