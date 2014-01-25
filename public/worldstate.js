@@ -20,7 +20,7 @@ function WorldState() {
 
 
 //Const world variables
-WorldState.PLAYER_SIZE_HALF = 0.4;
+WorldState.PLAYER_SIZE_HALF = 0.8;
 WorldState.PLAYER_MASS = 2515 * 0.5;
 
 WorldState.PROJECTILE_SIZE_HALF = 0.05;
@@ -50,25 +50,25 @@ WorldState.prototype.initPhysics = function(){
 
 	//Initialise the physics contact materials.
 	this.boxPhysicsMaterial = new CANNON.Material("BOX_PHY_MATERIAL");
-	this.boxPhysicsContactMaterial = new CANNON.ContactMaterial(this.boxPhysicsMaterial,
-																this.boxPhysicsMaterial,
-																0,
-																0);
+	// this.boxPhysicsContactMaterial = new CANNON.ContactMaterial(this.boxPhysicsMaterial,
+	// 															this.boxPhysicsMaterial,
+	// 															0,
+	// 															0);
 
 	
 
 	this.groundPhysicsMaterial = new CANNON.Material("GROUND_PHY_MATERIAL");
 	this.groundPhysicsContactMaterial = new CANNON.ContactMaterial(this.groundPhysicsMaterial,
-																this.groundPhysicsMaterial,
+																this.boxPhysicsMaterial,
 																0,
-																0);
+																0.3);
 
 	// this.boxPhysicsContactMaterial.frictionEquationStiffness = 1e8;
 	// this.boxPhysicsContactMaterial.frictionEquationRegularizationTime = 3;
 
-	// Adjust constraint equation parameters
-    this.boxPhysicsContactMaterial.contactEquationStiffness = 1e8;
-    this.boxPhysicsContactMaterial.contactEquationRegularizationTime = 3;
+	// // Adjust constraint equation parameters
+ //    this.boxPhysicsContactMaterial.contactEquationStiffness = 1e8;
+ //    this.boxPhysicsContactMaterial.contactEquationRegularizationTime = 3;
 
 	// Adjust constraint equation parameters
    	this.groundPhysicsContactMaterial.contactEquationStiffness = 1e8;
@@ -77,7 +77,7 @@ WorldState.prototype.initPhysics = function(){
     this.groundPhysicsContactMaterial.frictionEquationStiffness = 1e8;
 	this.groundPhysicsContactMaterial.frictionEquationRegularizationTime = 3;
 
-	world.addContactMaterial(this.boxPhysicsContactMaterial);
+	//orld.addContactMaterial(this.boxPhysicsContactMaterial);
 	world.addContactMaterial(this.groundPhysicsContactMaterial);
 
 	//Initialise the ground plane
@@ -193,7 +193,7 @@ function PlayerState(name, ID) {
 }
 
 //Const player variables.
-PlayerState.WALKING_SPEED = 40000;
+PlayerState.WALKING_SPEED = 4000;
 PlayerState.RUNNING_SPEED = 2.0;
 PlayerState.WALKING_ROT_SPEED = 0.1;
 PlayerState.RUNNING_ROT_SPEED = 0.05;
@@ -323,6 +323,7 @@ PlayerState.prototype.update = function(dt){
 
 	if(this.motion == PlayerState.Motion.STOPPED && this.rotation == PlayerState.Motion.STOPPED){
 		this.isMakingNoise = false;
+		this.rigidBody.velocity.set(0,0,0);
 	}
 	else this.isMakingNoise = true;
 
