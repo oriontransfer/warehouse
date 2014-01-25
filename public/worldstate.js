@@ -101,7 +101,7 @@ WorldState.prototype.update = function(dt){
 	});
 }
 
-WorldState.addBoxGeometry = function(locationVEC3, halfExtentsVEC3, mass, shader){
+WorldState.prototype.addBoxGeometry = function(locationVEC3, halfExtentsVEC3, mass, shader){
 	var newGeometry = new GeometryState(shader, this.geometryIDCounter++);
 	this.geometry.add(newGeometry);
 
@@ -363,6 +363,7 @@ function Projectile(startingLocation, speed, direction, emittedFrom, ID) {
 
 Projectile.ORIGIN = new CANNON.Vec3(0,0,0); //constant used for distance calculations
 Projectile.LIFETIME_MS = 0.5;
+Projectile.KNOCK_BACK = 10;
 
 Projectile.prototype.update = function(dt){
 	this.position.copy(Projectile.ORIGIN);
@@ -372,8 +373,10 @@ Projectile.prototype.update = function(dt){
 	var ray = new CANNON.Ray(Projectile.ORIGIN, this.ray);
 	var intersections = ray.intersectBodies(this.worldInside.world.bodies)
 	
-	for(var i = 0; i < intersections; i+=1){
-		
+	for(var i = 0; i < intersections.length; i+=1){
+		if(intersections[i] != this.bodyEmittedFrom){
+			intersections[i].applyForce(intersections[i].body.position, this.direction.mult(Projectile.KNOCK_BACK));
+		}
 	}
 	this.position = this.position.vadd(this.direction.mult(this.speed));
 
