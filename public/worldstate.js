@@ -7,6 +7,7 @@ function WorldState() {
 	
 	this.playerIDCounter = 0;
 	this.protectileIDCounter = 0;
+	this.geometryIDCounter = 0;
 	// if(tilemap){
 	// 	this.tilemap = tilemap;
 	// }
@@ -80,17 +81,32 @@ WorldState.prototype.update = function(dt){
 	}
 }
 
-WorldState.addBoxGeometry = function(locationVEC3, halfExtentsVEC3){
+WorldState.addBoxGeometry = function(locationVEC3, halfExtentsVEC3, shader){
+	var newGeometry = new GeometryState(shader, this.geometryIDCounter++);
+	this.geometry.push(newGeometry);
 
+	// var tileInside = new Vec2(startingLocationVEC2[0] / this.tileMap.tileSize[0], startingLocationVEC2[1] / this.tileMap.tileSize[1]);
+	// newPlayer.tileInside = this.tileMap.get(tileInside);
+	// tileInside.playersInTile.push(newPlayer);
+
+	//Create box shape and add it to the world.
+	var boxShape = new CANNON.Box(halfExtentsVEC3);
+	var boxBody = new CANNON.RigidBody(WorldState.PLAYER_MASS, boxShape, this.boxPhysicsMaterial);
+
+	boxBody.position = locationVEC3;
+	//Store references to each other for call backs.
+	boxBody.userData = newGeometry;
+	newGeometry.RigidBody = boxBody;
+
+	this.world.add(boxBody);
+
+	return newGeometry;
 }
 
-WorldState.addPlaneGeometry = function(locationVEC3, directionVEC3){
 
-}
-
-WorldState.prototype.addPlayer = function(name, startingLocationVEC2){
-	var newPlayer = new PlayerState(startingLocationVEC2, name, this.playerIDCounter++);
-
+WorldState.prototype.addPlayer = function(name, startingLocationVEC3){
+	var newPlayer = new PlayerState(name, this.playerIDCounter++);
+	this.players.add(newPlayer);
 	// var tileInside = new Vec2(startingLocationVEC2[0] / this.tileMap.tileSize[0], startingLocationVEC2[1] / this.tileMap.tileSize[1]);
 	// newPlayer.tileInside = this.tileMap.get(tileInside);
 	// tileInside.playersInTile.push(newPlayer);
@@ -99,12 +115,12 @@ WorldState.prototype.addPlayer = function(name, startingLocationVEC2){
 	var boxHalfExtents = new CANNON.Vec3(WorldState.PLAYER_SIZE_HALF, WorldState.PLAYER_SIZE_HALF, WorldState.PLAYER_SIZE_HALF);
 	var boxShape = new CANNON.Box(boxHalfExtents);
 	var boxBody = new CANNON.RigidBody(WorldState.PLAYER_MASS, boxShape, this.boxPhysicsMaterial);
-	if(startingLocationVEC2){
-		boxBody.position.set(startingLocationVEC2[0], WorldState.PLAYER_SIZE_HALF + 0.1, startingLocationVEC2[2]); //Uses X and Z coords to place player and should place player steadily on hte ground.
-	}
-	else{
-		boxBody.position.set(0, WorldState.PLAYER_SIZE_HALF + 0.1, 0);
-	}
+	var location = new CANNON.Vec3(0,0,0)
+
+	startingLocationVEC3.copy(location);
+
+	boxBody.position = location;
+
 	//Store references to each other for call backs.
 	boxBody.userData = newPlayer;
 	newPlayer.rigidBody = boxBody;
@@ -138,7 +154,7 @@ WorldState.prototype.addProjectile = function(startingLocation, startingSpeed ,s
 
 }
 
-function PlayerState(initialLocation, name, ID) {
+function PlayerState(name, ID) {
 	this.ID = ID;
 
 	//Positional
@@ -216,16 +232,40 @@ PlayerState.prototype.setRotationState = function(state, direction) {
 * Function that updates the player state variables.
 */
 PlayerState.ORIGIN = new CANNON.Vec3(0,0,0); //constant used for distance calculations
+PlayerState.combinedDirectionBuffer = new CANNON.Vec3(0,0,0);//Combined direction stores a direction based on key input.
+PlayerState.combinedDirection = new CANNON.Vec3(0,0,0);
+PlayerState.FORAWRD = new CANNON.Vec3(0,0,-1);
 
 PlayerState.prototype.update = function(dt){
 	this.position = this.boxBody.position;
 	this.rotationQuat = this.boxBody.quaternion;
+	this.rotationQuat.vmult(PlayerState.FORWARD, this.direction);
+
+	combinedDirection.set(0,0,0);
+
+	switch(this.motionDirection){
+		case PlayerState.Direction.FORWARD:
+			PlayerState.combinedDirectionBuffer.z = -1;
+		break;
+		case PlayerState.Direction.BACKWARD:
+			PlayerState.combinedDirectionBuffer.z = 1;
+		break;
+		case PlayerState.Direction.LEFT:
+			PlayerState.combinedDirectionBuffer.x = -1;
+		break;
+		case PlayerState.Direction.RIGHT:
+			PlayerState.combinedDirectionBuffer.x = 1;
+		break;
+	}
+
+	this.rotationQuat.vmult(PlayerState.combinedDirectionBuffer, PlayerState.combinedDirection);
 
 	if(this.motion == PlayerState.Motion.WALKING && this.boxBody.velocity.distanceTo(origin) < WALKING_SPEED){
 		var impulseDirection = new CANNON.Vec3(0,0,0);
 		this.position.copy(impulseDirection);
 
 		impulseDirection.vsub(this.direction);
+		impulseDirection.vadd(PlayerState.combinedDirection);
 
 		this.boxBody.applyForce(WALKING_SPEED, impulseDirection);
 	}
@@ -234,6 +274,7 @@ PlayerState.prototype.update = function(dt){
 		this.position.copy(impulseDirection);
 
 		impulseDirection.vsub(this.direction);
+		impulseDirection.vadd(PlayerState.combinedDirection);
 
 		this.boxBody.applyForce(RUNNING_SPEED, impulseDirection);
 	}
@@ -243,6 +284,7 @@ PlayerState.prototype.update = function(dt){
 		this.position.copy(impulseDirection);
 
 		impulseDirection.vsub(this.direction);
+		impulseDirection.vadd(PlayerState.combinedDirection);
 
 		this.boxBody.applyForce(WALKING_SPEED, impulseDirection);
 	}
@@ -251,6 +293,7 @@ PlayerState.prototype.update = function(dt){
 		this.position.copy(impulseDirection);
 
 		impulseDirection.vsub(this.direction);
+		impulseDirection.vadd(PlayerState.combinedDirection);
 
 		this.boxBody.applyForce(RUNNING_SPEED, impulseDirection);
 	}
@@ -283,13 +326,14 @@ Protectile.prototype.update = function(dt){
 	this.speed = this.projBody.velocity.distanceTo(ORIGIN);
 }
 
-function GeometryState(shader){
+function GeometryState(shader, ID){
+	this.ID = ID;
 	this.position = null;
 	this.rotationQuat = null;
 
 	this.RigidBody = null;
 
-		this.shader = "";
+	this.shader = "";
 }
 
 GeometryState.prototype.update = function(dt){

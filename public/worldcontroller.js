@@ -37,7 +37,11 @@ WorldController.prototype.handleEvent = function(event, action){
 	var motionState = null
 	var motionDirection = null;
 	var eventType = null;
-	motionState = PlayerState.Motion.WALKING;
+	if(action){
+		motionState = PlayerState.Motion.WALKING;
+	}
+	else motionState = PlayerState.Motion.STOPPED;
+	
 	switch(event){
 		case Event.MOVE_FORWARDS:
 			eventType = EventType.POSITIONAL
@@ -70,10 +74,10 @@ WorldController.prototype.handleEvent = function(event, action){
 	if(eventType){
 		switch(eventType){
 			case EventType.POSITIONAL:
-				currentPlayer.setMotionState(motionState, motionDirection);
+				this.currentPlayer.setMotionState(motionState, motionDirection);
 			break;
 			case EventType.ROTATIONAL:
-				currentPlayer.setRotationState(motionState, motionDirection);
+				this.currentPlayer.setRotationState(motionState, motionDirection);
 			break;
 			case EventType.SHOOTING:
 			break;

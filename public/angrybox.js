@@ -55,7 +55,7 @@ AngryBox = {
 		
 		this.controller = controller;
 		
-		controller.setup();
+		controller.setup("Angry Player", new CANNON.Vec3(0,0,0));
 	},
 	
 	run: function(controller) {
