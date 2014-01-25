@@ -26,7 +26,7 @@
 		"colorSpecular" : [0.0, 0.0, 0.0],
 		"depthTest" : true,
 		"depthWrite" : true,
-		"mapDiffuse" : "box.png",
+		"mapDiffuse" : "diffuse.png",
 		"mapNormalFactor" : -0.058823585510253906,
 		"mapNormalWrap" : ["repeat", "repeat"],
 		"shading" : "Phong",

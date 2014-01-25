@@ -63,6 +63,18 @@ ResourceLoader.prototype.onLoad = function(name) {
 	}
 }
 
+ResourceLoader.prototype.completeLoad = function(name, value) {
+	this.resources[name] = value;
+	
+	this.onLoad(name);
+}
+
+ResourceLoader.prototype.loadWithCallback = function(name, callback) {
+	this.counter += 1;
+	
+	callback(this.completeLoad.bind(this, name));
+}
+
 ResourceLoader.prototype.loadResource = function(name, source, type) {
 	this.counter += 1;
 	
@@ -139,3 +151,7 @@ function roundedRectPath(ctx, x, y, width, height, radius) {
 	ctx.quadraticCurveTo(x, y, x + radius, y);
 	ctx.closePath();
 }
+
+function D2R(deg) {
+    return deg * Math.PI / 180;
+} 

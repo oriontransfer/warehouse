@@ -12,6 +12,8 @@ function WorldController() {
 	
 	this.camera.position.z = 10;
 	
+    this.camera.rotateOnAxis((new THREE.Vector3(1, 0, 0)).normalize(), D2R(15));
+	
 	this.playerGeometryController = new GeometryController(this.scene, this.worldState.players);
 	
 	this.currentPlayer = this.worldState.addPlayer("Mr Pickles", new CANNON.Vec3(0, 0, 0));
@@ -20,6 +22,9 @@ function WorldController() {
 	this.worldState.addPlayer("Peach", new CANNON.Vec3(-5, 2, 0));
 	
 	this.visibilityController = new VisibilityController(this.currentPlayer, this.worldState);
+	
+	this.floorController = new FloorController(this.scene, [32, 12]);
+	this.floorController.generate();
 }
 
 WorldController.prototype.setup = function() {
@@ -32,6 +37,7 @@ WorldController.prototype.update = function(dt) {
 	
 	this.currentPlayer.rigidBody.position.copy(this.camera.position);
 	this.camera.position.z = 10;
+	this.camera.position.y -= 2.5;
 
 	//console.log(this.currentPlayer.position.x);
 

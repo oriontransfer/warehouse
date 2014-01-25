@@ -13,20 +13,34 @@ Event = {
 };
 
 AngryBox = {
-	assets: {},
+	assets: new ResourceLoader(),
 	
 	loadAssets: function(callback) {
 		var loader = new THREE.JSONLoader();
 		
-		loader.onLoadComplete = callback;
-		
-		loader.load("models/box/box.js", function(geometry, materials) {
-			var faceMaterial = new THREE.MeshFaceMaterial(materials);
-			//var faceMaterial = new THREE.MeshPhongMaterial(materials);
-			//var faceMaterial = new THREE.MeshNormalMaterial()
-			
-			AngryBox.assets.crate = new THREE.Mesh(geometry, faceMaterial);
+		this.assets.loadWithCallback('box', function(completeLoad) {
+			loader.load("models/box/model.js", function(geometry, materials) {
+				completeLoad(new THREE.Mesh(geometry, new THREE.MeshFaceMaterial(materials)));
+			});
 		});
+		
+		this.assets.loadWithCallback('floor-cracked', function(completeLoad) {
+			loader.load("models/floor-cracked/model.js", function(geometry, materials) {
+				var faceMaterial = new THREE.MeshFaceMaterial(materials);
+				
+				completeLoad({geometry: geometry, material: faceMaterial});
+			});
+		});
+		
+		this.assets.loadWithCallback('floor-flat', function(completeLoad) {
+			loader.load("models/floor-flat/model.js", function(geometry, materials) {
+				var faceMaterial = new THREE.MeshFaceMaterial(materials);
+				
+				completeLoad({geometry: geometry, material: faceMaterial});
+			});
+		});
+		
+		this.assets.loaded(callback);
 	},
 	
 	controller: {
@@ -87,6 +101,18 @@ AngryBox = {
 		window.addEventListener('resize', this.resizeWindow.bind(this), false);
 		
 		this.renderer = new THREE.WebGLRenderer();
+		
+		//this.renderer.shadowMapEnabled = true;
+		//this.renderer.shadowMapSoft = true;
+		//
+		//this.renderer.shadowCameraNear = 3;
+		//this.renderer.shadowCameraFar = 1024;
+		//this.renderer.shadowCameraFov = 50;
+		//
+		//this.renderer.shadowMapBias = 0.0039;
+		//this.renderer.shadowMapDarkness = 0.5;
+		//this.renderer.shadowMapWidth = 1024;
+		//this.renderer.shadowMapHeight = 1024;
 
 		this.renderer.setSize(window.innerWidth, window.innerHeight);
 		document.body.appendChild(this.renderer.domElement);
