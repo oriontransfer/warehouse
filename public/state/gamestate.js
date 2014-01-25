@@ -6,8 +6,8 @@ function WorldState(tilemap) {
 	this.playerIDCounter = 0;
 	this.protectileIDCounter = 0;
 	this.tilemap = tilemap;
-
 	initPhysics();	
+	
 }
 
 
