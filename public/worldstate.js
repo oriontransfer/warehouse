@@ -83,7 +83,7 @@ WorldState.prototype.update = function(dt){
 
 WorldState.addBoxGeometry = function(locationVEC3, halfExtentsVEC3, shader){
 	var newGeometry = new GeometryState(shader, this.geometryIDCounter++);
-	this.geometry.push(newGeometry);
+	this.geometry.add(newGeometry);
 
 	// var tileInside = new Vec2(startingLocationVEC2[0] / this.tileMap.tileSize[0], startingLocationVEC2[1] / this.tileMap.tileSize[1]);
 	// newPlayer.tileInside = this.tileMap.get(tileInside);
@@ -124,7 +124,6 @@ WorldState.prototype.addPlayer = function(name, startingLocationVEC3){
 	//Store references to each other for call backs.
 	boxBody.userData = newPlayer;
 	newPlayer.rigidBody = boxBody;
-	
 	this.world.add(boxBody);
 	
 	this.players.add(newPlayer.name, newPlayer);
@@ -173,7 +172,7 @@ function PlayerState(name, ID) {
 	this.tileInside = null;
 	this.name = name;
 
-	this.boxBody; //The box has some sexy body.
+	this.rigidBody; //The box has some sexy body.
 }
 
 //Const player variables.
