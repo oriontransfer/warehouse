@@ -211,8 +211,8 @@ function PlayerState(name, ID) {
 //Const player variables.
 PlayerState.WALKING_SPEED = 4000;
 PlayerState.RUNNING_SPEED = 8000;
-PlayerState.WALKING_ROT_SPEED = 1;
-PlayerState.RUNNING_ROT_SPEED = 0.05;
+PlayerState.WALKING_ROT_SPEED = 0.7;
+PlayerState.RUNNING_ROT_SPEED = 2;
 PlayerState.MAX_WALKING_SPEED = 4002;
 PlayerState.MAX_RUNNING_SPEED = 8004;
 PlayerState.FIRE_RATE_PER_SECOND = 1;
@@ -336,10 +336,10 @@ PlayerState.prototype.update = function(dt){
 
 	if(this.rotation == PlayerState.Motion.WALKING){
 		if(this.rotationDirection == PlayerState.Direction.LEFT){
-			this.rigidBody.angularVelocity.z = PlayerState.WALKING_ROT_SPEED;
+			this.rigidBody.angularVelocity.z = ((this.sRunning) ? PlayerState.RUNNING_ROT_SPEED : PlayerState.WALKING_ROT_SPEED);
 		} 
 		else {
-			this.rigidBody.angularVelocity.z = -PlayerState.WALKING_ROT_SPEED;
+			this.rigidBody.angularVelocity.z = ((this.isRunning) ? -PlayerState.RUNNING_ROT_SPEED : -PlayerState.WALKING_ROT_SPEED);
 		}
 		//this.rigidBody.applyImpulse(PlayerState.WALKING_SPEED, this.position);
 	}
@@ -378,9 +378,10 @@ Projectile.prototype.update = function(dt){
 
 	//Fill the bodies to intersect array
 	while(Projectile.bodiesToIntersect.length > 0){
-		Projectile.bodiesToIntersect.pop();
+		Projectile.bodiesToIntersect.pop(); //Clear the array
 	}
 
+	//Copy only the player bodies into the list for intersection
 	this.worldInside.players.forEach(function(player){
 		Projectile.bodiesToIntersect.push(player.rigidBody);
 	});
@@ -404,7 +405,7 @@ Projectile.prototype.update = function(dt){
 			//this.timeAlive = Projectile.LIFETIME_MS+1;
 		}
 	}
-	this.position = this.position.vadd(this.direction.mult(this.speed));
+	//this.position = this.position.vadd(this.direction.mult(this.speed));
 
 	//this.timeAlive += dt;
 	//if(this.timeAlive > Projectile.LIFETIME_MS){

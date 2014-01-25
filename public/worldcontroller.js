@@ -108,10 +108,18 @@ WorldController.prototype.resizeWindow = function(width, height) {
 	this.hudMesh.position.y = this.cameraOrtho.bottom + 0.05;
 }
 
+WorldController.FORWARD = new CANNON.Vec3(0,7,0);
+WorldController.FORWARD_ROT = new CANNON.Vec3(0,0,0);
+
 WorldController.prototype.updateCurrentPlayer = function() {
-	this.currentPlayer.rigidBody.position.copy(this.camera.position);
+	//this.currentPlayer.rigidBody.position.copy(this.camera.position);
+	
+	WorldController.FORWARD_ROT = this.currentPlayer.rigidBody.quaternion.vmult(WorldController.FORWARD); //Rotate the camera so we see more of what's infront of the user
+	
+	WorldController.FORWARD_ROT.copy(this.camera.position);
+	this.camera.position = WorldController.FORWARD_ROT.vadd(this.currentPlayer.rigidBody.position);
 	this.camera.position.z = 20;
-	this.camera.position.y -= 10;
+	this.camera.position.y -= 18;
 	
 	this.currentPlayer.rigidBody.position.copy(this.playerLight.position);
 	this.playerLight.position.z += 0.6;
