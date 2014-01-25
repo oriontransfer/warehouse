@@ -17,7 +17,7 @@ function WorldController() {
 	
 	this.playerGeometryController = new GeometryController(this.scene, this.worldState.players);
 	
-	var light = new THREE.SpotLight(0xffffff, 1, 50, D2R(72/2), 2.0);
+	var light = new THREE.SpotLight(0xffffff, 4, 50, D2R(72/2), 2.0);
 	light.position.set(10, 10, 10);
 	light.target.position.set(5, 5, 0);
 	light.castShadow = true;
