@@ -1,11 +1,10 @@
 function WorldController(){
-	this.worldState = new worldState(tilemap);
+	this.worldState = new WorldState();
 	this.currentPlayer = null;
-	
 }
 
 WorldController.prototype.setup = function(playerName, initLocation){
-	 this.currentPlayer = worldState.addPlayer(playerName, initLocation);
+	 this.currentPlayer = this.worldState.addPlayer(playerName, initLocation);
 }
 
 WorldController.prototype.update = function(dt){
@@ -19,11 +18,13 @@ EventType = {
 };
 
 WorldController.prototype.handleEvent = function(event, action){
+	console.log(event, action);
+
 	var motionState = null
 	var motionDirection = null;
 	var eventType = null;
+	motionState = PlayerState.Motion.WALKING;
 	switch(event){
-		motionState = PlayerState.Motion.WALKING
 		case Event.MOVE_FORWARDS:
 			eventType = EventType.POSITIONAL
 			motionDirection = PlayerState.Direction.FORWARD;
