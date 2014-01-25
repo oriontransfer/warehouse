@@ -22,7 +22,7 @@ function WorldState() {
 //Const world variables
 WorldState.PLAYER_SIZE_HALF = 0.8;
 WorldState.PLAYER_MASS = 2515 * 0.5;
-WorldState.ANGULAR_DAMPING = 0.8;
+WorldState.ANGULAR_DAMPING = 0.99;
 
 WorldState.PROJECTILE_SIZE_HALF = 0.05;
 WorldState.PROJECTILE_MASS = 0;
@@ -196,8 +196,8 @@ function PlayerState(name, ID) {
 
 //Const player variables.
 PlayerState.WALKING_SPEED = 4000;
-PlayerState.RUNNING_SPEED = 2.0;
-PlayerState.WALKING_ROT_SPEED = 0.1;
+PlayerState.RUNNING_SPEED = 6000;
+PlayerState.WALKING_ROT_SPEED = 1;
 PlayerState.RUNNING_ROT_SPEED = 0.05;
 PlayerState.MAX_WALKING_SPEED = .1;
 PlayerState.MAX_RUNNING_SPEED = 40;
@@ -310,13 +310,13 @@ PlayerState.prototype.update = function(dt){
 		this.rigidBody.applyImpulse(impulseDirection, this.position);
 	}
 
-	if(this.rotation == PlayerState.Motion.WALKING && this.rigidBody.velocity.distanceTo(PlayerState.ORIGIN) < PlayerState.WALKING_SPEED){
-		var impulseDirection = new CANNON.Vec3(0,0,0);
-		//this.position.copy(impulseDirection);
-
-		//impulseDirection.vsub(this.direction);
-		impulseDirection.vadd(PlayerState.combinedDirection);
-
+	if(this.rotation == PlayerState.Motion.WALKING){
+		if(this.rotationDirection == PlayerState.Direction.LEFT){
+			this.rigidBody.angularVelocity.z = PlayerState.WALKING_ROT_SPEED;
+		} 
+		else {
+			this.rigidBody.angularVelocity.z = -PlayerState.WALKING_ROT_SPEED;
+		}
 		//this.rigidBody.applyImpulse(PlayerState.WALKING_SPEED, this.position);
 	}
 	if(this.rotation == PlayerState.Motion.RUNNING && this.rigidBody.velocity.distanceTo(PlayerState.ORIGIN) < PlayerState.RUNNING_SPEED){
