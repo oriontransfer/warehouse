@@ -19,7 +19,7 @@ function WorldState() {
 
 //Const world variables
 WorldState.PLAYER_SIZE_HALF = 0.4;
-WorldState.PLAYER_MASS = 20;
+WorldState.PLAYER_MASS = 1;
 
 WorldState.PROJECTILE_SIZE_HALF = 0.05;
 WorldState.PROJECTILE_MASS = 0;
@@ -117,7 +117,7 @@ WorldState.prototype.addPlayer = function(name, startingLocationVEC3){
 	var location = new CANNON.Vec3(0,0,0)
 
 	startingLocationVEC3.copy(location);
-
+	location.z += 5;
 	boxBody.position = location;
 
 	//Store references to each other for call backs.
@@ -175,12 +175,12 @@ function PlayerState(name, ID) {
 }
 
 //Const player variables.
-PlayerState.WALKING_SPEED = 1.0;
+PlayerState.WALKING_SPEED = 500.0;
 PlayerState.RUNNING_SPEED = 2.0;
 PlayerState.WALKING_ROT_SPEED = 0.1;
 PlayerState.RUNNING_ROT_SPEED = 0.05;
-PlayerState.MAX_WALKING_SPEED = 0.8;
-PlayerState.MAX_RUNNING_SPEED = 0.8;
+PlayerState.MAX_WALKING_SPEED = 40;
+PlayerState.MAX_RUNNING_SPEED = 40;
 PlayerState.Motion = {
 	WALKING: 1,
 	RUNNING: 2,
@@ -243,10 +243,10 @@ PlayerState.prototype.update = function(dt){
 
 	switch(this.motionDirection){
 		case PlayerState.Direction.FORWARD:
-			PlayerState.combinedDirectionBuffer.z = -1;
+			PlayerState.combinedDirectionBuffer.y = -1;
 		break;
 		case PlayerState.Direction.BACKWARD:
-			PlayerState.combinedDirectionBuffer.z = 1;
+			PlayerState.combinedDirectionBuffer.y = 1;
 		break;
 		case PlayerState.Direction.LEFT:
 			PlayerState.combinedDirectionBuffer.x = -1;
@@ -264,7 +264,7 @@ PlayerState.prototype.update = function(dt){
 
 		//impulseDirection = impulseDirection.vsub(this.direction);
 		impulseDirection = impulseDirection.vadd(PlayerState.combinedDirection);
-		impulseDirection.mult(PlayerState.WALKING_SPEED);
+		impulseDirection = impulseDirection.mult(PlayerState.WALKING_SPEED);
 
 		this.rigidBody.applyImpulse(impulseDirection, this.position);
 	}
@@ -274,7 +274,7 @@ PlayerState.prototype.update = function(dt){
 
 		//impulseDirection = impulseDirection.vsub(this.direction);
 		impulseDirection = impulseDirection.vadd(PlayerState.combinedDirection);
-		impulseDirection.mult(PlayerState.RUNNING_SPEED);
+		impulseDirection = impulseDirection.mult(PlayerState.RUNNING_SPEED);
 
 		this.rigidBody.applyImpulse(impulseDirection, this.position);
 	}
