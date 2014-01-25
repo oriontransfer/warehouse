@@ -7,7 +7,9 @@ Event = {
 	ROTATE_RIGHT: 4,
 	STRAFE_LEFT: 5,
 	STRAFE_RIGHT: 6,
-	SHOOT: 7
+	SHOOT: 7,
+	
+	FAST: 32
 };
 
 AngryBox = {
@@ -77,6 +79,8 @@ AngryBox = {
 		if (controller) this.setController(controller);
 		else this.setController(this.controller);
 		
+		this.eventState[Event.FAST] = false;
+		
 		// Setup keyboard bindings:
 		window.addEventListener('keydown', this.handleUserInput.bind(this, true), false);
 		window.addEventListener('keyup', this.handleUserInput.bind(this, false), false);
@@ -114,6 +118,8 @@ AngryBox = {
 			
 			this.controller.handleEvent(event, state);
 		} else {
+			if (this.eventState[event] == state) return;
+			
 			delete this.eventState[event];
 			
 			this.controller.handleEvent(event, state)
@@ -121,6 +127,12 @@ AngryBox = {
 	},
 	
 	handleUserInput: function(state, e) {
+		if (e.shiftKey) {
+			this.handleEvent(Event.FAST, true);
+		} else {
+			this.handleEvent(Event.FAST, false);
+		}
+		
 		switch (e.charCode ? e.charCode : e.keyCode) {
 		case 87: // w
 			this.handleEvent(Event.MOVE_FORWARDS, state); break;
