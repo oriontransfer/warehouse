@@ -125,7 +125,7 @@ AngryBox = {
 			return;
 		}
 		
-		event.stopPropagation();
+		e.stopPropagation();
 	},
 	
 	resizeWindow: function(e) {

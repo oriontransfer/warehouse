@@ -21,7 +21,7 @@ WorldController.prototype.update = function(dt) {
 	
 	this.playerGeometryController.update();
 	
-	console.log(this.currentPlayer.position.x);
+	//console.log(this.currentPlayer.position.x);
 }
 
 WorldController.prototype.render = function(renderer) {
@@ -74,7 +74,7 @@ WorldController.prototype.handleEvent = function(event, action){
 			eventType = EventType.SHOOTING;
 		break;
 	}
-	if(eventType){
+	//if(eventType){
 		switch(eventType){
 			case EventType.POSITIONAL:
 				this.currentPlayer.setMotionState(motionState, motionDirection);
@@ -86,5 +86,5 @@ WorldController.prototype.handleEvent = function(event, action){
 			break;
 		}
 	
-	}
+	//}
 }
