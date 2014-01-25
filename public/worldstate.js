@@ -234,7 +234,7 @@ PlayerState.prototype.setRotationState = function(state, direction) {
 PlayerState.ORIGIN = new CANNON.Vec3(0,0,0); //constant used for distance calculations
 PlayerState.combinedDirectionBuffer = new CANNON.Vec3(0,0,0);//Combined direction stores a direction based on key input.
 PlayerState.combinedDirection = new CANNON.Vec3(0,0,0);
-PlayerState.FORAWRD = new CANNON.Vec3(0,0,-1);
+PlayerState.FORWARD = new CANNON.Vec3(0,0,-1);
 
 PlayerState.prototype.update = function(dt){
 	this.position = this.boxBody.position;
