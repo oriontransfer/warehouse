@@ -116,18 +116,16 @@ WorldState.prototype.addPlayer = function(name, startingLocationVEC3){
 	var boxHalfExtents = new CANNON.Vec3(WorldState.PLAYER_SIZE_HALF, WorldState.PLAYER_SIZE_HALF, WorldState.PLAYER_SIZE_HALF);
 	var boxShape = new CANNON.Box(boxHalfExtents);
 	var boxBody = new CANNON.RigidBody(WorldState.PLAYER_MASS, boxShape, this.boxPhysicsMaterial);
-	var location = new CANNON.Vec3(0,0,0)
 
-	startingLocationVEC3.copy(location);
-	location.z += 5;
-	boxBody.position = location;
+	startingLocationVEC3.z += 5.0;
+	startingLocationVEC3.copy(boxBody.position);
 
 	//Store references to each other for call backs.
 	boxBody.userData = newPlayer;
 	newPlayer.rigidBody = boxBody;
 	this.world.add(boxBody);
 	
-	this.players.add(newPlayer.name, newPlayer);
+	this.players.push(newPlayer);
 	
 	return newPlayer;
 }

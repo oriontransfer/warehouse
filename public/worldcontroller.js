@@ -15,9 +15,11 @@ function WorldController() {
 	this.playerGeometryController = new GeometryController(this.scene, this.worldState.players);
 	
 	this.currentPlayer = this.worldState.addPlayer("Mr Pickles", new CANNON.Vec3(0, 0, 0));
+	this.worldState.addPlayer("Bob", new CANNON.Vec3(5, 5, 0));
+	this.worldState.addPlayer("John", new CANNON.Vec3(-5, 5, 0));
+	this.worldState.addPlayer("Peach", new CANNON.Vec3(-5, 2, 0));
 	
 	this.visibilityController = new VisibilityController(this.currentPlayer, this.worldState);
-	
 }
 
 WorldController.prototype.setup = function() {

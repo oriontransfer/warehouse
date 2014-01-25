@@ -16,13 +16,7 @@ GeometryController.prototype.onAdd = function(key, object)
 	var rigidBody = object.rigidBody;
 	var h = rigidBody.shape.halfExtents;
 	
-	var geometry = new THREE.CubeGeometry(h.x * 2.0, h.y * 2.0, h.z * 2.0);
-	
-	console.log("Adding geometry", geometry);
-	
-	object.mesh = new THREE.Mesh(geometry, this.shaders.basic);
-	
-	object.mesh = AngryBox.assets.crate;
+	object.mesh = new THREE.Mesh(AngryBox.assets.crate.geometry, AngryBox.assets.crate.material);
 	
 	this.scene.add(object.mesh);
 }
