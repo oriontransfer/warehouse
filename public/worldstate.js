@@ -32,12 +32,12 @@ WorldState.prototype.initPhysics = function(){
 	//Initialise the world
 	this.world = new CANNON.World();
 	this.world.broadphase = new CANNON.NaiveBroadphase();
-	var world = this.world;
+	world = this.world;
 
-	var solver = new CANNON.GSSolver();
+	solver = new CANNON.GSSolver();
 
-	world.defaultContactMaterial.contactEquationStiffness = 1e8;
-    world.defaultContactMaterial.contactEquationRegularizationTime = 3;
+	// world.defaultContactMaterial.contactEquationStiffness = 1e8;
+ //    world.defaultContactMaterial.contactEquationRegularizationTime = 3;
 
     solver.iterations = 20;
     solver.tolerance = 0;
@@ -49,25 +49,33 @@ WorldState.prototype.initPhysics = function(){
 	
 
 	//Initialise the physics contact materials.
-	var boxPhysicsMaterial = new CANNON.ContactMaterial("BOX_PHY_MATERIAL");
-	this.boxPhysicsContactMaterial = new CANNON.ContactMaterial(boxPhysicsMaterial,
-																boxPhysicsMaterial,
-																0.1,
-																0.3);
+	this.boxPhysicsMaterial = new CANNON.Material("BOX_PHY_MATERIAL");
+	this.boxPhysicsContactMaterial = new CANNON.ContactMaterial(this.boxPhysicsMaterial,
+																this.boxPhysicsMaterial,
+																0,
+																0);
+
+	
+
+	this.groundPhysicsMaterial = new CANNON.Material("GROUND_PHY_MATERIAL");
+	this.groundPhysicsContactMaterial = new CANNON.ContactMaterial(this.groundPhysicsMaterial,
+																this.groundPhysicsMaterial,
+																0,
+																0);
+
+	// this.boxPhysicsContactMaterial.frictionEquationStiffness = 1e8;
+	// this.boxPhysicsContactMaterial.frictionEquationRegularizationTime = 3;
 
 	// Adjust constraint equation parameters
     this.boxPhysicsContactMaterial.contactEquationStiffness = 1e8;
     this.boxPhysicsContactMaterial.contactEquationRegularizationTime = 3;
 
-	var groundPhysicsMaterial = new CANNON.ContactMaterial("GROUND_PHY_MATERIAL");
-	this.groundPhysicsContactMaterial = new CANNON.ContactMaterial(groundPhysicsMaterial,
-																groundPhysicsMaterial,
-																0.1,
-																0.3);
-
 	// Adjust constraint equation parameters
    	this.groundPhysicsContactMaterial.contactEquationStiffness = 1e8;
     this.groundPhysicsContactMaterial.contactEquationRegularizationTime = 3;
+
+    this.groundPhysicsContactMaterial.frictionEquationStiffness = 1e8;
+	this.groundPhysicsContactMaterial.frictionEquationRegularizationTime = 3;
 
 	world.addContactMaterial(this.boxPhysicsContactMaterial);
 	world.addContactMaterial(this.groundPhysicsContactMaterial);
@@ -126,6 +134,7 @@ WorldState.prototype.addPlayer = function(name, startingLocationVEC3){
 	var boxShape = new CANNON.Box(boxHalfExtents);
 	var boxBody = new CANNON.RigidBody(WorldState.PLAYER_MASS, boxShape, this.boxPhysicsMaterial);
 
+	//boxBody.material = this.boxPhysicsMaterial;
 	startingLocationVEC3.z += 5.0;
 	startingLocationVEC3.copy(boxBody.position);
 
