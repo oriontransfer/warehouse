@@ -22,6 +22,8 @@ GeometryController.prototype.onAdd = function(key, object)
 	
 	object.mesh = new THREE.Mesh(geometry, this.shaders.basic);
 	
+	object.mesh = AngryBox.assets.crate;
+	
 	this.scene.add(object.mesh);
 }
 

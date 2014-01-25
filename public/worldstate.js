@@ -5,6 +5,8 @@ function WorldState() {
 	this.projectiles = new Container();
 	this.geometry = new Container();
 	
+	this.obstructions = new Container();
+	
 	this.playerIDCounter = 0;
 	this.protectileIDCounter = 0;
 	this.geometryIDCounter = 0;

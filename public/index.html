@@ -8,7 +8,7 @@
 		<style type="text/css" media="screen">
 			body {
 				color: white;
-				background-color: black;
+				background-color: #333;
 				
 				font-family: 'Sorts Mill Goudy', cursive;
 				overflow: hidden;
@@ -37,7 +37,9 @@
 			window.onload = function() {
 				console.log("Starting Angry Box...");
 
-				AngryBox.run(new WorldController());
+				AngryBox.loadAssets(function() {
+					AngryBox.run(new WorldController());
+				})
 			};
 		</script>
 	</head>
