@@ -22,6 +22,7 @@ function WorldState() {
 //Const world variables
 WorldState.PLAYER_SIZE_HALF = 0.8;
 WorldState.PLAYER_MASS = 2515 * 0.5;
+WorldState.ANGULAR_DAMPING = 0.8;
 
 WorldState.PROJECTILE_SIZE_HALF = 0.05;
 WorldState.PROJECTILE_MASS = 0;
@@ -60,7 +61,7 @@ WorldState.prototype.initPhysics = function(){
 	this.groundPhysicsMaterial = new CANNON.Material("GROUND_PHY_MATERIAL");
 	this.groundPhysicsContactMaterial = new CANNON.ContactMaterial(this.groundPhysicsMaterial,
 																this.boxPhysicsMaterial,
-																0,
+																0.001,
 																0.3);
 
 	// this.boxPhysicsContactMaterial.frictionEquationStiffness = 1e8;
@@ -134,8 +135,9 @@ WorldState.prototype.addPlayer = function(name, startingLocationVEC3){
 	var boxShape = new CANNON.Box(boxHalfExtents);
 	var boxBody = new CANNON.RigidBody(WorldState.PLAYER_MASS, boxShape, this.boxPhysicsMaterial);
 
+	boxBody.angularDamping = WorldState.ANGULAR_DAMPING;
 	//boxBody.material = this.boxPhysicsMaterial;
-	startingLocationVEC3.z += 5.0;
+	//startingLocationVEC3.z += 5.0;
 	startingLocationVEC3.copy(boxBody.position);
 
 	//Store references to each other for call backs.
@@ -257,22 +259,28 @@ PlayerState.prototype.update = function(dt){
 	this.rotationQuat = this.rigidBody.quaternion;
 	this.rotationQuat.vmult(PlayerState.FORWARD, this.direction);
 
-	PlayerState.combinedDirectionBuffer.set(0,0,0);
+	//PlayerState.combinedDirectionBuffer.set(0,0,0);
 
 	switch(this.motionDirection){
 		case PlayerState.Direction.FORWARD:
-			PlayerState.combinedDirectionBuffer.y = 1;
+			if(this.motion != PlayerState.Motion.STOPPED)PlayerState.combinedDirectionBuffer.y = 1;
+			else PlayerState.combinedDirectionBuffer.y = 0;
 		break;
 		case PlayerState.Direction.BACKWARD:
-			PlayerState.combinedDirectionBuffer.y = -1;
+			if(this.motion != PlayerState.Motion.STOPPED)PlayerState.combinedDirectionBuffer.y = -1;
+			else PlayerState.combinedDirectionBuffer.y = 0;
 		break;
 		case PlayerState.Direction.LEFT:
-			PlayerState.combinedDirectionBuffer.x = -1;
+			if(this.motion != PlayerState.Motion.STOPPED)PlayerState.combinedDirectionBuffer.x = -1;
+			else PlayerState.combinedDirectionBuffer.x = 0;
 		break;
 		case PlayerState.Direction.RIGHT:
-			PlayerState.combinedDirectionBuffer.x = 1;
+			if(this.motion != PlayerState.Motion.STOPPED)PlayerState.combinedDirectionBuffer.x = 1;
+			else PlayerState.combinedDirectionBuffer.x = 0;
 		break;
 	}
+
+	PlayerState.combinedDirectionBuffer.normalize();
 
 	//this.rotationQuat.vmult(PlayerState.combinedDirectionBuffer, PlayerState.combinedDirection);
 
@@ -323,7 +331,6 @@ PlayerState.prototype.update = function(dt){
 
 	if(this.motion == PlayerState.Motion.STOPPED && this.rotation == PlayerState.Motion.STOPPED){
 		this.isMakingNoise = false;
-		this.rigidBody.velocity.set(0,0,0);
 	}
 	else this.isMakingNoise = true;
 
