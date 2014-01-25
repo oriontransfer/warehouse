@@ -15,6 +15,10 @@ function WorldState(tilemap) {
 WorldState.PLAYER_SIZE_HALF = 0.4;
 WorldState.PLAYER_MASS = 20;
 
+WorldState.PROJECTILE_SIZE_HALF = 0.05;
+WorldState.PROJECTILE_MASS = 0;
+
+
 WorldState.prototype.initPhysics(){
 
 	//Initialise the world
@@ -93,14 +97,33 @@ WorldState.prototype.addPlayer(name, startingLocation){
 	world.add(boxBody);
 }
 
+//Starting location and direction is a Vec3
 WorldState.prototype.addProjectile = function(startingLocation, startingSpeed ,startingDirection){
 	var newProjectile = new Protectile(startingLocation, startingSpeed, startingDirection, this.protectileIDCounter++);
 	this.projectiles.push(newProjectile);
+
+	projShape = new CANNON.Sphere(PROJECTILE_SIZE_HALF);
+	projBody = new CANNON.RigidBody(PROJECTILE_MASS, projShape, boxPhysicsMaterial);
+	projBody.position.set(startingLocation[0], startingLocation[1], startingLocation[2]);
+
+	//Get the direciton of the projectile, mult by speed and set that as the initial velocity of the projectile.
+	var Vec3 initVelocity = new Vec3(0,0,0);
+	startingDirection.copy(initVelocity);
+	initVelocity.mult(startingSpeed);
+	projBody.initVelocity = initVelocity;
+
+	projBody.userData = newProjectile;
+	newProjectile.projBody = projBody;
+
+	world.add(projBody);
+
 }
 
 //Const player variables.
-PlayerState.WALKING_SPEED = 10;
-PlayerState.RUNNING_SPEED = 20;
+PlayerState.WALKING_SPEED = 0.1;
+PlayerState.RUNNING_SPEED = 0.2;
+PlayerState.MAX_WALKING_SPEED = 0.8;
+PlayerState.MAX_RUNNING_SPEED = 0.8;
 PlayerState.Motion = {
 	WALKING: 1,
 	RUNNING: 2,
@@ -114,6 +137,7 @@ function PlayerState(initialLocation, name, ID) {
 	//Positional
 	this.position = null;
 	this.direction = new Vec3(0, 0, 0);
+	this.rotationQuat = null;
 
 	//Internal state / control state
 	this.motion = Motion.STOPPED;
@@ -155,10 +179,13 @@ PlayerState.prototype.setMotionState = function(state) {
 /**
 * Function that updates the player state variables.
 */
+PlayerState.ORIGIN = new Vec3(0,0,0); //constant used for distance calculations
+
 PlayState.prototype.update = function(dt){
 	this.position = this.boxBody.position;
+	this.rotationQuat = this.boxBody.quaternion;
 
-	if(this.motion == Motion.WALKING){
+	if(this.motion == Motion.WALKING && this.boxBody.velocity.distanceTo(origin) < WALKING_SPEED){
 		Vec3 impulseDirection = new Vec3(0,0);
 		this.position.copy(impulseDirection);
 
@@ -167,7 +194,7 @@ PlayState.prototype.update = function(dt){
 		this.boxBody.applyForce(WALKING_SPEED, impulseDirection);
 		this.isMakingNoise = true;
 	}
-	if(this.motion == Motion.RUNNING){
+	if(this.motion == Motion.RUNNING && this.boxBody.velocity.distanceTo(origin) < RUNNING_SPEED){
 		Vec3 impulseDirection = new Vec3(0,0);
 		this.position.copy(impulseDirection);
 
@@ -181,17 +208,24 @@ PlayState.prototype.update = function(dt){
 	}
 }
 
-function Protectile(initialPosition, speed, direction, ID) {
+function Protectile(speed, direction, ID) {
 	this.ID = ID;
-	this.position = initialPosition;
-	this.direction = direction;
+
+	//Positional
+	this.position = null;
+	this.direction = new Vec3(0, 0, 0);
+	this.rotationQuat = null;
 	this.speed = speed;
+
+	this.projBody = null;
 }
 
-Protectile.prototype.update = function(dt){
-	// var locationChange = new Vec2(direction.x, direction.y);
+Protectile.ORIGIN = new Vec3(0,0,0); //constant used for distance calculations
 
-	// Vec2.scale(locationChange, dt * speed);
-	// Vec2.add(this.position, locationChange);
+Protectile.prototype.update = function(dt){
+	this.position = this.projBody.position;
+	this.rotationQuat = this.projBody.quaternion;
+
+	this.speed = this.projBody.velocity.distanceTo(ORIGIN);
 }
 
