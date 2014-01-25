@@ -64,7 +64,7 @@ WorldState.prototype.initPhysics = function(){
 	//Initialise the ground plane
 	var groundShape = new CANNON.Plane();
 	var groundBody = new CANNON.RigidBody(0, groundShape, this.groundPhysicsMaterial);
-	groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1,0,0),-Math.PI/2);
+	groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0,0,1),-Math.PI/2);
 	world.add(groundBody);
 }
 
