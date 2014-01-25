@@ -97,7 +97,7 @@ FloorController.prototype.generate = function()
 		for (var y = 0; y < this.size[1]; y += 1) {
 			var i = this.random.nextInteger(this.tiles.length), tile = this.tiles[i];
 			
-			console.log("tile", i, tile);
+			//console.log("tile", i, tile);
 			
 			var mesh = new THREE.Mesh(tile.geometry, tile.material);
 			

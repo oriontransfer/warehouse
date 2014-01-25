@@ -386,8 +386,8 @@ Projectile.prototype.update = function(dt){
 	});
 
 	this.position.copy(Projectile.ORIGIN);
-	this.ray = this.direction.mult(this.speed);
-	///this.ray.z = 0;
+	this.ray = this.direction;//.mult(this.speed);
+	this.ray.z = 0;
 
 	var ray = new CANNON.Ray(Projectile.ORIGIN, this.ray);
 	var intersections = ray.intersectBodies(Projectile.bodiesToIntersect);
