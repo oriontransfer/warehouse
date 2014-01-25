@@ -1,9 +1,10 @@
 /// *** Class Gamestate ***
 /// The state of the gmae map is stored in this Class
 function WorldState() {
-	this.players = new Array();
-	this.projectiles = new Array();
-	this.geometry = new Array();
+	this.players = new Container();
+	this.projectiles = new Container();
+	this.geometry = new Container();
+	
 	this.playerIDCounter = 0;
 	this.protectileIDCounter = 0;
 	// if(tilemap){
@@ -89,7 +90,7 @@ WorldState.addPlaneGeometry = function(locationVEC3, directionVEC3){
 
 WorldState.prototype.addPlayer = function(name, startingLocationVEC2){
 	var newPlayer = new PlayerState(startingLocationVEC2, name, this.playerIDCounter++);
-	this.players.push(newPlayer);
+	this.players.add(newPlayer.name, newPlayer);
 
 	// var tileInside = new Vec2(startingLocationVEC2[0] / this.tileMap.tileSize[0], startingLocationVEC2[1] / this.tileMap.tileSize[1]);
 	// newPlayer.tileInside = this.tileMap.get(tileInside);
@@ -117,7 +118,7 @@ WorldState.prototype.addPlayer = function(name, startingLocationVEC2){
 //Starting location and direction is a Vec3
 WorldState.prototype.addProjectile = function(startingLocation, startingSpeed ,startingDirection){
 	var newProjectile = new Protectile(startingLocation, startingSpeed, startingDirection, this.protectileIDCounter++);
-	this.projectiles.push(newProjectile);
+	this.projectiles.add(newProjectile.ID, newProjectile);
 
 	projShape = new CANNON.Sphere(PROJECTILE_SIZE_HALF);
 	projBody = new CANNON.RigidBody(PROJECTILE_MASS, projShape, boxPhysicsMaterial);

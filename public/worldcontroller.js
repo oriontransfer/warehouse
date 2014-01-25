@@ -1,14 +1,29 @@
-function WorldController(){
+
+function WorldController() {
 	this.worldState = new WorldState();
 	this.currentPlayer = null;
+	
+	this.currentPlayer = this.worldState.addPlayer("Mr Pickles", CANNON.Vec3(0, 0, 0));
+	
+	this.scene = new THREE.Scene(),
+	
+	this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000),
+	this.camera.position.z = 5;
+	
+	this.geometryController = new GeometryController(this.scene, this.worldState);
 }
 
-WorldController.prototype.setup = function(playerName, initLocation){
-	 this.currentPlayer = this.worldState.addPlayer(playerName, initLocation);
+WorldController.prototype.setup = function(scene) {
+	this.geometryController.initialize();
 }
 
-WorldController.prototype.update = function(dt){
+WorldController.prototype.update = function(dt) {
 	this.worldState.update(dt);
+	this.geometryController.update();
+}
+
+WorldController.prototype.render = function(renderer) {
+	renderer.render(this.scene, this.camera);
 }
 
 EventType = {
