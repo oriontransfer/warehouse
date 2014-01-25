@@ -72,13 +72,13 @@ WorldState.prototype.update = function(dt){
 
 	this.world.step(dt);
 
-	for(var i = 0, max=players.length; i < max; i++){
-		players[i].update(dt);
-	}
+	this.players.forEach(function(player){
+		player.update(dt);
+	});
 
-	for(var i = 0, max=projectiles.length; i < max; i++){
-		projectiles[i].update(dt);
-	}
+	this.projectiles.forEach(function(projectile){
+		projectile.update(dt);
+	});
 }
 
 WorldState.addBoxGeometry = function(locationVEC3, halfExtentsVEC3, shader){
@@ -235,11 +235,11 @@ PlayerState.combinedDirection = new CANNON.Vec3(0,0,0);
 PlayerState.FORWARD = new CANNON.Vec3(0,0,-1);
 
 PlayerState.prototype.update = function(dt){
-	this.position = this.boxBody.position;
-	this.rotationQuat = this.boxBody.quaternion;
+	this.position = this.rigidBody.position;
+	this.rotationQuat = this.rigidBody.quaternion;
 	this.rotationQuat.vmult(PlayerState.FORWARD, this.direction);
 
-	combinedDirection.set(0,0,0);
+	PlayerState.combinedDirectionBuffer.set(0,0,0);
 
 	switch(this.motionDirection){
 		case PlayerState.Direction.FORWARD:
@@ -296,7 +296,7 @@ PlayerState.prototype.update = function(dt){
 		this.boxBody.applyForce(RUNNING_SPEED, impulseDirection);
 	}
 
-	if(this.motion == PlayerState.Motion.STOPPED && this.rotation == Motion.STOPPED){
+	if(this.motion == PlayerState.Motion.STOPPED && this.rotation == PlayerState.Motion.STOPPED){
 		this.isMakingNoise = false;
 	}
 	else this.isMakingNoise = true;
