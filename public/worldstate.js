@@ -8,7 +8,7 @@ function WorldState() {
 	this.obstructions = new Container();
 	
 	this.playerIDCounter = 0;
-	this.protectileIDCounter = 0;
+	this.projectileIDCounter = 0;
 	this.geometryIDCounter = 0;
 	// if(tilemap){
 	// 	this.tilemap = tilemap;
@@ -151,26 +151,36 @@ WorldState.prototype.addPlayer = function(name, startingLocationVEC3){
 	return newPlayer;
 }
 
-//Starting location and direction is a Vec3
-WorldState.prototype.addProjectile = function(startingLocation, startingSpeed ,startingDirection){
-	var newProjectile = new Protectile(startingLocation, startingSpeed, startingDirection, this.protectileIDCounter++);
-	this.projectiles.add(newProjectile.ID, newProjectile);
+WorldState.prototype.removePlayer = function(player){
+	this.players.pop(player);
+	this.world.remove(player.RigidBody);
+}
 
-	projShape = new CANNON.Sphere(PROJECTILE_SIZE_HALF);
-	projBody = new CANNON.RigidBody(PROJECTILE_MASS, projShape, boxPhysicsMaterial);
-	projBody.position.set(startingLocation[0], startingLocation[1], startingLocation[2]);
+//Starting location and direction is a Vec3
+WorldState.prototype.addProjectile = function(startingLocation, startingSpeed ,startingDirection, emittedFrom){
+	// projShape = new CANNON.Sphere(WorldState.PROJECTILE_SIZE_HALF);
+	// projBody = new CANNON.RigidBody(WorldState.PROJECTILE_MASS, projShape, this.boxPhysicsMaterial);
+	// projBody.position.set(startingLocation[0], startingLocation[1], startingLocation[2]);
 
 	//Get the direciton of the projectile, mult by speed and set that as the initial velocity of the projectile.
-	var initVelocity = new CANNON.Vec3(0,0,0);
-	startingDirection.copy(initVelocity);
-	initVelocity.mult(startingSpeed);
-	projBody.initVelocity = initVelocity;
+	// var initVelocity = new CANNON.Vec3(0,0,0);
+	// startingDirection.copy(initVelocity);
+	// initVelocity.mult(startingSpeed);
+	// projBody.initVelocity = initVelocity;
 
-	projBody.userData = newProjectile;
-	newProjectile.projBody = projBody;
+	var newProjectile = new Projectile(startingLocation, startingSpeed, startingDirection, emittedFrom, this.projectileIDCounter++);
 
-	world.add(projBody);
+	// projBody.userData = newProjectile;
+	// newProjectile.rigidBody = projBody;
 
+	// this.world.add(projBody);
+	newProjectile.worldInside = this;
+	this.projectiles.push(newProjectile);
+
+}
+
+WorldState.prototype.removeProjectile = function(projectile){
+	this.projectiles.pop(projectile);
 }
 
 function PlayerState(name, ID) {
@@ -205,7 +215,7 @@ PlayerState.RUNNING_ROT_SPEED = 0.05;
 PlayerState.MAX_WALKING_SPEED = .1;
 PlayerState.MAX_RUNNING_SPEED = 40;
 PlayerState.FIRE_RATE_PER_SECOND = 1;
-PlayerState.BULLET_SPEED = 1000000;
+PlayerState.BULLET_SPEED = 100;
 PlayerState.Motion = {
 	WALKING: 1,
 	STOPPED: 2,
@@ -274,8 +284,8 @@ PlayerState.prototype.update = function(dt){
 	if(this.isShooting){
 		if(1/PlayerState.FIRE_RATE_PER_SECOND < PlayerState.lastShotTime){
 			bulletDirection = this.rotationQuat.vmult(PlayerState.FORWARD);
-			bulletPosition = this.rigidBody.Position.vadd(bulletDirection);
-			this.worldInside.addProjectile(bulletPosition, PlayerState.BULLET_SPEED, bulletDirection);
+			bulletPosition = this.rigidBody.position.vadd(bulletDirection.mult(2.0));
+			this.worldInside.addProjectile(bulletPosition, PlayerState.BULLET_SPEED, bulletDirection, this);
 			lastShotTime = 0;
 		}
 	}
@@ -339,25 +349,36 @@ PlayerState.prototype.update = function(dt){
 
 }
 
-function Protectile(speed, direction, ID) {
+function Projectile(startingLocation, speed, direction, emittedFrom, ID) {
 	this.ID = ID;
 
 	//Positional
-	this.position = null;
-	this.direction = new CANNON.Vec3(0, -1, 0);
-	this.rotationQuat = null;
+	this.position = startingLocation;
+	this.direction = direction;
 	this.speed = speed;
-
-	this.projBody = null;
+	this.bodyEmittedFrom = emittedFrom;
+	this.worldInside = null;
+	this.timeAlive = 0;
 }
 
-Protectile.ORIGIN = new CANNON.Vec3(0,0,0); //constant used for distance calculations
+Projectile.ORIGIN = new CANNON.Vec3(0,0,0); //constant used for distance calculations
+Projectile.RAY = new CANNON.Vec3(0,0,0);
+Projectile.LIFETIME_MS = 500;
 
-Protectile.prototype.update = function(dt){
-	this.position = this.projBody.position;
-	this.rotationQuat = this.projBody.quaternion;
+Projectile.prototype.update = function(dt){
+	this.position.copy(Projectile.ORIGIN);
+	Projectile.RAY = this.position.vadd(this.direction.mult(this.speed));
 
-	this.speed = this.projBody.velocity.distanceTo(ORIGIN);
+	var ray = new CANNON.Ray(Projectile.ORIGIN, Projectile.RAY);
+	var intersections = ray.intersectBodies(this.worldInside.world.bodies)
+	
+	this.position = this.position.vadd(this.direction.mult(this.speed));
+
+	if(this.timeAlive > Projectile.LIFETIME_MS){
+		this.worldInside
+	}
+
+	this.timeAlive += dt;
 }
 
 function GeometryState(shader, ID){
@@ -365,12 +386,14 @@ function GeometryState(shader, ID){
 	this.position = null;
 	this.rotationQuat = null;
 
-	this.RigidBody = null;
+	this.rigidBody = null;
 
 	this.shader = "";
 }
 
 GeometryState.prototype.update = function(dt){
-	this.position = this.RigidBody.position;
-	this.rotationQuat = this.RigidBody.quaternion;
+	this.position = this.rigidBody.position;
+	this.rotationQuat = this.rigidBody.quaternion;
+
+
 }
