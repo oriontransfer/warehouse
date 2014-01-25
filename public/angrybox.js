@@ -13,43 +13,64 @@ Event = {
 
 AngryBox = {
 	controller: {
+		scene: new THREE.Scene(),
+		camera: new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000),
+		
+		setup: function() {
+			// Add the test cube:
+			var geometry = new THREE.CubeGeometry(1,1,1);
+			var material = new THREE.MeshBasicMaterial({color: 0x00ff00});
+
+			this.cube = new THREE.Mesh(geometry, material);
+			this.scene.add(this.cube);
+		
+			this.camera.position.z = 5;
+		},
+		
 		update: function(timestep) {
 			console.log("update", timestep);
 		},
 		
-		handleEvent: function(event) {
-			console.log("handleEvent", event);
+		handleEvent: function(event, state) {
+			console.log("handleEvent", event, state);
 			
 			switch(event) {
 			case Event.MOVE_FORWARDS:
-				AngryBox.cube.position.x -= 1; break;
+				this.cube.position.x -= 1; break;
 			case Event.MOVE_BACKWARDS:
-				AngryBox.cube.position.x += 1; break;
+				this.cube.position.x += 1; break;
 			}
 		},
+		
+		render: function(renderer) {
+			this.cube.rotation.x += 0.1;
+			this.cube.rotation.y += 0.1;
+
+			renderer.render(this.scene, this.camera);
+		}
 	},
 	
-	scene: new THREE.Scene(),
-	camera: new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000),
-
-	run: function() {
+	setController: function(controller) {
+		console.log("Setting controller:", controller);
+		
+		this.controller = controller;
+		
+		controller.setup();
+	},
+	
+	run: function(controller) {
+		if (controller) this.setController(controller);
+		else this.setController(this.controller);
+		
 		// Setup keyboard bindings:
-		window.addEventListener('keydown', this.handleUserInput.bind(this), false);
+		window.addEventListener('keydown', this.handleUserInput.bind(this, true), false);
+		window.addEventListener('keyup', this.handleUserInput.bind(this, false), false);
 		window.addEventListener('resize', this.resizeWindow.bind(this), false);
 		
 		this.renderer = new THREE.WebGLRenderer();
 
 		this.renderer.setSize(window.innerWidth, window.innerHeight);
 		document.body.appendChild(this.renderer.domElement);
-
-		// Add the test cube:
-		var geometry = new THREE.CubeGeometry(1,1,1);
-		var material = new THREE.MeshBasicMaterial({color: 0x00ff00});
-
-		this.cube = new THREE.Mesh(geometry, material);
-		this.scene.add(this.cube);
-		
-		this.camera.position.z = 5;
 
 		this.timestep = 1.0/30.0;
 		setInterval(this.timestep, this.update.bind(this));
@@ -60,36 +81,46 @@ AngryBox = {
 	render: function() {
 		requestAnimationFrame(this.render.bind(this));
 
-		this.cube.rotation.x += 0.1;
-		this.cube.rotation.y += 0.1;
-
-		this.renderer.render(this.scene, this.camera);
+		this.controller.render(this.renderer);
 	},
 	
 	update: function() {
 		this.controller.update(this.timestep);
 	},
 	
-	handleEvent: function(event) {
-		this.controller.handleEvent(event);
+	eventState: {
 	},
 	
-	handleUserInput: function(e) {
+	handleEvent: function(event, state) {
+		if (state) {
+			if (this.eventState[event] == state) return;
+			
+			this.eventState[event] = state;
+			
+			this.controller.handleEvent(event, state);
+		} else {
+			delete this.eventState[event];
+			
+			this.controller.handleEvent(event, state)
+		}
+	},
+	
+	handleUserInput: function(state, e) {
 		switch (e.charCode ? e.charCode : e.keyCode) {
 		case 87: // w
-			this.handleEvent(Event.MOVE_FORWARDS); break;
+			this.handleEvent(Event.MOVE_FORWARDS, state); break;
 		case 83: // s
-			this.handleEvent(Event.MOVE_BACKWARDS); break;
+			this.handleEvent(Event.MOVE_BACKWARDS, state); break;
 		case 65: // a
-			this.handleEvent(Event.ROTATE_LEFT); break;
+			this.handleEvent(Event.ROTATE_LEFT, state); break;
 		case 68: // d
-			this.handleEvent(Event.ROTATE_RIGHT); break;
+			this.handleEvent(Event.ROTATE_RIGHT, state); break;
 		case 81: // q
-			this.handleEvent(Event.STRAFE_LEFT); break;
+			this.handleEvent(Event.STRAFE_LEFT, state); break;
 		case 69: // e
-			this.handleEvent(Event.STRAFE_RIGHT); break;
+			this.handleEvent(Event.STRAFE_RIGHT, state); break;
 		case 32: // spacebar
-			this.handleEvent(Event.SHOOT); break;
+			this.handleEvent(Event.SHOOT, state); break;
 		default:
 			return;
 		}
