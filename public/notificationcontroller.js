@@ -34,11 +34,11 @@ NotificationController.prototype.update = function(dt){
 	var scene = this.scene;
 
 	this.worldState.players.forEach(function(player){
-		if(player != currentPlayer){
+		if(player != currentPlayer){//player != currentPlayer
 			var length = player.position.vsub(currentPlayer.position).distanceTo(NotificationController.ORIGIN);
 			if(length <= NotificationController.RADIUS){
 				//console.log("player is near", player.ID);
-				if(true){ //TODO add back in player.isMakingNoise
+				if(player.isMakingNoise){ //TODO add back in player.isMakingNoise
 					//console.log("and that player is making noise", player.ID);
 					if(notifications[player.ID]){
 						if(!notifications[player.ID].update(dt)){
@@ -48,17 +48,24 @@ NotificationController.prototype.update = function(dt){
 					else{
 						var not = new Notification((player.isShooting) ? shootingAsset : assetFoorStep, scene, currentPlayer, player);
 						notifications[player.ID] = not;
-						not.update(dt);
+						if(!not.update(dt)) notifications[player.ID] = null;
 					}
 				}
 			}
 			else{
 				if(notifications[player.ID]){
 					notifications[player.ID].update(Notification.LIFE_TIME + 1); //Kill off the notifications
+					notifications[player.ID] = null;
 				}
 			}
 		}
-	});
+		if(notifications[player.ID]){
+			if(!notifications[player.ID].update(dt)){
+				notifications[player.ID] = null;
+			} //Kill off the notifications
+
+		}
+	})
 }
 
 
@@ -72,11 +79,8 @@ function Notification(asset, scene, player, playertarget) {
 	this.mesh.castShadow = false;
 	this.mesh.receiveShadow = false;
 
-	this.light = new THREE.PointLight( 0xFFFFFF, 1, 2);
-
 	this.scene = scene;
 	this.scene.add(this.mesh);
-	this.scene.add(this.light);
 }
 
 Notification.LIFE_TIME = 1;
@@ -87,9 +91,11 @@ Notification.ROT = new CANNON.Vec3(0,0,0);
 Notification.HEIGHT = 0;
 
 Notification.prototype.update = function(dt) {
+	this.timealive += dt;
+
 	if(this.timealive >= Notification.LIFE_TIME){
+		this.scene.visible = false;
 		this.scene.remove(this.mesh);
-		this.scene.remove(this.light);
 		return false;
 	}
 	else{
@@ -110,12 +116,6 @@ Notification.prototype.update = function(dt) {
 		this.mesh.scale.x = -1.0;
 		this.mesh.scale.y = -1.0;
 		this.mesh.scale.z = 1.0;
-
-		this.light.position.x = this.mesh.position.x
-		this.light.position.y = this.mesh.position.y
-		this.light.position.y = this.mesh.position.y + 2;
-
-		this.timealive += dt;
 	}
 	return true;
 }

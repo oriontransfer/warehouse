@@ -539,13 +539,14 @@ PlayerState.prototype.update = function(dt){
 
 	if(this.motion == PlayerState.Motion.STOPPED && this.combinedDirectionBuffer.y == 0 && this.combinedDirectionBuffer.x == 0){
 			this.rigidBody.velocity = new CANNON.Vec3(0,0,0);
+			this.isMakingNoise = false;
 	}
 
 	if(this.rotation == PlayerState.Motion.STOPPED){
 			this.rigidBody.angularVelocity = new CANNON.Vec3(0,0,0);
+			this.isMakingNoise = false;
 	}
 	if(this.motion == PlayerState.Motion.STOPPED && this.rotation == PlayerState.Motion.STOPPED){
-		
 		this.isMakingNoise = false;
 	}
 	else this.isMakingNoise = true;
