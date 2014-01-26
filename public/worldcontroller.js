@@ -98,14 +98,16 @@ WorldController.prototype.resizeWindow = function(width, height) {
 	this.camera.aspect = aspect;
 	this.camera.updateProjectionMatrix();
 
-	this.cameraOrtho.left = -aspect;
-	this.cameraOrtho.right = aspect;
-	this.cameraOrtho.top = 1;
-	this.cameraOrtho.bottom = -1;
-	this.cameraOrtho.updateProjectionMatrix();
+	if (this.cameraOrtho) {
+		this.cameraOrtho.left = -aspect;
+		this.cameraOrtho.right = aspect;
+		this.cameraOrtho.top = 1;
+		this.cameraOrtho.bottom = -1;
+		this.cameraOrtho.updateProjectionMatrix();
 
-	this.hudMesh.position.x = this.cameraOrtho.left + 0.05;
-	this.hudMesh.position.y = this.cameraOrtho.bottom + 0.05;
+		this.hudMesh.position.x = this.cameraOrtho.left + 0.05;
+		this.hudMesh.position.y = this.cameraOrtho.bottom + 0.05;
+	}
 }
 
 WorldController.FORWARD = new CANNON.Vec3(0,7,0);

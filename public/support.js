@@ -75,6 +75,14 @@ ResourceLoader.prototype.loadWithCallback = function(name, callback) {
 	callback(this.completeLoad.bind(this, name));
 }
 
+ResourceLoader.prototype.loadAll = function(names, callback) {
+	this.counter += names.length;
+	
+	for (var i in names) {
+		callback(name, this.completeLoad.bind(this, name));
+	}
+}
+
 ResourceLoader.prototype.loadResource = function(name, source, type) {
 	this.counter += 1;
 	

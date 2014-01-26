@@ -32,24 +32,11 @@ AngryBox = {
 		});
 		
 		// ** Walls **
-		this.assets.loadWithCallback('wall-corner', function(completeLoad) {
-			loader.load("models/wall-corner/model.js", function(geometry, materials) {
-				var faceMaterial = new THREE.MeshFaceMaterial(materials);
-				
-				completeLoad({geometry: geometry, material: faceMaterial});
-			});
-		});
 		
-		this.assets.loadWithCallback('wall-window', function(completeLoad) {
-			loader.load("models/wall-window/model.js", function(geometry, materials) {
-				var faceMaterial = new THREE.MeshFaceMaterial(materials);
-				
-				completeLoad({geometry: geometry, material: faceMaterial});
-			});
-		});
+		var walls = ['wall-corner', 'wall-window', 'wall-supported'];
 		
-		this.assets.loadWithCallback('wall-supported', function(completeLoad) {
-			loader.load("models/wall-supported/model.js", function(geometry, materials) {
+		this.assets.loadAll(walls, function(name, completeLoad) {
+			loader.load("models/" + name + "/model.js", function(geometry, materials) {
 				var faceMaterial = new THREE.MeshFaceMaterial(materials);
 				
 				completeLoad({geometry: geometry, material: faceMaterial});
@@ -58,8 +45,10 @@ AngryBox = {
 		
 		// ** Shelves **
 		
-		this.assets.loadWithCallback('shelf-long-boxes', function(completeLoad) {
-			loader.load("models/shelf-long-boxes/model.js", function(geometry, materials) {
+		var shelves = ['shelf-long-boxes', 'shelf-long-crates', 'shelf-long-barrels'];
+		
+		this.assets.loadAll(shelves, function(name, completeLoad) {
+			loader.load("models/" + name + "/model.js", function(geometry, materials) {
 				var faceMaterial = new THREE.MeshFaceMaterial(materials);
 				
 				completeLoad({geometry: geometry, material: faceMaterial});
