@@ -53,6 +53,10 @@ function WorldState() {
 		object.deserialize(data, this.players);
 	}.bind(this);
 	
+	this.projectiles.onAdd = function(object) {
+		object.worldState = this;
+	}.bind(this);
+	
 	// ** Box Container **
 	this.boxes = new Container.createObjectContainer(function(key, data) {
 		var box = new BoxState(key);
