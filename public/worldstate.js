@@ -236,7 +236,7 @@ ProjectileState.prototype.update = function(dt) {
 	
 	for(var i = 0; i < intersections.length; i+=1){
 		if(intersections[i] != this.bodyEmittedFrom){
-			intersections[i].body.applyForce(intersections[i].body.position, this.direction.mult(ProjectileState.KNOCK_BACK));
+			//intersections[i].body.applyForce(intersections[i].body.position, this.direction.mult(ProjectileState.KNOCK_BACK));
 			if(intersections[i].body.userData && intersections[i].body.userData instanceof PlayerState){
 				intersections[i].body.userData.doDamage(ProjectileState.DAMAGE);
 				console.log('Damage done', ProjectileState.DAMAGE);
@@ -539,12 +539,10 @@ PlayerState.prototype.update = function(dt){
 
 		if(this.motion == PlayerState.Motion.STOPPED && this.combinedDirectionBuffer.y == 0 && this.combinedDirectionBuffer.x == 0){
 				this.rigidBody.velocity = new CANNON.Vec3(0,0,0);
-				this.isMakingNoise = false;
 		}
 
 		if(this.rotation == PlayerState.Motion.STOPPED){
 				this.rigidBody.angularVelocity = new CANNON.Vec3(0,0,0);
-				this.isMakingNoise = false;
 		}
 		if(this.motion == PlayerState.Motion.STOPPED && this.rotation == PlayerState.Motion.STOPPED){
 			this.isMakingNoise = false;
