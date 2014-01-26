@@ -189,8 +189,8 @@ WorldState.prototype.update = function(dt){
 		projectile.update(dt);
 	});
 
-	var state = this.serialize();
-	this.deserialize(state);
+	// var state = this.serialize();
+	// this.deserialize(state);
 }
 
 WorldState.prototype.addBoxGeometry = function(locationVEC3, halfExtentsVEC3, mass, shader){
