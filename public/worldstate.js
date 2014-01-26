@@ -190,6 +190,7 @@ function PlayerState(name, ID) {
 	this.position = null;
 	this.direction = new CANNON.Vec3(0, 0, 0);
 	this.rotationQuat = null;
+	this.velocity = null;
 
 	//Internal state / control state
 	this.motion = PlayerState.Motion.STOPPED;
@@ -220,6 +221,10 @@ PlayerState.prototype.serialize = function(){
 	PlayerState.STATE_ARRAY[arrayCounter++] = this.rotationQuat.z;
 	PlayerState.STATE_ARRAY[arrayCounter++] = this.rotationQuat.w;
 
+	PlayerState.STATE_ARRAY[arrayCounter++] = this.velocity.x;
+	PlayerState.STATE_ARRAY[arrayCounter++] = this.velocity.y;
+	PlayerState.STATE_ARRAY[arrayCounter++] = this.velocity.z;
+
 	PlayerState.STATE_ARRAY[arrayCounter++] = this.health;
 
 	PlayerState.STATE_ARRAY[arrayCounter++] = this.isALive;
@@ -229,7 +234,6 @@ PlayerState.prototype.serialize = function(){
 PlayerState.prototype.deserialize = function(array){
 	var arrayCounter = 0;
 
-
 	this.position.x = array[arrayCounter++];
 	this.position.y = array[arrayCounter++];
 	this.position.z = array[arrayCounter++];
@@ -238,6 +242,14 @@ PlayerState.prototype.deserialize = function(array){
 	this.rotationQuat.y = array[arrayCounter++];
 	this.rotationQuat.z = array[arrayCounter++];
 	this.rotationQuat.w = array[arrayCounter++];
+
+	this.velocity.x = array[arrayCounter++];
+	this.velocity.y = array[arrayCounter++];
+	this.velocity.z = array[arrayCounter++];
+
+	this.rigidBody.position = this.position;
+	this.rigidBody.quaternion = this.rotationQuat;
+	this.rigidBody.velocity = this.velocity;
 
 	this.health = array[arrayCounter++];
 	this.isALive; = array[arrayCounter++];
