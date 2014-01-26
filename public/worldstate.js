@@ -208,6 +208,41 @@ function PlayerState(name, ID) {
 	this.rigidBody; //The box has some sexy body.
 }
 
+PlayerState.STATE_ARRAY = new Array();
+PlayerState.prototype.serialize = function(){
+	var arrayCounter = 0;
+	PlayerState.STATE_ARRAY[arrayCounter++] = this.position.x;
+	PlayerState.STATE_ARRAY[arrayCounter++] = this.position.y;
+	PlayerState.STATE_ARRAY[arrayCounter++] = this.position.z;
+
+	PlayerState.STATE_ARRAY[arrayCounter++] = this.rotationQuat.x;
+	PlayerState.STATE_ARRAY[arrayCounter++] = this.rotationQuat.y;
+	PlayerState.STATE_ARRAY[arrayCounter++] = this.rotationQuat.z;
+	PlayerState.STATE_ARRAY[arrayCounter++] = this.rotationQuat.w;
+
+	PlayerState.STATE_ARRAY[arrayCounter++] = this.health;
+
+	PlayerState.STATE_ARRAY[arrayCounter++] = this.isALive;
+
+}
+
+PlayerState.prototype.deserialize = function(array){
+	var arrayCounter = 0;
+
+
+	this.position.x = array[arrayCounter++];
+	this.position.y = array[arrayCounter++];
+	this.position.z = array[arrayCounter++];
+
+	this.rotationQuat.x = array[arrayCounter++];
+	this.rotationQuat.y = array[arrayCounter++];
+	this.rotationQuat.z = array[arrayCounter++];
+	this.rotationQuat.w = array[arrayCounter++];
+
+	this.health = array[arrayCounter++];
+	this.isALive; = array[arrayCounter++];
+}
+
 //Const player variables.
 PlayerState.WALKING_SPEED = 4000;
 PlayerState.RUNNING_SPEED = 8000;
