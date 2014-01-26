@@ -11,6 +11,7 @@ function WorldController(mapTemplate) {
 	};
 	
 	this.rendererState.shelvesRenderer = new ShelvesRenderer(this.rendererState);
+	this.rendererState.clutterRenderer = new ClutterRenderer(this.rendererState);
 	
 	this.map = mapTemplate.create(this.worldState, this.rendererState);
 	

@@ -43,6 +43,14 @@ AngryBoxMaps.push({
 			map.shelvesController.renderer = rendererState.shelvesRenderer;
 		
 		map.shelvesController.generateHorizontalLines();
+
+		map.clutterController = new ClutterController(seed, region, density, worldState);
+
+		if(rendererState){
+			map.clutterController.renderer = rendererState.clutterRenderer;
+		}
+
+		map.clutterController.GenerateLotsOfClutter();
 		
 		// Bounding planes for walls:
 		map.worldState.addBoxGeometry(new CANNON.Vec3(-5,size[1]*4,0), new CANNON.Vec3(1,size[1]*4+4,100), 0, "");//left
