@@ -86,7 +86,7 @@ WorldState.prototype.deserialize = function(array){
 			//playerArray.push(newPlayer)
 			oldPlayer = this.players.values[newPlayer.ID];
 			if(!oldPlayer) this.addPlayer(newPlayer);
-			else oldPlayer.deserialize(array[arrayCounter][i]);
+			else oldPlayer.deserialize(array[arrayCounter][i], this);
 		}
 	}
 
@@ -246,15 +246,17 @@ WorldState.prototype.addPlayer = function(name, startingLocationVEC3){
 }
 
 WorldState.prototype.reAddPlayerPhysics = function(playerState, newLocation, newVelocity, newQuat){
-	this.world.remove(player.RigidBody);
-	var boxShape = playerState.rigidBody.shape;
-	var body = playerState.rigidBody;
+	if(playerState.rigidBody){
+		this.world.remove(playerState.rigidBody);
+		var boxShape = playerState.rigidBody.shape;
+		var body = playerState.rigidBody;
 
-	newLocation.copy(body.position);
-	newVelocity.copy(body.velocity);
-	newQuat.copy(body.quaternion);
+		newLocation.copy(body.initPosition);
+		newVelocity.copy(body.initVelocity);
+		newQuat.copy(body.initQuaternion);
 
-	this.world.add(body);
+		this.world.add(body);
+	}
 }
 
 WorldState.prototype.removePlayer = function(player){
@@ -344,7 +346,7 @@ PlayerState.prototype.serialize = function(){
 PlayerState.BUFFER_VEC3_POS = new CANNON.Vec3(0,0,0);
 PlayerState.BUFFER_VEC3_VEL = new CANNON.Vec3(0,0,0);
 PlayerState.BUFFER_QUAT = new CANNON.Quaternion(0,0,0,0);
-PlayerState.prototype.deserialize = function(array){
+PlayerState.prototype.deserialize = function(array, world){
 	var arrayCounter = 0;
 
 	if(this.position && this.rotationQuat && this.velocity){
@@ -361,6 +363,8 @@ PlayerState.prototype.deserialize = function(array){
 		PlayerState.BUFFER_VEC3_VEL.x = array[arrayCounter++];
 		PlayerState.BUFFER_VEC3_VEL.y = array[arrayCounter++];
 		PlayerState.BUFFER_VEC3_VEL.z = array[arrayCounter++];
+
+		if(world)world.reAddPlayerPhysics(this, PlayerState.BUFFER_VEC3_POS, PlayerState.BUFFER_VEC3_VEL, PlayerState.BUFFER_QUAT);
 	}
 	else arrayCounter+= 10;
 
