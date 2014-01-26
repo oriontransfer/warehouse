@@ -28,13 +28,13 @@ Timer.prototype._dispatch = function() {
 	//console.log("timer error:", this.error, "duration:", duration);
 	
 	if (duration < 0) {
-		this.update();
-	} else {
-		setTimeout(
-			this.update.bind(this),
-			duration * this.error
-		);
+		duration = 0
 	}
+	
+	setTimeout(
+		this.update.bind(this),
+		duration * this.error
+	);
 }
 
 Timer.prototype.stop = function() {
