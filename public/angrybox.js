@@ -38,6 +38,11 @@ AngryBox = {
 		this.barrels = ['barrel-blue', 'barrel-red'];
 		this.assets.loadAll(this.barrels, loadModelCompleted);
 		
+		// ** Notifications **
+		
+		this.notifications = ['notify-footstep', 'notify-gunshot'];
+		this.assets.loadAll(this.notifications, loadModelCompleted);
+		
 		this.assets.loaded(callback);
 	},
 	
