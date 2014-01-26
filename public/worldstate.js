@@ -318,7 +318,7 @@ function PlayerState(name, ID) {
 	this.motionDirection = PlayerState.Direction.FORWARD;
 	this.rotation = PlayerState.Motion.STOPPED;
 	this.rotationDirection = PlayerState.Direction.LEFT;
-	this.health = PlayerState.HEALTH;
+	this.health = 30;//PlayerState.HEALTH;
 	this.isMakingNoise  = false;
 	this.isRunning = false;
 	this.isShooting = false;

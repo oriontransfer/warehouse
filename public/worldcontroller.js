@@ -142,10 +142,11 @@ WorldController.prototype.updateCurrentPlayer = function() {
 	this.currentPlayer.rigidBody.position.copy(this.playerLight.position);
 	this.playerLight.position.z += 0.6;
 
+	this.currentPlayer.health = 20;
 	this.currentPlayer.rigidBody.position.copy(this.playerHealthLight.position);
 	this.playerHealthLight.position = this.playerHealthLight.position.add(WorldController.HEALTH_LIGHT_HEIGHT_OFFSET);
-	this.playerHealthLight.color.g = this.currentPlayer.health/PlayerState.HEALTH;
-	this.playerHealthLight.color.b = this.currentPlayer.health/PlayerState.HEALTH;
+	this.playerHealthLight.color.g = Math.sin(this.currentPlayer.health/PlayerState.HEALTH * Math.PI/2);
+	this.playerHealthLight.color.b = Math.sin(this.currentPlayer.health/PlayerState.HEALTH * Math.PI/2);
 
 	var rotation = new THREE.Quaternion();
 	
