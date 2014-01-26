@@ -2,6 +2,7 @@
 function Container () {
 	this.values = {};
 	this.observers = [];
+	this.length = 0;
 }
 
 Container.prototype.push = function(object) {
@@ -13,8 +14,13 @@ Container.prototype.pop = function(object) {
 }
 
 Container.prototype.add = function(key, object) {
+	if (key in this.values) {
+		console.log("Warning, object already in container", key, object);
+		return;
+	}
+	
 	this.values[key] = object;
-	this.length = this.values.length;
+	this.length += 1;
 	
 	var container = this;
 	
@@ -33,7 +39,7 @@ Container.prototype.remove = function(key) {
 	});
 	
 	delete this.values[key];
-	this.length = this.values.length;
+	this.length -= 1;
 }
 
 Container.prototype.forEach = function(callback) {
