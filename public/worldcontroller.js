@@ -58,6 +58,12 @@ function WorldController() {
 	this.worldState.addBoxGeometry(new CANNON.Vec3(32*4,-5,0), new CANNON.Vec3(32*8,1,100), 0, "");//down
 }
 
+WorldController.prototype.serverUpdate = function(data) {
+	console.log("serverUpdate", data);
+	
+	this.worldState.deserialize(data.worldState);
+}
+
 WorldController.prototype.setup = function(renderer) {
 	renderer.shadowMapEnabled = true;
 	renderer.shadowMapType = THREE.PCFShadowMap;
@@ -169,66 +175,5 @@ EventType = {
 };
 
 WorldController.prototype.handleEvent = function(event, action){
-	//console.log(event, action);
-
-	var motionState = null
-	var motionDirection = null;
-	var eventType = null;
-	if(action){
-		motionState = PlayerState.Motion.WALKING;
-	}
-	else motionState = PlayerState.Motion.STOPPED;
-	
-	switch(event){
-		case Event.MOVE_FORWARDS:
-			eventType = EventType.POSITIONAL
-			motionDirection = PlayerState.Direction.FORWARD;
-		break;
-		case Event.MOVE_BACKWARDS:
-			eventType = EventType.POSITIONAL
-			motionDirection = PlayerState.Direction.BACKWARD;
-		break;
-		case Event.ROTATE_LEFT:
-			eventType = EventType.ROTATIONAL;
-			motionDirection = PlayerState.Direction.LEFT;
-		break;
-		case Event.ROTATE_RIGHT:
-			eventType = EventType.ROTATIONAL;
-			motionDirection = PlayerState.Direction.RIGHT;
-		break;
-		case Event.STRAFE_LEFT:
-			eventType = EventType.POSITIONAL
-			motionDirection = PlayerState.Direction.LEFT;
-		break;
-		case Event.STRAFE_RIGHT:
-			eventType = EventType.POSITIONAL;
-			motionDirection = PlayerState.Direction.RIGHT;
-		break;
-		case Event.SHOOT:
-			eventType = EventType.SHOOTING;
-		break;
-		case Event.FAST:
-			eventType = EventType.FAST;
-		break;
-	}
-	//if(eventType){
-		switch(eventType){
-			case EventType.POSITIONAL:
-				this.currentPlayer.setMotionState(motionState, motionDirection);
-			break;
-			case EventType.ROTATIONAL:
-				this.currentPlayer.setRotationState(motionState, motionDirection);
-			break;
-			case EventType.SHOOTING:
-				if(action)this.currentPlayer.isShooting = true;
-				else this.currentPlayer.isShooting = false;
-			break;
-			case EventType.FAST:
-				//console.log("FAST ");
-				if(action) this.currentPlayer.isRunning = true;
-				else this.currentPlayer.isRunning = false;
-			break;
-		}
-	
-	//}
+	this.currentPlayer.handleEvent(event, action);
 }

@@ -119,7 +119,21 @@ AngryBox = {
 		this.controller.update(this.timestep);
 	},
 	
+	serverUpdate: function(data) {
+		this.controller.serverUpdate(data);
+	},
+	
 	eventState: {
+	},
+	
+	connectToServer: function(host) {
+		this.socket = io.connect(host);
+		
+		this.socket.emit('register', {name: 'Box Killer'});
+		
+		this.socket.on('update', function(data) {
+			this.serverUpdate(data);
+		}.bind(this));
 	},
 	
 	handleEvent: function(event, state) {
@@ -129,12 +143,14 @@ AngryBox = {
 			this.eventState[event] = state;
 			
 			this.controller.handleEvent(event, state);
+			this.socket.emit('event', {event: event, state: state});
 		} else {
 			if (this.eventState[event] == state) return;
 			
 			delete this.eventState[event];
 			
 			this.controller.handleEvent(event, state)
+			this.socket.emit('event', {event: event, state: state});
 		}
 	},
 	

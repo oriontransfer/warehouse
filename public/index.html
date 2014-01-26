@@ -37,13 +37,11 @@
 		
 		<script type="text/javascript">
 			window.onload = function() {
+				console.log("Starting Angry Box...");
+
 				// Connect to local server:
 				var host = location.protocol + '//' + location.host;
-				var socket = io.connect(host);
-
-				socket.emit('register', {name: 'Box Killer'});
-
-				console.log("Starting Angry Box...");
+				AngryBox.connectToServer(host);
 
 				AngryBox.loadAssets(function() {
 					AngryBox.run(new WorldController());

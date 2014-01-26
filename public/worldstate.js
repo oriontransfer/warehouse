@@ -467,6 +467,66 @@ PlayerState.FORWARD = new CANNON.Vec3(0,1,0);
 PlayerState.finalImpulseDir = new CANNON.Vec3(0,0,0);
 PlayerState.lastShotTime = 0;
 
+PlayerState.prototype.handleEvent = function(event, action){
+	var motionState = null
+	var motionDirection = null;
+	var eventType = null;
+	if(action){
+		motionState = PlayerState.Motion.WALKING;
+	}
+	else motionState = PlayerState.Motion.STOPPED;
+
+	switch(event){
+		case Event.MOVE_FORWARDS:
+			eventType = EventType.POSITIONAL
+			motionDirection = PlayerState.Direction.FORWARD;
+		break;
+		case Event.MOVE_BACKWARDS:
+			eventType = EventType.POSITIONAL
+			motionDirection = PlayerState.Direction.BACKWARD;
+		break;
+		case Event.ROTATE_LEFT:
+			eventType = EventType.ROTATIONAL;
+			motionDirection = PlayerState.Direction.LEFT;
+		break;
+		case Event.ROTATE_RIGHT:
+			eventType = EventType.ROTATIONAL;
+			motionDirection = PlayerState.Direction.RIGHT;
+		break;
+		case Event.STRAFE_LEFT:
+			eventType = EventType.POSITIONAL
+			motionDirection = PlayerState.Direction.LEFT;
+		break;
+		case Event.STRAFE_RIGHT:
+			eventType = EventType.POSITIONAL;
+			motionDirection = PlayerState.Direction.RIGHT;
+		break;
+		case Event.SHOOT:
+			eventType = EventType.SHOOTING;
+		break;
+		case Event.FAST:
+			eventType = EventType.FAST;
+		break;
+	}
+
+	switch(eventType){
+		case EventType.POSITIONAL:
+			this.setMotionState(motionState, motionDirection);
+		break;
+		case EventType.ROTATIONAL:
+			this.setRotationState(motionState, motionDirection);
+		break;
+		case EventType.SHOOTING:
+			if(action)this.isShooting = true;
+			else this.isShooting = false;
+		break;
+		case EventType.FAST:
+			//console.log("FAST ");
+			if(action) this.isRunning = true;
+			else this.isRunning = false;
+		break;
+	}
+}
 
 PlayerState.prototype.update = function(dt){
 	this.position = this.rigidBody.position;

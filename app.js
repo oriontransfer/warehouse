@@ -80,6 +80,8 @@ GameState.prototype.preparing = function(dt) {
 			y += 1; 
 		}.bind(this));
 		
+		this.worldState.update(dt);
+		
 		this.timeout = 60;
 		this.setPhase("running");
 	}
@@ -97,6 +99,17 @@ GameState.prototype.running = function(dt) {
 
 GameState.prototype.finishing = function(dt) {
 	this.setPhase("reset");
+}
+
+GameState.prototype.handleEvent = function(user, event, state) {
+	if (this.worldState) {
+		var player = this.worldState.players.values[user.ID];
+		
+		if (player) {
+			console.log("event", player.name, player.position, event, state);
+			player.handleEvent(event, state);
+		}
+	}
 }
 
 // ** User State **
@@ -133,7 +146,7 @@ ServerState.prototype.updateClients = function() {
 	var state = this.gameState.serialize();
 	
 	this.users.forEach(function(user) {
-		user.emit('state', state);
+		user.emit('update', state);
 	});
 }
 
@@ -156,6 +169,10 @@ ServerState.prototype.addUser = function(name, socket) {
 
 ServerState.prototype.removeUser = function(user) {
 	this.users.pop(user);
+}
+
+ServerState.prototype.handleEvent = function(user, data) {
+	this.gameState.handleEvent(user, data.event, data.state);
 }
 
 // ** Connection Code **
@@ -181,8 +198,10 @@ io.sockets.on('connection', function (socket) {
 	});
 	
 	socket.on('event', function(data) {
-		console.log("User Event", user, event);
+		if (user) {
+			console.log("User Event", user.name, data);
 		
-		SERVER.handleEvent(user, event);
+			SERVER.handleEvent(user, data);
+		}
 	});
 });
