@@ -13,11 +13,8 @@ function WorldState() {
 	// if(tilemap){
 	// 	this.tilemap = tilemap;
 	// }
-	this.initPhysics();	
-	this.world;
-	
+	this.initPhysics();		
 }
-
 
 //Const world variables
 WorldState.PLAYER_SIZE_HALF = 0.8;
@@ -27,6 +24,59 @@ WorldState.ANGULAR_DAMPING = 0.99;
 WorldState.PROJECTILE_SIZE_HALF = 0.05;
 WorldState.PROJECTILE_MASS = 0.1;
 
+WorldState.STATE_ARRAY = new Array();
+WorldState.prototype.serialize = function(){
+var arrayCounter = 0;
+
+	WorldState.STATE_ARRAY[arrayCounter++] = this.players.length;
+	WorldState.STATE_ARRAY[arrayCounter++] = this.geometry.length;
+	WorldState.STATE_ARRAY[arrayCounter++] = this.projectiles.length;
+
+	this.players.forEach(function(player){
+		WorldState.STATE_ARRAY[arrayCounter++] = player.serialize();
+	});
+
+	this.geometry.forEach(function(geom){
+		WorldState.STATE_ARRAY[arrayCounter++] = geom.serialize();
+	});
+
+	this.projectiles.forEach(function(projectile){
+		WorldState.STATE_ARRAY[arrayCounter++] = projectile.serialize();
+	});
+}
+
+WorldState.ZERO_VEC = new CANNON.Vec3(0,0,0);
+
+WorldState.prototype.deserialize = function(array){
+	var arrayCounter = 0;
+	var playerCount = array[arrayCounter++];
+	var geomCount = array[arrayCounter++];
+	var projCount = array[arrayCounter++];
+
+	//var playerArray = new Array();
+	for(var i = 0; i < playerCount; i++){
+		newPlayer = new PlayerState('new', 0);
+		newPlayer.deserialize(array[arrayCounter++]);
+		//playerArray.push(newPlayer)
+		oldPlayer = this.players.values[newPlayer.ID];
+		if(!oldPlayer) this.addPlayer(newPlayer);
+	}
+
+	for(var i = 0; i < geomCount; i++){
+		newGeometry = new GeometryState(WorldState.ZERO_VEC, 0, WorldState.ZERO_VEC, null, 0);
+		newGeometry.deserialize(array[arrayCounter++], this);
+		//playerArray.push(newPlayer)
+		oldGeometry = this.geometry.values[newGeometry.ID];
+		if(!oldGeometry) this.addBoxGeometry(newGeometry);
+	}
+
+	for(var i = 0; i < projCount; i++){
+		newProjectile = new Projectile('new', 0);
+		newProjectile.deserialize(array[arrayCounter++], this);
+		//playerArray.push(newPlayer)
+		oldProjectile = this.projectiles.values[newProjectile.ID];
+		if(!oldProjectile) this.addProjectile(newProjectile);
+	}
 
 WorldState.prototype.initPhysics = function(){
 
@@ -209,25 +259,27 @@ function PlayerState(name, ID) {
 	this.rigidBody; //The box has some sexy body.
 }
 
-PlayerState.STATE_ARRAY = new Array();
 PlayerState.prototype.serialize = function(){
+	var state_array = new Array();
 	var arrayCounter = 0;
-	PlayerState.STATE_ARRAY[arrayCounter++] = this.position.x;
-	PlayerState.STATE_ARRAY[arrayCounter++] = this.position.y;
-	PlayerState.STATE_ARRAY[arrayCounter++] = this.position.z;
+	state_array[arrayCounter++] = this.position.x;
+	state_array[arrayCounter++] = this.position.y;
+	state_array[arrayCounter++] = this.position.z;
 
-	PlayerState.STATE_ARRAY[arrayCounter++] = this.rotationQuat.x;
-	PlayerState.STATE_ARRAY[arrayCounter++] = this.rotationQuat.y;
-	PlayerState.STATE_ARRAY[arrayCounter++] = this.rotationQuat.z;
-	PlayerState.STATE_ARRAY[arrayCounter++] = this.rotationQuat.w;
+	state_array[arrayCounter++] = this.rotationQuat.x;
+	state_array[arrayCounter++] = this.rotationQuat.y;
+	state_array[arrayCounter++] = this.rotationQuat.z;
+	state_array[arrayCounter++] = this.rotationQuat.w;
 
-	PlayerState.STATE_ARRAY[arrayCounter++] = this.velocity.x;
-	PlayerState.STATE_ARRAY[arrayCounter++] = this.velocity.y;
-	PlayerState.STATE_ARRAY[arrayCounter++] = this.velocity.z;
+	state_array[arrayCounter++] = this.velocity.x;
+	state_array[arrayCounter++] = this.velocity.y;
+	state_array[arrayCounter++] = this.velocity.z;
 
-	PlayerState.STATE_ARRAY[arrayCounter++] = this.health;
-	PlayerState.STATE_ARRAY[arrayCounter++] = this.isShooting;
-	PlayerState.STATE_ARRAY[arrayCounter++] = this.isALive;
+	state_array[arrayCounter++] = this.health;
+	state_array[arrayCounter++] = this.isShooting;
+	state_array[arrayCounter++] = this.isAlive;
+	state_array[arrayCounter++] = this.name;
+
 
 	return STATE_ARRAY;
 
@@ -255,7 +307,8 @@ PlayerState.prototype.deserialize = function(array){
 
 	this.health = array[arrayCounter++];
 	this.isShooting = array[arrayCounter++];
-	this.isALive = array[arrayCounter++];
+	this.isAlive = array[arrayCounter++];
+	this.name = array[arrayCounter++];
 }
 
 //Const player variables.
@@ -419,6 +472,36 @@ function Projectile(startingLocation, speed, direction, emittedFrom, ID) {
 	//this.timeaAlive = 0;
 }
 
+Projectile.prototype.serialize = function(){
+	var state_array = new Array();
+	var arrayCounter = 0;
+	state_array[arrayCounter++] = this.position.x;
+	state_array[arrayCounter++] = this.position.y;
+	state_array[arrayCounter++] = this.position.z;
+
+	state_array[arrayCounter++] = this.direction.x;
+	state_array[arrayCounter++] = this.direction.y;
+	state_array[arrayCounter++] = this.direction.z;
+
+	state_array[arrayCounter++] = bodyEmittedFrom.ID;
+
+	return state_array;
+}
+
+Projectile.prototype.deserialize = function(array, worldstate){
+	var arrayCounter = 0;
+	this.position.x = array[arrayCounter++];
+	this.position.y = array[arrayCounter++];
+	this.position.z = array[arrayCounter++];
+
+	this.direction.x = array[arrayCounter++];
+	this.direction.y = array[arrayCounter++];	
+	this.direction.z = array[arrayCounter++];
+
+	bodyEmittedFrom = worldstate.players.values[array[arrayCounter++]];
+
+}
+
 Projectile.ORIGIN = new CANNON.Vec3(0,0,0); //constant used for distance calculations
 //Projectile.LIFETIME_MS = 0.5;
 Projectile.KNOCK_BACK = 40000;
@@ -483,6 +566,39 @@ function GeometryState(shader, ID){
 GeometryState.prototype.update = function(dt){
 	this.position = this.rigidBody.position;
 	this.rotationQuat = this.rigidBody.quaternion;
+}
 
+GeometryState.STATE_ARRAY = new Array();
+GeometryState.prototype.serialize = function(){
+	var arrayCounter = 0;
+	var state_array = new Array();
 
+	state_array[arrayCounter++] = this.position.x;
+	state_array[arrayCounter++] = this.position.y;
+	state_array[arrayCounter++] = this.position.z;
+
+	state_array[arrayCounter++] = this.rotationQuat.x;
+	state_array[arrayCounter++] = this.rotationQuat.y;
+	state_array[arrayCounter++] = this.rotationQuat.z;
+	state_array[arrayCounter++] = this.rotationQuat.w;
+
+	state_array[arrayCounter++] = this.ID;
+}
+
+GeometryState.prototype.deserialize = function(array, worldstate){
+	var arrayCounter = 0;
+
+	this.position.x = array[arrayCounter++];
+	this.position.y = array[arrayCounter++];
+	this.position.z = array[arrayCounter++];
+
+	this.rotationQuat.x = array[arrayCounter++];
+	this.rotationQuat.y = array[arrayCounter++];
+	this.rotationQuat.z = array[arrayCounter++];
+	this.rotationQuat.w = array[arrayCounter++];
+
+	this.rigidBody.position = this.position;
+	this.rigidBody.quaternion = this.rotationQuat;
+
+	this.ID = array[arrayCounter++];
 }
