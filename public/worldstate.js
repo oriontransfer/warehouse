@@ -1,3 +1,18 @@
+
+// A list of possible user events:
+Event = {
+	NONE: 0,
+	MOVE_FORWARDS: 1,
+	MOVE_BACKWARDS: 2,
+	ROTATE_LEFT: 3,
+	ROTATE_RIGHT: 4,
+	STRAFE_LEFT: 5,
+	STRAFE_RIGHT: 6,
+	SHOOT: 7,
+	
+	FAST: 32
+};
+
 /// *** Class Gamestate ***
 /// The state of the gmae map is stored in this Class
 function WorldState() {
@@ -9,10 +24,8 @@ function WorldState() {
 	this.playerIDCounter = 0;
 	this.projectileIDCounter = 0;
 	this.geometryIDCounter = 0;
-	// if(tilemap){
-	// 	this.tilemap = tilemap;
-	// }
-	this.initPhysics();		
+	
+	this.initPhysics();
 }
 
 //Const world variables

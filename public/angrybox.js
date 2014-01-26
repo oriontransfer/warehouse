@@ -1,16 +1,3 @@
-// A list of possible user events:
-Event = {
-	NONE: 0,
-	MOVE_FORWARDS: 1,
-	MOVE_BACKWARDS: 2,
-	ROTATE_LEFT: 3,
-	ROTATE_RIGHT: 4,
-	STRAFE_LEFT: 5,
-	STRAFE_RIGHT: 6,
-	SHOOT: 7,
-	
-	FAST: 32
-};
 
 AngryBox = {
 	assets: new ResourceLoader(),
