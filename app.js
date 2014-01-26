@@ -78,7 +78,7 @@ GameState.prototype.preparing = function(dt) {
 			this.worldState.addPlayer(user.name, new CANNON.Vec3(5, y * 5, 10));
 			
 			y += 1; 
-		});
+		}.bind(this));
 		
 		this.timeout = 60;
 		this.setPhase("running");
@@ -101,20 +101,22 @@ GameState.prototype.finishing = function(dt) {
 
 // ** User State **
 function UserState (name, socket) {
+	this.ID = name;
+	
 	this.name = name;
 	this.score = 0;
 	
 	this.socket = socket;
 }
 
-UserState.prototype.ID = function() {
-	return this.name;
+UserState.prototype.emit = function(name, data) {
+	this.socket.emit(name, data);
 }
 
 // ** Server State **
 Server = {
 	// The refresh rate of the server in FPS.
-	updateRate: 1.0/10.0
+	updateRate: 1.0/5.0
 };
 
 function ServerState () {
@@ -136,15 +138,20 @@ ServerState.prototype.updateClients = function() {
 }
 
 ServerState.prototype.addUser = function(name, socket) {
-	var assignedName = name, i = 4;
+	var assignedName = name, i = 2;
 	
 	while (this.users.contains(assignedName)) {
 		if (i == 2) assignedName = name + " the 2nd";
 		else if (i == 3) assignedName = name + " the 3rd";
-		assignedName = name + ' the ' + i + 'th';
+		else assignedName = name + ' the ' + i + 'th';
 	}
 	
-	this.users.push(new UserState(name), socket);
+	var user = new UserState(assignedName, socket);
+	
+	console.log("Adding user", assignedName);
+	this.users.push(user);
+	
+	return user;
 }
 
 ServerState.prototype.removeUser = function(user) {
@@ -154,16 +161,22 @@ ServerState.prototype.removeUser = function(user) {
 // ** Connection Code **
 SERVER = new ServerState();
 
+// Less logging output:
+io.set('log level', 1);
+
 io.sockets.on('connection', function (socket) {
 	var user = null;
 	
 	socket.on('register', function(data) {
-		console.log("Register", data);
 		user = SERVER.addUser(data.name, socket);
 	});
 	
 	socket.on('disconnect', function () {
+		// Unregistered user:
+		if (user == null) return;
+		
 		console.log("Disconnect", user);
+		
 		SERVER.removeUser(user);
 	});
 	

@@ -15,7 +15,7 @@ Container.prototype.pop = function(object) {
 
 Container.prototype.add = function(key, object) {
 	if (key in this.values) {
-		console.log("Warning, object already in container", key, object);
+		console.log("Warning, object already in container", key);
 		return;
 	}
 	
@@ -49,5 +49,5 @@ Container.prototype.forEach = function(callback) {
 }
 
 Container.prototype.contains = function(key) {
-	return key in this.values;
+	return this.values.hasOwnProperty(key);
 }
