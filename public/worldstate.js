@@ -458,102 +458,103 @@ PlayerState.prototype.update = function(dt){
 	this.rotationQuat = this.rigidBody.quaternion;
 	this.velocity = this.rigidBody.velocity;
 	//this.rotationQuat.vmult(PlayerState.FORWARD, this.direction);
-	
-	if(this.isShooting){
-		if(this.isReloading){
-			if(this.timeSpentReloading >= PlayerState.RELOAD_TIME){
-				this.isReloading = false;
-				this.roundsInClip = PlayerState.CLIP_SIZE;
+	if(this.isAlive){
+		if(this.isShooting){
+			if(this.isReloading){
+				if(this.timeSpentReloading >= PlayerState.RELOAD_TIME){
+					this.isReloading = false;
+					this.roundsInClip = PlayerState.CLIP_SIZE;
+				}
+				this.timeSpentReloading += dt;
 			}
-			this.timeSpentReloading += dt;
-		}
-		else if(PlayerState.FIRE_RATE_PER_SECOND < this.lastShotTime){
-			var bulletDirection = this.rotationQuat.vmult(PlayerState.FORWARD);
-			//bulletPosition = this.rigidBody.position.vadd(bulletDirection.mult(2.0));
-			this.worldState.addProjectileState(this.rigidBody.position, PlayerState.BULLET_SPEED, bulletDirection, this);
-			this.lastShotTime = 0;
-			this.roundsInClip -= 1;
-			if(this.roundsInClip < 1){
-				console.log('Reloading clip');
-				this.isReloading = true;
-				this.timeSpentReloading = 0;
+			else if(PlayerState.FIRE_RATE_PER_SECOND < this.lastShotTime){
+				var bulletDirection = this.rotationQuat.vmult(PlayerState.FORWARD);
+				//bulletPosition = this.rigidBody.position.vadd(bulletDirection.mult(2.0));
+				this.worldState.addProjectileState(this.rigidBody.position, PlayerState.BULLET_SPEED, bulletDirection, this);
+				this.lastShotTime = 0;
+				this.roundsInClip -= 1;
+				if(this.roundsInClip < 1){
+					console.log('Reloading clip');
+					this.isReloading = true;
+					this.timeSpentReloading = 0;
+				}
 			}
 		}
-	}
-	
-	this.lastShotTime += dt;
-	
-	this.combinedDirectionBuffer.set(0, 0, 0);
-	
-	switch(this.motionDirection){
-		case PlayerState.Direction.FORWARD:
-			if(this.motion != PlayerState.Motion.STOPPED)this.combinedDirectionBuffer.y = 1;
-			else this.combinedDirectionBuffer.y = 0;
-		break;
-		case PlayerState.Direction.BACKWARD:
-			if(this.motion != PlayerState.Motion.STOPPED)this.combinedDirectionBuffer.y = -1;
-			else this.combinedDirectionBuffer.y = 0;
-		break;
-		case PlayerState.Direction.LEFT:
-			if(this.motion != PlayerState.Motion.STOPPED)this.combinedDirectionBuffer.x = -1;
-			else this.combinedDirectionBuffer.x = 0;
-		break;
-		case PlayerState.Direction.RIGHT:
-			if(this.motion != PlayerState.Motion.STOPPED)this.combinedDirectionBuffer.x = 1;
-			else this.combinedDirectionBuffer.x = 0;
-		break;
-	}
-
-	this.combinedDirectionBuffer.normalize();
-
-	//this.rotationQuat.vmult(this.combinedDirectionBuffer, PlayerState.combinedDirection);
-
-	if(this.motion == PlayerState.Motion.WALKING){
-		var impulseDirection = new CANNON.Vec3(0,0,0), finalImpulseDir = new CANNON.Vec3(0, 0, 0);
-		//this.position.copy(impulseDirection);
-
-		//impulseDirection = impulseDirection.vsub(this.direction);
-		impulseDirection = impulseDirection.vadd(this.combinedDirectionBuffer);
-		impulseDirection = impulseDirection.mult(((this.isRunning) ? PlayerState.RUNNING_SPEED : PlayerState.WALKING_SPEED));
-
-		this.rotationQuat.vmult(impulseDirection, finalImpulseDir);
-
-		var finalLength = this.rigidBody.velocity.vadd(finalImpulseDir).distanceTo(PlayerState.ORIGIN);
-		var position = new CANNON.Vec3(0,0);
-		this.position.copy(position);
-		//position.y -= 0.5;
-		///this.rigidBody.applyForce(new CANNON.Vec3(0,0,10000), this.position);
-		if(finalLength < ((!this.isRunning) ? PlayerState.MAX_WALKING_SPEED : PlayerState.MAX_RUNNING_SPEED))
-			this.rigidBody.applyForce(finalImpulseDir, position);
-	}
-
-	if(this.rotation == PlayerState.Motion.WALKING){
-		if(this.rotationDirection == PlayerState.Direction.LEFT){
-			this.rigidBody.angularVelocity.z = ((this.isRunning) ? PlayerState.RUNNING_ROT_SPEED : PlayerState.WALKING_ROT_SPEED);
-		} 
-		else {
-			this.rigidBody.angularVelocity.z = ((this.isRunning) ? -PlayerState.RUNNING_ROT_SPEED : -PlayerState.WALKING_ROT_SPEED);
+		
+		this.lastShotTime += dt;
+		
+		this.combinedDirectionBuffer.set(0, 0, 0);
+		
+		switch(this.motionDirection){
+			case PlayerState.Direction.FORWARD:
+				if(this.motion != PlayerState.Motion.STOPPED)this.combinedDirectionBuffer.y = 1;
+				else this.combinedDirectionBuffer.y = 0;
+			break;
+			case PlayerState.Direction.BACKWARD:
+				if(this.motion != PlayerState.Motion.STOPPED)this.combinedDirectionBuffer.y = -1;
+				else this.combinedDirectionBuffer.y = 0;
+			break;
+			case PlayerState.Direction.LEFT:
+				if(this.motion != PlayerState.Motion.STOPPED)this.combinedDirectionBuffer.x = -1;
+				else this.combinedDirectionBuffer.x = 0;
+			break;
+			case PlayerState.Direction.RIGHT:
+				if(this.motion != PlayerState.Motion.STOPPED)this.combinedDirectionBuffer.x = 1;
+				else this.combinedDirectionBuffer.x = 0;
+			break;
 		}
-		//this.rigidBody.applyImpulse(PlayerState.WALKING_SPEED, this.position);
-	}
 
-	if(this.motion == PlayerState.Motion.STOPPED && this.combinedDirectionBuffer.y == 0 && this.combinedDirectionBuffer.x == 0){
-			this.rigidBody.velocity = new CANNON.Vec3(0,0,0);
+		this.combinedDirectionBuffer.normalize();
+
+		//this.rotationQuat.vmult(this.combinedDirectionBuffer, PlayerState.combinedDirection);
+
+		if(this.motion == PlayerState.Motion.WALKING){
+			var impulseDirection = new CANNON.Vec3(0,0,0), finalImpulseDir = new CANNON.Vec3(0, 0, 0);
+			//this.position.copy(impulseDirection);
+
+			//impulseDirection = impulseDirection.vsub(this.direction);
+			impulseDirection = impulseDirection.vadd(this.combinedDirectionBuffer);
+			impulseDirection = impulseDirection.mult(((this.isRunning) ? PlayerState.RUNNING_SPEED : PlayerState.WALKING_SPEED));
+
+			this.rotationQuat.vmult(impulseDirection, finalImpulseDir);
+
+			var finalLength = this.rigidBody.velocity.vadd(finalImpulseDir).distanceTo(PlayerState.ORIGIN);
+			var position = new CANNON.Vec3(0,0);
+			this.position.copy(position);
+			//position.y -= 0.5;
+			///this.rigidBody.applyForce(new CANNON.Vec3(0,0,10000), this.position);
+			if(finalLength < ((!this.isRunning) ? PlayerState.MAX_WALKING_SPEED : PlayerState.MAX_RUNNING_SPEED))
+				this.rigidBody.applyForce(finalImpulseDir, position);
+		}
+
+		if(this.rotation == PlayerState.Motion.WALKING){
+			if(this.rotationDirection == PlayerState.Direction.LEFT){
+				this.rigidBody.angularVelocity.z = ((this.isRunning) ? PlayerState.RUNNING_ROT_SPEED : PlayerState.WALKING_ROT_SPEED);
+			} 
+			else {
+				this.rigidBody.angularVelocity.z = ((this.isRunning) ? -PlayerState.RUNNING_ROT_SPEED : -PlayerState.WALKING_ROT_SPEED);
+			}
+			//this.rigidBody.applyImpulse(PlayerState.WALKING_SPEED, this.position);
+		}
+
+		if(this.motion == PlayerState.Motion.STOPPED && this.combinedDirectionBuffer.y == 0 && this.combinedDirectionBuffer.x == 0){
+				this.rigidBody.velocity = new CANNON.Vec3(0,0,0);
+				this.isMakingNoise = false;
+		}
+
+		if(this.rotation == PlayerState.Motion.STOPPED){
+				this.rigidBody.angularVelocity = new CANNON.Vec3(0,0,0);
+				this.isMakingNoise = false;
+		}
+		if(this.motion == PlayerState.Motion.STOPPED && this.rotation == PlayerState.Motion.STOPPED){
 			this.isMakingNoise = false;
-	}
+		}
+		else this.isMakingNoise = true;
 
-	if(this.rotation == PlayerState.Motion.STOPPED){
-			this.rigidBody.angularVelocity = new CANNON.Vec3(0,0,0);
-			this.isMakingNoise = false;
-	}
-	if(this.motion == PlayerState.Motion.STOPPED && this.rotation == PlayerState.Motion.STOPPED){
-		this.isMakingNoise = false;
-	}
-	else this.isMakingNoise = true;
-
-	if(this.health <= 0 && this.isAlive){
-		console.log('Player has died');
-		this.isAlive = false;
+		if(this.health <= 0 && this.isAlive){
+			console.log('Player has died');
+			this.isAlive = false;
+		}
 	}
 }
 
