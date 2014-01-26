@@ -170,6 +170,12 @@ function ServerState () {
 	setInterval(this.updateClients.bind(this), Server.updateRate * 1000);
 }
 
+ServerState.prototype.sendGlobalMessage = function(text){
+	this.users.forEach(function(user){
+		user.emit('message', {text:text});
+	});
+}
+
 ServerState.prototype.updateClients = function() {
 	this.gameState.update(Server.updateRate);
 	
