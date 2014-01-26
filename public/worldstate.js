@@ -44,20 +44,7 @@ function WorldState() {
 	}.bind(this);
 	
 	this.players.deserializeObject = function(object, key, data) {
-		//console.log("current", object.serialize());
-		//console.log("updated", data);
-		
-		//object.deserialize(data);
-		
-		//this.world.remove(object.rigidBody);
-		//var body = object.rigidBody;
-		
-		// We forcefully update the state of the rigid body:
-		//body.position.copy(body.initPosition);
-		//body.velocity.copy(body.initVelocity);
-		//body.quaternion.copy(body.initQuaternion);
-		
-		//this.world.add(object.rigidBody);
+		object.deserialize(data);
 	}.bind(this);
 	
 	this.projectiles = new Container();
