@@ -34,13 +34,6 @@ Server = {
 	message: fs.readFileSync("motd.txt", "utf8")
 };
 
-// ** Game Map **
-
-//function GameMap (size) {
-//	this.size = size;
-//	this.spawn
-//}
-
 function BlankWorldState () {
 	
 }

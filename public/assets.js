@@ -159,8 +159,7 @@ ClutterController.prototype.GenerateLotsOfClutter = function(){ //Randomly gener
 				this.add(position, type, this.random.nextNumber() * 2 * Math.PI);
 			}
 		}
-	}	
-	//console.log(numAdded, 'added objects');
+	}
 }
 
 function ClutterRenderer(rendererState){
