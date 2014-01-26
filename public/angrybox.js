@@ -97,7 +97,7 @@ AngryBox = {
 		else this.setController(this.controller);
 		
 		this.timestep = 1.0/30.0;
-		this.timer = setInterval(this.update.bind(this), this.timestep);
+		this.timer = setInterval(this.update.bind(this), this.timestep * 1000.0);
 		
 		this.render();
 	},
