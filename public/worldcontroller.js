@@ -49,8 +49,6 @@ function WorldController(mapTemplate) {
 	//light.shadowCameraVisible = true;
 	this.playerLight = light;
 	this.scene.add(this.playerLight);
-
-	this.notificationController = new NotificationController(this.worldState, this.currentPlayer, this.scene);
 }
 
 WorldController.prototype.serverUpdate = function(data) {
@@ -58,12 +56,20 @@ WorldController.prototype.serverUpdate = function(data) {
 	
 	this.worldState.deserialize(data.worldState);
 	
-	this.currentPlayer = this.worldState.players.values[this.currentPlayerID];
+	if (this.currentPlayer == null) {
+		this.currentPlayer = this.worldState.players.values[this.currentPlayerID];
+		
+		if (this.currentPlayer) {
+			this.notificationController = new NotificationController(this.worldState, this.currentPlayer, this.scene);
+		}
+	}
 }
 
 WorldController.prototype.serverSpawned = function(data) {
 	console.log("Player spawned with ID", data.ID);
+	
 	this.currentPlayerID = data.ID;
+	this.currentPlayer = null;
 }
 
 WorldController.prototype.setup = function(renderer) {
