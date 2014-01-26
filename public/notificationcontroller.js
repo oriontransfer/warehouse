@@ -38,7 +38,7 @@ NotificationController.prototype.update = function(dt){
 			var length = player.position.vsub(currentPlayer.position).distanceTo(NotificationController.ORIGIN);
 			if(length <= NotificationController.RADIUS){
 				//console.log("player is near", player.ID);
-				if(true){ //TODO add back in player.isMakingNoise
+				if(player.isMakingNoise){ //TODO add back in player.isMakingNoise
 					//console.log("and that player is making noise", player.ID);
 					if(notifications[player.ID]){
 						if(!notifications[player.ID].update(dt)){
