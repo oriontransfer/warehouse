@@ -88,7 +88,7 @@ AngryBox = {
 		window.addEventListener('keyup', this.handleUserInput.bind(this, false), false);
 		window.addEventListener('resize', this.resizeWindow.bind(this), false);
 		
-		this.renderer = new THREE.WebGLRenderer({antialias: true});
+		this.renderer = new THREE.WebGLRenderer({antialias: true, precision: 'highp'});
 		
 		this.renderer.setSize(window.innerWidth, window.innerHeight);
 		document.body.appendChild(this.renderer.domElement);
