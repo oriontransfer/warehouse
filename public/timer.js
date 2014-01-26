@@ -25,7 +25,7 @@ Timer.prototype._dispatch = function() {
 	
 	var duration = nextTime - Timer.currentTime();
 	
-	console.log("timer error:", this.error, "duration:", duration);
+	//console.log("timer error:", this.error, "duration:", duration);
 	
 	if (duration < 0) {
 		this.update();
