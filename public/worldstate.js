@@ -13,6 +13,13 @@ Event = {
 	FAST: 32
 };
 
+EventType = {
+	POSITIONAL: 0,
+	ROTATIONAL: 2,
+	SHOOTING: 1,
+	FAST: 3,
+};
+
 /// *** Class Gamestate ***
 /// The state of the gmae map is stored in this Class
 function WorldState() {

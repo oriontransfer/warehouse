@@ -177,13 +177,6 @@ WorldController.prototype.render = function(renderer) {
 	}*/
 }
 
-EventType = {
-	POSITIONAL: 0,
-	ROTATIONAL: 2,
-	SHOOTING: 1,
-	FAST: 3,
-};
-
 WorldController.prototype.handleEvent = function(event, action){
 	this.currentPlayer.handleEvent(event, action);
 }

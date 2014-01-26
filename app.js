@@ -75,7 +75,7 @@ GameState.prototype.preparing = function(dt) {
 		var y = 1;
 		
 		this.serverState.users.forEach(function(user) {
-			this.worldState.addPlayer(user.name, new CANNON.Vec3(5, y * 5, 10));
+			user.player = this.worldState.addPlayer(user.name, new CANNON.Vec3(5, y * 5, 10));
 			
 			y += 1; 
 		}.bind(this));
@@ -99,16 +99,17 @@ GameState.prototype.running = function(dt) {
 
 GameState.prototype.finishing = function(dt) {
 	this.setPhase("reset");
+	
+	// Disconnect users from player state:
+	this.serverState.users.forEach(function(user) {
+		delete user.player;
+	});
 }
 
 GameState.prototype.handleEvent = function(user, event, state) {
-	if (this.worldState) {
-		var player = this.worldState.players.values[user.ID];
-		
-		if (player) {
-			console.log("event", player.name, player.position, event, state);
-			player.handleEvent(event, state);
-		}
+	if (this.worldState && user.player) {
+		console.log("event", user.player.name, user.player.position, event, state);
+		user.player.handleEvent(event, state);
 	}
 }
 
