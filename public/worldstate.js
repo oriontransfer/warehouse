@@ -553,6 +553,7 @@ PlayerState.prototype.update = function(dt){
 		if(this.rotation == PlayerState.Motion.STOPPED){
 				this.rigidBody.angularVelocity = new CANNON.Vec3(0,0,0);
 		}
+		
 		if(this.motion == PlayerState.Motion.STOPPED && this.rotation == PlayerState.Motion.STOPPED){
 			this.isMakingNoise = false;
 		}
@@ -563,6 +564,8 @@ PlayerState.prototype.update = function(dt){
 			this.isAlive = false;
 		}
 	}
+	
+	//console.log("player", this.ID, this.motion, this.rotation, this.isMakingNoise);
 }
 
 // ** Box State **

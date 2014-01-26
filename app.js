@@ -29,7 +29,7 @@ Server = {
 	physicsRate: 1.0/30.0,
 	
 	// The refresh rate of the server in FPS.
-	updateRate: 1.0/10.0,
+	updateRate: 1.0/8.0,
 };
 
 // ** Game Map **
@@ -85,7 +85,7 @@ GameState.prototype.update = function(dt) {
 
 GameState.prototype.reset = function(dt) {
 	this.worldState = new WorldState();
-	this.timeout = 5.0;
+	this.timeout = 3.0;
 	
 	// Select the next map:
 	this.currentMapIndex = (this.currentMapIndex + 1) % this.maps.length;
@@ -93,7 +93,15 @@ GameState.prototype.reset = function(dt) {
 	
 	this.currentMap = this.maps[this.currentMapIndex].create(this.worldState);
 	
+	this.sendTimeout();
+	
 	this.setPhase("preparing");
+}
+
+GameState.prototype.sendTimeout = function() {
+	this.serverState.users.forEach(function (user) {
+		user.emit("timeout", {remaining:this.timeout});
+	}.bind(this));
 }
 
 GameState.prototype.preparing = function(dt) {
@@ -102,19 +110,24 @@ GameState.prototype.preparing = function(dt) {
 	
 	this.timeout -= dt;
 
-	ifthis.serverState.users.forEach(function (user){
-		user.emit("timeout", {remaining:this.timeout});
-	});
+	this.sendTimeout();
 	
 	if (this.timeout <= 0) {
-		var y = 1;
+		this.serverState.sendGlobalMessage("Welcome to " + this.maps[this.currentMapIndex].name);
+		
+		if (this.serverState.users.length > 1) {
+			this.serverState.sendGlobalMessage("There are " + this.serverState.users.length + " players in the game. Who will be first?");
+			this.demoMOde = false;
+		} else {
+			this.serverState.sendGlobalMessage("You are alone. Invite your friends to play.");
+			this.demoMode = true;
+		}
 		
 		this.serverState.users.forEach(function(user) {
 			user.player = this.currentMap.spawn();
+			user.player.user = user;
 			
 			user.emit('spawn', {ID: user.player.ID});
-			
-			y += 1;
 		}.bind(this));
 		
 		this.worldState.update(dt);
@@ -129,23 +142,30 @@ GameState.prototype.preparing = function(dt) {
 
 GameState.prototype.running = function(dt) {
 	this.timeout -= dt;
-	var leftAlive = 0;
-	var lastLeftAlive
-	var thoseLeft = [];
-	this.serverState.users.forEach(function (user){
-		user.emit("timeout", {remaining:this.timeout});
-		if(user.player.isAlive){
-			leftAlive+=1;
-			lastLeftAlive = user.player;
-			thoseLeft.push[user.player];
+	var remaining = [];
+	
+	this.sendTimeout();
+	
+	this.worldState.players.forEach(function(player) {
+		if (player.isAlive) {
+			remaining.push(player);
 		}
-		else user.emit("timeout", {remaining:"You're many dead"});
 	});
-	if (this.timeout <= 0 || this.serverState.users == 0 ) {
-		this.setPhase("finishing");
+	
+	if (!this.demoMode) {
+		if (remaining.length == 1) {
+			this.serverState.sendGlobalMessage('There can be only one! ' + remaining[0].user.name + ' is the winner!');
+		
+			this.timeout = 0;
+		} else if (remaining.length == 0) {
+			this.serverState.sendGlobalMessage('There is no winner...');
+		
+			this.timeout = 0;
+		}
 	}
-	if(leftAlive == 1 && this.timeout < ((this.serverState.users.length > 2) ? 60*4 : 30)){
-		this.serverState.sendGlobalMessage('There can be only one! That is you ' + lastLeftAlive.name);
+	
+	if (this.timeout <= 0 || this.serverState.users == 0) {
+		this.setPhase("finishing");
 	}
 }
 
@@ -189,10 +209,18 @@ function ServerState () {
 	setInterval(this.updateClients.bind(this), Server.updateRate * 1000);
 }
 
-ServerState.prototype.sendGlobalMessage = function(text){
+ServerState.prototype.sendGlobalMessage = function(text) {
+	console.log("Global Message:", text);
+	
 	this.users.forEach(function(user){
 		user.emit('message', {text:text});
 	});
+}
+
+ServerState.prototype.sendMessage = function(user, text) {
+	console.log("User Message:", user.name, text);
+	
+	user.emit('message', {text:text});
 }
 
 ServerState.prototype.updateClients = function() {
@@ -218,6 +246,12 @@ ServerState.prototype.addUser = function(name, socket) {
 	
 	console.log("Adding user", assignedName);
 	this.users.push(user);
+	
+	this.sendMessage(user, "Your name is " + assignedName);
+	
+	if (this.gameState.phase == 'running') {
+		this.sendMessage(user, "A game is currently in progress with " + Math.floor(this.gameState.timeout) + "s remaining. Please hold on.");
+	}
 	
 	return user;
 }

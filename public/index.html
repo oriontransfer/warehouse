@@ -16,6 +16,22 @@
 				margin: 0;
 				padding: 0;
 			}
+			
+			#messages {
+				position: fixed;
+				
+				left: 0;
+				right: 0;
+				top: 0;
+				height: 48pt;
+				
+				padding: 6pt;
+			}
+			
+			#timeout {
+				float: right;
+				font-size: 25pt;
+			}
 		</style>
 		
 		<!-- Node.js libraries -->
@@ -48,6 +64,9 @@
 				var host = location.protocol + '//' + location.host;
 				AngryBox.connectToServer(host);
 
+				AngryBox.messagesElement = document.getElementById("messages");
+				AngryBox.timeoutElement = document.getElementById("timeout");
+
 				AngryBox.loadAssets(function() {
 					AngryBox.run();
 				})
@@ -55,5 +74,8 @@
 		</script>
 	</head>
 	<body>
+		<div id="messages">
+			<div id="timeout">xxs</div>
+		</div>
 	</body>
 </html>

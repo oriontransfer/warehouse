@@ -59,8 +59,6 @@ AngryBox = {
 		render: function(renderer) {
 		},
 		serverUpdate: function(data) {
-			console.log("serverUpdate:", data);
-			
 			if (data.phase == "preparing") {
 				var mapTemplate = AngryBoxMaps[data.map];
 				
@@ -131,6 +129,25 @@ AngryBox = {
 		
 		this.socket.on('spawn', function(data) {
 			this.controller.serverSpawned(data);
+		}.bind(this));
+		
+		// Messages from server:
+		this.socket.on('message', function(data) {
+			var messageElement = document.createElement('div');
+			
+			var messageTextNode = document.createTextNode(data.text);
+			messageElement.appendChild(messageTextNode);
+			
+			this.messagesElement.appendChild(messageElement);
+			
+			// Only show 4 most recent messages:
+			while (this.messagesElement.children.length > 4) {
+				this.messagesElement.removeChild(this.messagesElement.children[0]);
+			}
+		}.bind(this));
+		
+		this.socket.on('timeout', function(data) {
+			this.timeoutElement.textContent = Math.floor(data.remaining) + 's';
 		}.bind(this));
 	},
 	
