@@ -245,6 +245,18 @@ WorldState.prototype.addPlayer = function(name, startingLocationVEC3){
 	return newPlayer;
 }
 
+WorldState.prototype.reAddPlayerPhysics = function(playerState, newLocation, newVelocity, newQuat){
+	this.world.remove(player.RigidBody);
+	var boxShape = playerState.rigidBody.shape;
+	var body = playerState.rigidBody;
+
+	newLocation.copy(body.position);
+	newVelocity.copy(body.velocity);
+	newQuat.copy(body.quaternion);
+
+	this.world.add(body);
+}
+
 WorldState.prototype.removePlayer = function(player){
 	this.players.pop(player);
 	this.world.remove(player.RigidBody);
@@ -329,30 +341,38 @@ PlayerState.prototype.serialize = function(){
 
 }
 
+PlayerState.BUFFER_VEC3_POS = new CANNON.Vec3(0,0,0);
+PlayerState.BUFFER_VEC3_VEL = new CANNON.Vec3(0,0,0);
+PlayerState.BUFFER_QUAT = new CANNON.Quaternion(0,0,0,0);
 PlayerState.prototype.deserialize = function(array){
 	var arrayCounter = 0;
 
-	if(this.position){
-		//this.position.x = array[arrayCounter++];
-		//this.position.y = array[arrayCounter++];
-		//this.position.z = array[arrayCounter++];
-	}
-	else arrayCounter+= 3;
+	if(this.position && this.rotationQuat && this.velocity){
 
-	if(this.rotationQuat){
-		//this.rotationQuat.x = array[arrayCounter++];
-		//this.rotationQuat.y = array[arrayCounter++];
-		//this.rotationQuat.z = array[arrayCounter++];
-		//this.rotationQuat.w = array[arrayCounter++];
-	}
-	else arrayCounter+= 4;
+		PlayerState.BUFFER_VEC3_POS.x = array[arrayCounter++];
+		PlayerState.BUFFER_VEC3_POS.y = array[arrayCounter++];
+		PlayerState.BUFFER_VEC3_POS.z = array[arrayCounter++];
 
-	if(this.rotationQuat){
-		//this.velocity.x = array[arrayCounter++];
-		//this.velocity.y = array[arrayCounter++];
-		//this.velocity.z = array[arrayCounter++];
+		PlayerState.BUFFER_QUAT.x = array[arrayCounter++];
+		PlayerState.BUFFER_QUAT.y = array[arrayCounter++];
+		PlayerState.BUFFER_QUAT.z = array[arrayCounter++];
+		PlayerState.BUFFER_QUAT.w = array[arrayCounter++];
+
+		PlayerState.BUFFER_VEC3_VEL.x = array[arrayCounter++];
+		PlayerState.BUFFER_VEC3_VEL.y = array[arrayCounter++];
+		PlayerState.BUFFER_VEC3_VEL.z = array[arrayCounter++];
 	}
-	else arrayCounter+= 3;
+	else arrayCounter+= 10;
+
+	//if(){
+		
+	//}
+	//else arrayCounter+= 4;
+
+	//if(){
+		
+	//}
+	//else arrayCounter+= 3;
 
 
 	//if(this.position)this.rigidBody.position = this.position;
