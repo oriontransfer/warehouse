@@ -320,7 +320,11 @@ PlayerState.prototype.serialize = function() {
 		this.isReloading,
 		this.roundsInClip,
 		this.timeSpentReloading,
-		this.isMakingNoise
+		this.isMakingNoise,
+		this.motion,
+		this.motionDirection,
+		this.rotation,
+		this.rotationDirection
 	];
 }
 
@@ -338,6 +342,11 @@ PlayerState.prototype.deserialize = function(data) {
 	this.roundsInClip = data[14];
 	this.timeSpentReloading = data[15];
 	this.isMakingNoise = data[16];
+	
+	this.motion = data[17];
+	this.motionDirection = data[18];
+	this.rotation = data[19];
+	this.rotationDirection = data[20];
 }
 
 //Const player variables.
