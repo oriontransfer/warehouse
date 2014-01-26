@@ -195,7 +195,7 @@ WorldState.prototype.update = function(dt){
 
 WorldState.prototype.addBoxGeometry = function(locationVEC3, halfExtentsVEC3, mass, shader){
 	var newGeometry = new GeometryState(shader, this.geometryIDCounter++);
-	this.geometry.add(newGeometry);
+	this.geometry.push(newGeometry);
 
 	// var tileInside = new Vec2(startingLocationVEC2[0] / this.tileMap.tileSize[0], startingLocationVEC2[1] / this.tileMap.tileSize[1]);
 	// newPlayer.tileInside = this.tileMap.get(tileInside);
@@ -209,6 +209,8 @@ WorldState.prototype.addBoxGeometry = function(locationVEC3, halfExtentsVEC3, ma
 	//Store references to each other for call backs.
 	boxBody.userData = newGeometry;
 	newGeometry.RigidBody = boxBody;
+	newGeometry.position = boxBody.position;
+	newGeometry.rotationQuat = boxBody.quaternion;
 
 	this.world.add(boxBody);
 
@@ -330,22 +332,32 @@ PlayerState.prototype.serialize = function(){
 PlayerState.prototype.deserialize = function(array){
 	var arrayCounter = 0;
 
-	this.position.x = array[arrayCounter++];
-	this.position.y = array[arrayCounter++];
-	this.position.z = array[arrayCounter++];
+	if(this.position){
+		//this.position.x = array[arrayCounter++];
+		//this.position.y = array[arrayCounter++];
+		//this.position.z = array[arrayCounter++];
+	}
+	else arrayCounter+= 3;
 
-	this.rotationQuat.x = array[arrayCounter++];
-	this.rotationQuat.y = array[arrayCounter++];
-	this.rotationQuat.z = array[arrayCounter++];
-	this.rotationQuat.w = array[arrayCounter++];
+	if(this.rotationQuat){
+		//this.rotationQuat.x = array[arrayCounter++];
+		//this.rotationQuat.y = array[arrayCounter++];
+		//this.rotationQuat.z = array[arrayCounter++];
+		//this.rotationQuat.w = array[arrayCounter++];
+	}
+	else arrayCounter+= 4;
 
-	this.velocity.x = array[arrayCounter++];
-	this.velocity.y = array[arrayCounter++];
-	this.velocity.z = array[arrayCounter++];
+	if(this.rotationQuat){
+		//this.velocity.x = array[arrayCounter++];
+		//this.velocity.y = array[arrayCounter++];
+		//this.velocity.z = array[arrayCounter++];
+	}
+	else arrayCounter+= 3;
 
-	this.rigidBody.position = this.position;
-	this.rigidBody.quaternion = this.rotationQuat;
-	this.rigidBody.velocity = this.velocity;
+
+	//if(this.position)this.rigidBody.position = this.position;
+	//if(this.rotatioQuat)this.rigidBody.quaternion = this.rotationQuat;
+	//if(this.velocity)this.rigidBody.velocity = this.velocity;
 
 	this.health = array[arrayCounter++];
 	this.isShooting = array[arrayCounter++];
@@ -630,18 +642,25 @@ GeometryState.prototype.serialize = function(){
 
 GeometryState.prototype.deserialize = function(array, worldstate){
 	var arrayCounter = 0;
+	if(array){
+		if(this.position){
+			this.position.x = array[arrayCounter++];
+			this.position.y = array[arrayCounter++];
+			this.position.z = array[arrayCounter++];
+		}
+		else arrayCounter+= 3;
 
-	this.position.x = array[arrayCounter++];
-	this.position.y = array[arrayCounter++];
-	this.position.z = array[arrayCounter++];
+		if(this.rotationQuat){
+			this.rotationQuat.x = array[arrayCounter++];
+			this.rotationQuat.y = array[arrayCounter++];
+			this.rotationQuat.z = array[arrayCounter++];
+			this.rotationQuat.w = array[arrayCounter++];
+		}
+		else arrayCounter+= 4;
 
-	this.rotationQuat.x = array[arrayCounter++];
-	this.rotationQuat.y = array[arrayCounter++];
-	this.rotationQuat.z = array[arrayCounter++];
-	this.rotationQuat.w = array[arrayCounter++];
+		if(this.position) this.rigidBody.position = this.position;
+		if(this.rotationQuat) this.rigidBody.quaternion = this.rotationQuat;
 
-	this.rigidBody.position = this.position;
-	this.rigidBody.quaternion = this.rotationQuat;
-
-	this.ID = array[arrayCounter++];
+		this.ID = array[arrayCounter++];
+	}
 }
