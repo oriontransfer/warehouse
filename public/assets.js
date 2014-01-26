@@ -118,9 +118,9 @@ ClutterController.prototype.add = function(position, type, randomRotation){
 		this.renderer.add(position, type, randomRotation); //Add to the clutter renderer
 	}
 
-	var boxsize = new CANNON.Vec3(.4,.4,.4);
+	var boxsize = new CANNON.Vec3(1,1,1);
 
-	this.worldState.addBoxGeometry(position, boxsize, 1700, "");
+	this.worldState.addBoxGeometry(position, boxsize, 0, "", true);
 }
 
 ClutterController.REGION_DIVISION_SIZE = 2.0;
@@ -139,11 +139,11 @@ ClutterController.prototype.GenerateLotsOfClutter = function(){ //Randomly gener
 	for(var i = 0; i < horzDivisions; i++){
 		var horzProb1 = Math.sin(i * ClutterController.REGION_DIVISION_SIZE/this.region[0].x + sinStartHorz1);
 		var horzProb2 = Math.sin(i * ClutterController.REGION_DIVISION_SIZE/this.region[0].x + sinStartHorz2);
-		var horzProb = (horzProb1 + horzProb2)/2.0 * 0.4;
+		var horzProb = (horzProb1 + horzProb2)/2.0 * 0.6;
 		for(var j = 0; j < vertDivisions; j++){
 			var vertProb1 = Math.sin(j * ClutterController.REGION_DIVISION_SIZE/this.region[0].y + sinStartVert1);
 			var vertProb2 = Math.sin(j * ClutterController.REGION_DIVISION_SIZE/this.region[0].y + sinStartVert2);
-			var vertProb = (vertProb1 + vertProb2)/2.0 * 0.4
+			var vertProb = (vertProb1 + vertProb2)/2.0 * 0.6;
 
 			if(this.random.nextNumber() < horzProb && this.random.nextNumber() < vertProb){
 				var position = new CANNON.Vec3(0,0,0);
@@ -177,7 +177,7 @@ function ClutterRenderer(rendererState){
 }
 
 ClutterRenderer.prototype.add = function(position, typeofclutter, randomRotation){
-	var clutter = this.clutter[Math.ceil(typeofclutter)];
+	var clutter = this.clutter[Math.floor(typeofclutter)];
 
 	var newMesh = new THREE.Mesh(clutter.geometry, clutter.material);
 
@@ -188,9 +188,9 @@ ClutterRenderer.prototype.add = function(position, typeofclutter, randomRotation
 	newMesh.position.y = position.y;
 	newMesh.position.z = position.z; //(Math.ceil(typeofclutter) == 3) ? position.z + 0.5 : position.z;
 
-	newMesh.rotation.x = (Math.ceil(typeofclutter) == 3) ? Math.PI/2.0 : 0; //Hack to rotate crates
-	newMesh.rotation.z = (Math.ceil(typeofclutter) == 3) ? 0 : randomRotation;
-	newMesh.rotation.y = (Math.ceil(typeofclutter) == 3) ? randomRotation : 0; 
+	newMesh.rotation.x = (Math.floor(typeofclutter) == 3) ? Math.PI/2.0 : 0; //Hack to rotate crates
+	newMesh.rotation.z = (Math.floor(typeofclutter) == 3) ? 0 : randomRotation;
+	newMesh.rotation.y = (Math.floor(typeofclutter) == 3) ? randomRotation : 0; 
 
 	this.scene.add(newMesh);
 }

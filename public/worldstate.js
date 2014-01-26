@@ -107,8 +107,8 @@ WorldState.prototype.initPhysics = function(){
 	console.log("Creating physics world...");
 	
 	var solver = new CANNON.GSSolver();
-	solver.iterations = 5;
-	solver.tolerance = 3;
+	solver.iterations = 3;
+	solver.tolerance = 1;
 
 	this.world.solver = solver;
 	this.world.gravity.set(0, 0, -9.8);
@@ -559,9 +559,9 @@ function BoxState(ID, position, extents, mass, material, sleeping) {
 	this.rigidBody.userData = this;
 
 	this.rigidBody.collisionFilterGroup = 1;
-	this.rigidBody.collisionFilterMask = 2;
+	this.rigidBody.collisionFilterMask = 2 ;
 	
-	if (mass <= 1 || sleeping) {
+	if (mass <= 1 || sleeping || sleeping) {
 		this.rigidBody.allowSleep = true;
 		this.rigidBody.sleepState = 2;
 	}
