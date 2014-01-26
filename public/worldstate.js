@@ -254,7 +254,7 @@ PlayerState.prototype.deserialize = function(array){
 	this.rigidBody.velocity = this.velocity;
 
 	this.health = array[arrayCounter++];
-	this.isALive; = array[arrayCounter++];
+	this.isALive = array[arrayCounter++];
 }
 
 //Const player variables.
