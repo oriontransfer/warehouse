@@ -4,7 +4,6 @@ function WorldState() {
 	this.players = new Container();
 	this.projectiles = new Container();
 	this.geometry = new Container();
-	
 	this.obstructions = new Container();
 	
 	this.playerIDCounter = 0;
@@ -60,6 +59,7 @@ WorldState.prototype.deserialize = function(array){
 		//playerArray.push(newPlayer)
 		oldPlayer = this.players.values[newPlayer.ID];
 		if(!oldPlayer) this.addPlayer(newPlayer);
+		else oldPlayer.deserialize(array[arrayCounter++]);
 	}
 
 	for(var i = 0; i < geomCount; i++){
@@ -68,6 +68,7 @@ WorldState.prototype.deserialize = function(array){
 		//playerArray.push(newPlayer)
 		oldGeometry = this.geometry.values[newGeometry.ID];
 		if(!oldGeometry) this.addBoxGeometry(newGeometry);
+		else oldGeometry.deserialize(array[arrayCounter++], this);
 	}
 
 	for(var i = 0; i < projCount; i++){
@@ -76,6 +77,7 @@ WorldState.prototype.deserialize = function(array){
 		//playerArray.push(newPlayer)
 		oldProjectile = this.projectiles.values[newProjectile.ID];
 		if(!oldProjectile) this.addProjectile(newProjectile);
+		else oldProjectile.deserialize(array[arrayCounter++], this);
 	}
 
 WorldState.prototype.initPhysics = function(){
