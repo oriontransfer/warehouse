@@ -124,6 +124,7 @@ ClutterController.prototype.add = function(position, type, randomRotation){
 }
 
 ClutterController.REGION_DIVISION_SIZE = 2.0;
+ClutterController.TOLERANCE = 1.5;
 ClutterController.prototype.GenerateLotsOfClutter = function(){ //Randomly generate some clutter with densities defined by overlapping sine functions.
 
 	var numAdded = 0;
@@ -149,8 +150,8 @@ ClutterController.prototype.GenerateLotsOfClutter = function(){ //Randomly gener
 				var position = new CANNON.Vec3(0,0,0);
 				var type = [];
 
-				position.x = i * ClutterController.REGION_DIVISION_SIZE;
-				position.y = j * ClutterController.REGION_DIVISION_SIZE;
+				position.x = i * ClutterController.REGION_DIVISION_SIZE + this.random.nextNumber() * ClutterController.TOLERANCE;
+				position.y = j * ClutterController.REGION_DIVISION_SIZE + this.random.nextNumber() * ClutterController.TOLERANCE;
 				position.z = 0;
 
 				var type = this.random.nextNumber() * 4;
