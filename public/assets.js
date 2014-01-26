@@ -120,14 +120,14 @@ ClutterController.prototype.add = function(position, type){
 
 	var boxsize = new CANNON.Vec3(1,1,1);
 
-	this.worldState.addBoxGeometry(position, boxsize, 1700, "");
+	this.worldState.addBoxGeometry(position, boxsize, 1700, "", true);
 }
 
 ClutterController.REGION_DIVISION_SIZE = 1.0;
 ClutterController.prototype.GenerateLotsOfClutter = function(){ //Randomly generate some clutter with densities defined by overlapping sine functions.
 
-	var horzDivisions = this.region[0].x/ClutterController.REGION_DIVISION_SIZE;
-	var vertDivisions = this.region[0].y/ClutterController.REGION_DIVISION_SIZE;
+	var horzDivisions = this.region[1].x/ClutterController.REGION_DIVISION_SIZE;
+	var vertDivisions = this.region[1].y/ClutterController.REGION_DIVISION_SIZE;
 
 	var sinStartHorz1 = this.random.nextNumber();
 	var sinStartVert1 = this.random.nextNumber();
@@ -137,11 +137,11 @@ ClutterController.prototype.GenerateLotsOfClutter = function(){ //Randomly gener
 	for(var i = 0; i < horzDivisions; i++){
 		var horzProb1 = Math.sin(i/this.region[0].x + sinStartHorz1);
 		var horzProb2 = Math.sin(i/this.region[0].x + sinStartHorz2);
-		var horzProb = (horzProb1 + horzProb2)/2.0;
+		var horzProb = (horzProb1 + horzProb2)/2.0 * 0.1;
 		for(var j = 0; j < vertDivisions; j++){
 			var vertProb1 = Math.sin(j/this.region[0].y + sinStartVert1);
 			var vertProb2 = Math.sin(j/this.region[0].y + sinStartVert2);
-			var vertProb = (vertProb1 + vertProb2)/2.0;
+			var vertProb = (vertProb1 + vertProb2)/2.0 * 0.1;
 
 			if(this.random.nextNumber() < horzProb && this.random.nextNumber() < vertProb){
 				var position = new CANNON.Vec3(0,0,0);
@@ -171,22 +171,19 @@ function ClutterRenderer(rendererState){
 	]
 
 	this.clutterMeshes = [];
-
-	for(var i = 0; i < this.clutter.length; i++){
-		this.clutter[i].material
-		var newMesh = new THREE.Mesh(this.clutter[i].geometry, this.clutter[i].material);
-		newMesh.castShadow    = true;
-		newMesh.receiveShadow = true;
-		this.clutterMeshes.push(newMesh);
-	}
 }
 
 ClutterRenderer.prototype.add = function(position, typeofclutter){
-	var clutter = this.clutterMeshes[Math.floor(typeofclutter)];
+	var clutter = this.clutter[Math.floor(typeofclutter)];
 
-	clutter.position.x = position.x;
-	clutter.position.y = position.y;
-	clutter.position.z = position.z;
+	var newMesh = new THREE.Mesh(clutter.geometry, clutter.material);
 
-	this.scene.add(clutter);
+	newMesh.castShadow    = true;
+	newMesh.receiveShadow = true;
+
+	newMesh.position.x = position.x;
+	newMesh.position.y = position.y;
+	newMesh.position.z = position.z;
+
+	this.scene.add(newMesh);
 }

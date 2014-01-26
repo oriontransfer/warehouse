@@ -163,8 +163,8 @@ WorldState.prototype.update = function(dt) {
 	});
 }
 
-WorldState.prototype.addBoxGeometry = function(locationVEC3, halfExtentsVEC3, mass) {
-	var newBox = new BoxState(this.nextUniqueID++, locationVEC3, halfExtentsVEC3, mass, this.boxPhysicsMaterial);
+WorldState.prototype.addBoxGeometry = function(locationVEC3, halfExtentsVEC3, mass, sleeping) {
+	var newBox = new BoxState(this.nextUniqueID++, locationVEC3, halfExtentsVEC3, mass, this.boxPhysicsMaterial, sleeping);
 
 	this.boxes.push(newBox);
 	
@@ -555,7 +555,7 @@ PlayerState.prototype.update = function(dt){
 
 // ** Box State **
 
-function BoxState(ID, position, extents, mass, material) {
+function BoxState(ID, position, extents, mass, material, sleeping) {
 	this.ID = ID;
 	
 	var boxShape = new CANNON.Box(extents);
@@ -564,7 +564,7 @@ function BoxState(ID, position, extents, mass, material) {
 	this.rigidBody.position = position;
 	this.rigidBody.userData = this;
 	
-	if (mass <= 1) {
+	if (mass <= 1 || sleeping) {
 		this.rigidBody.allowSleep = true;
 		this.rigidBody.sleepState = 2;
 	}
