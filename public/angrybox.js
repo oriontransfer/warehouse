@@ -135,15 +135,15 @@ AngryBox = {
 			
 			this.eventState[event] = state;
 			
-			this.controller.handleEvent(event, state);
 			this.socket.emit('event', {event: event, state: state});
+			this.controller.handleEvent(event, state);
 		} else {
 			if (this.eventState[event] == state) return;
 			
 			delete this.eventState[event];
 			
-			this.controller.handleEvent(event, state)
 			this.socket.emit('event', {event: event, state: state});
+			this.controller.handleEvent(event, state)
 		}
 	},
 	
