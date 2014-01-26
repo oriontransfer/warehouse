@@ -139,7 +139,7 @@ WorldState.prototype.initPhysics = function(){
     solver.iterations = 20;
     solver.tolerance = 0;
 
-    world.solver = solver;
+    world.solver = new CANNON.SplitSolver(solver);
 
     world.gravity.set(0, 0, -9.8);
 
