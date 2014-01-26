@@ -315,7 +315,8 @@ PlayerState.prototype.serialize = function() {
 		this.isAlive,
 		this.isReloading,
 		this.roundsInClip,
-		this.timeSpentReloading
+		this.timeSpentReloading,
+		this.isMakingNoise
 	];
 }
 
@@ -332,6 +333,7 @@ PlayerState.prototype.deserialize = function(data) {
 	this.isReloading = data[13];
 	this.roundsInClip = data[14];
 	this.timeSpentReloading = data[15];
+	this.isMakingNoise = data[16];
 }
 
 //Const player variables.
