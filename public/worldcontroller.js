@@ -182,6 +182,6 @@ WorldController.prototype.render = function(renderer) {
 }
 
 WorldController.prototype.handleEvent = function(event, action) {
-	if (this.currentPlayer)
-		this.currentPlayer.handleEvent(event, action);
+	//if (this.currentPlayer)
+	//	this.currentPlayer.handleEvent(event, action);
 }
