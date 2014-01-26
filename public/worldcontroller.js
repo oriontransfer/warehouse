@@ -31,9 +31,13 @@ function WorldController() {
 	
 	light.shadowMapWidth = 1024;
 	light.shadowMapHeight = 1024;
+
+	var healthLight = new THREE.PointLight( 0xFFFFFF, 1, 5);
+	healthLight.position.set(2,2,2);
+	this.playerHealthLight = healthLight;
+	this.scene.add(healthLight);
 	
 	//light.shadowCameraVisible = true;
-	
 	this.playerLight = light;
 	this.scene.add(this.playerLight);
 	
@@ -121,6 +125,7 @@ WorldController.prototype.resizeWindow = function(width, height) {
 
 WorldController.FORWARD = new CANNON.Vec3(0,7,0);
 WorldController.FORWARD_ROT = new CANNON.Vec3(0,0,0);
+WorldController.HEALTH_LIGHT_HEIGHT_OFFSET = new CANNON.Vec3(0,0,2);
 
 WorldController.prototype.updateCurrentPlayer = function() {
 	//this.currentPlayer.rigidBody.position.copy(this.camera.position);
@@ -134,7 +139,12 @@ WorldController.prototype.updateCurrentPlayer = function() {
 	
 	this.currentPlayer.rigidBody.position.copy(this.playerLight.position);
 	this.playerLight.position.z += 0.6;
-	
+
+	this.currentPlayer.rigidBody.position.copy(this.playerHealthLight.position);
+	this.playerHealthLight.position = this.playerHealthLight.position.add(WorldController.HEALTH_LIGHT_HEIGHT_OFFSET);
+	this.playerHealthLight.color.g = this.currentPlayer.health/PlayerState.HEALTH;
+	this.playerHealthLight.color.b = this.currentPlayer.health/PlayerState.HEALTH;
+
 	var rotation = new THREE.Quaternion();
 	
 	this.currentPlayer.rigidBody.quaternion.copy(rotation);
