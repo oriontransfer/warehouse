@@ -130,6 +130,7 @@ WorldState.prototype.initPhysics = function(){
 	this.world = new CANNON.World();
 	this.world.broadphase = new CANNON.NaiveBroadphase();
 	world = this.world;
+	this.world.broadphase.useBoundingBoxes = true;
 
 	solver = new CANNON.GSSolver();
 
