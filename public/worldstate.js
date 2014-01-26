@@ -229,6 +229,8 @@ PlayerState.prototype.serialize = function(){
 
 	PlayerState.STATE_ARRAY[arrayCounter++] = this.isALive;
 
+	return STATE_ARRAY;
+
 }
 
 PlayerState.prototype.deserialize = function(array){
