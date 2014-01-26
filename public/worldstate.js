@@ -226,7 +226,7 @@ PlayerState.prototype.serialize = function(){
 	PlayerState.STATE_ARRAY[arrayCounter++] = this.velocity.z;
 
 	PlayerState.STATE_ARRAY[arrayCounter++] = this.health;
-
+	PlayerState.STATE_ARRAY[arrayCounter++] = this.isShooting;
 	PlayerState.STATE_ARRAY[arrayCounter++] = this.isALive;
 
 	return STATE_ARRAY;
@@ -254,6 +254,7 @@ PlayerState.prototype.deserialize = function(array){
 	this.rigidBody.velocity = this.velocity;
 
 	this.health = array[arrayCounter++];
+	this.isShooting = array[arrayCounter++];
 	this.isALive = array[arrayCounter++];
 }
 
@@ -385,7 +386,7 @@ PlayerState.prototype.update = function(dt){
 
 	if(this.rotation == PlayerState.Motion.WALKING){
 		if(this.rotationDirection == PlayerState.Direction.LEFT){
-			this.rigidBody.angularVelocity.z = ((this.sRunning) ? PlayerState.RUNNING_ROT_SPEED : PlayerState.WALKING_ROT_SPEED);
+			this.rigidBody.angularVelocity.z = ((this.isRunning) ? PlayerState.RUNNING_ROT_SPEED : PlayerState.WALKING_ROT_SPEED);
 		} 
 		else {
 			this.rigidBody.angularVelocity.z = ((this.isRunning) ? -PlayerState.RUNNING_ROT_SPEED : -PlayerState.WALKING_ROT_SPEED);
