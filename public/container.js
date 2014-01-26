@@ -41,3 +41,7 @@ Container.prototype.forEach = function(callback) {
 		callback(this.values[key]);
 	}
 }
+
+Container.prototype.contains = function(key) {
+	return key in this.values;
+}
