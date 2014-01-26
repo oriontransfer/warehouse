@@ -112,18 +112,18 @@ function ClutterController(seed, region, density, worldState, renderer){
 	this.density = density;
 }
 
-ClutterController.prototype.add = function(position, type){
+ClutterController.prototype.add = function(position, type, randomRotation){
 
 	if(this.renderer){
-		this.renderer.add(position, type); //Add to the clutter renderer
+		this.renderer.add(position, type, randomRotation); //Add to the clutter renderer
 	}
 
-	var boxsize = new CANNON.Vec3(.1,.1,.1);
+	var boxsize = new CANNON.Vec3(.4,.4,.4);
 
-	this.worldState.addBoxGeometry(position, boxsize, 1700, "", true);
+	this.worldState.addBoxGeometry(position, boxsize, 1700, "");
 }
 
-ClutterController.REGION_DIVISION_SIZE = 1.0;
+ClutterController.REGION_DIVISION_SIZE = 2.0;
 ClutterController.prototype.GenerateLotsOfClutter = function(){ //Randomly generate some clutter with densities defined by overlapping sine functions.
 
 	var numAdded = 0;
@@ -137,13 +137,13 @@ ClutterController.prototype.GenerateLotsOfClutter = function(){ //Randomly gener
 	var sinStartVert2 = this.random.nextNumber();
 
 	for(var i = 0; i < horzDivisions; i++){
-		var horzProb1 = Math.sin(i/this.region[0].x + sinStartHorz1);
-		var horzProb2 = Math.sin(i/this.region[0].x + sinStartHorz2);
-		var horzProb = (horzProb1 + horzProb2)/2.0 * 0.1;
+		var horzProb1 = Math.sin(i * ClutterController.REGION_DIVISION_SIZE/this.region[0].x + sinStartHorz1);
+		var horzProb2 = Math.sin(i * ClutterController.REGION_DIVISION_SIZE/this.region[0].x + sinStartHorz2);
+		var horzProb = (horzProb1 + horzProb2)/2.0 * 0.4;
 		for(var j = 0; j < vertDivisions; j++){
-			var vertProb1 = Math.sin(j/this.region[0].y + sinStartVert1);
-			var vertProb2 = Math.sin(j/this.region[0].y + sinStartVert2);
-			var vertProb = (vertProb1 + vertProb2)/2.0 * 0.1;
+			var vertProb1 = Math.sin(j * ClutterController.REGION_DIVISION_SIZE/this.region[0].y + sinStartVert1);
+			var vertProb2 = Math.sin(j * ClutterController.REGION_DIVISION_SIZE/this.region[0].y + sinStartVert2);
+			var vertProb = (vertProb1 + vertProb2)/2.0 * 0.4
 
 			if(this.random.nextNumber() < horzProb && this.random.nextNumber() < vertProb){
 				var position = new CANNON.Vec3(0,0,0);
@@ -155,11 +155,11 @@ ClutterController.prototype.GenerateLotsOfClutter = function(){ //Randomly gener
 
 				var type = this.random.nextNumber() * 4;
 				numAdded++; 
-				this.add(position, type);
+				this.add(position, type, this.random.nextNumber() * 2 * Math.PI);
 			}
 		}
 	}	
-	console.log(numAdded, 'added objects');
+	//console.log(numAdded, 'added objects');
 }
 
 function ClutterRenderer(rendererState){
@@ -176,8 +176,8 @@ function ClutterRenderer(rendererState){
 	this.clutterMeshes = [];
 }
 
-ClutterRenderer.prototype.add = function(position, typeofclutter){
-	var clutter = this.clutter[Math.floor(typeofclutter)];
+ClutterRenderer.prototype.add = function(position, typeofclutter, randomRotation){
+	var clutter = this.clutter[Math.ceil(typeofclutter)];
 
 	var newMesh = new THREE.Mesh(clutter.geometry, clutter.material);
 
@@ -186,7 +186,11 @@ ClutterRenderer.prototype.add = function(position, typeofclutter){
 
 	newMesh.position.x = position.x;
 	newMesh.position.y = position.y;
-	newMesh.position.z = position.z;
+	newMesh.position.z = position.z; //(Math.ceil(typeofclutter) == 3) ? position.z + 0.5 : position.z;
+
+	newMesh.rotation.x = (Math.ceil(typeofclutter) == 3) ? Math.PI/2.0 : 0; //Hack to rotate crates
+	newMesh.rotation.z = (Math.ceil(typeofclutter) == 3) ? 0 : randomRotation;
+	newMesh.rotation.y = (Math.ceil(typeofclutter) == 3) ? randomRotation : 0; 
 
 	this.scene.add(newMesh);
 }
