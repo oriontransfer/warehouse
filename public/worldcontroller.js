@@ -17,20 +17,20 @@ function WorldController() {
 	
 	this.playerGeometryController = new GeometryController(this.scene, this.worldState.players);
 	
-	var light = new THREE.SpotLight(0xffffff, 4, 50, D2R(72/2), 2.0);
+	var light = new THREE.SpotLight(0xffffff, 2.5, 50, D2R(72/2), 2.0);
 	light.position.set(10, 10, 10);
 	light.target.position.set(5, 5, 0);
 	light.castShadow = true;
 
-	light.shadowCameraNear = 2.0;
+	light.shadowCameraNear = 1.0;
 	light.shadowCameraFar = 40.0;
 	light.shadowCameraFov = 72.0;
 	
-	light.shadowBias = 0.00001;
+	light.shadowBias = 0.001;
 	light.shadowDarkness = 1.0;
 	
-	light.shadowMapWidth = 2048;
-	light.shadowMapHeight = 2048;
+	light.shadowMapWidth = 1024;
+	light.shadowMapHeight = 1024;
 	
 	//light.shadowCameraVisible = true;
 	
