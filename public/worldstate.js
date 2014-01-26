@@ -219,6 +219,11 @@ WorldState.prototype.addBoxGeometry = function(locationVEC3, halfExtentsVEC3, ma
 	newGeometry.position = boxBody.position;
 	newGeometry.rotationQuat = boxBody.quaternion;
 
+	if(mass <= 1){
+		boxBody.allowSleep = true;
+		boxBody.sleepState = 2;
+	}
+
 	this.world.add(boxBody);
 
 	return newGeometry;
