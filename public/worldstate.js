@@ -310,6 +310,9 @@ function PlayerState(name, ID) {
 	this.isRunning = false;
 	this.isShooting = false;
 	this.isAlive = true;
+	this.isReloading = false;
+	this.roundsInClip = PlayerState.CLIP_SIZE;
+	this.timeSpentReloading = 0;
 
 	this.worldInside = null;
 	this.name = name;
@@ -336,6 +339,9 @@ PlayerState.prototype.serialize = function(){
 	state_array[arrayCounter++] = this.health;
 	state_array[arrayCounter++] = this.isShooting;
 	state_array[arrayCounter++] = this.isAlive;
+	state_array[arrayCounter++] = this.isReloading;
+	state_array[arrayCounter++] = this.roundsInClip;
+	state_array[arrayCounter++] = this.timeSpentReloading;
 	state_array[arrayCounter++] = this.name;
 
 
@@ -386,6 +392,9 @@ PlayerState.prototype.deserialize = function(array, world){
 	this.health = array[arrayCounter++];
 	this.isShooting = array[arrayCounter++];
 	this.isAlive = array[arrayCounter++];
+	this.isReloading = array[arrayCounter++];
+	this.roundsInClip = array[arrayCounter++];
+	this.timeSpentReloading = array[arrayCounter++];
 	this.name = array[arrayCounter++];
 }
 
@@ -398,6 +407,8 @@ PlayerState.MAX_WALKING_SPEED = 4002;
 PlayerState.MAX_RUNNING_SPEED = 8004;
 PlayerState.FIRE_RATE_PER_SECOND = 1;
 PlayerState.BULLET_SPEED = 1;
+PlayerState.RELOAD_TIME = 3;
+PlayerState.CLIP_SIZE = 6;
 PlayerState.Motion = {
 	WALKING: 1,
 	STOPPED: 2,
@@ -464,11 +475,24 @@ PlayerState.prototype.update = function(dt){
 	//this.rotationQuat.vmult(PlayerState.FORWARD, this.direction);
 	
 	if(this.isShooting){
-		if(PlayerState.FIRE_RATE_PER_SECOND < PlayerState.lastShotTime){
+		if(this.isReloading){
+			if(this.timeSpentReloading >= PlayerState.RELOAD_TIME){
+				this.isReloading = false;
+				this.roundsInClip = PlayerState.CLIP_SIZE;
+			}
+			this.timeSpentReloading += dt;
+		}
+		else if(PlayerState.FIRE_RATE_PER_SECOND < PlayerState.lastShotTime){
 			bulletDirection = this.rotationQuat.vmult(PlayerState.FORWARD);
 			//bulletPosition = this.rigidBody.position.vadd(bulletDirection.mult(2.0));
 			this.worldInside.addProjectile(this.rigidBody.position, PlayerState.BULLET_SPEED, bulletDirection, this);
 			PlayerState.lastShotTime = 0;
+			this.roundsInClip -= 1;
+			if(this.roundsInClip < 1){
+				console.log('Reloading clip');
+				this.isReloading = true;
+				this.timeSpentReloading = 0;
+			}
 		}
 	}
 	PlayerState.lastShotTime += dt;
@@ -526,10 +550,15 @@ PlayerState.prototype.update = function(dt){
 		//this.rigidBody.applyImpulse(PlayerState.WALKING_SPEED, this.position);
 	}
 
-	if(this.motion == PlayerState.Motion.STOPPED && this.rotation == PlayerState.Motion.STOPPED){
-		if(PlayerState.combinedDirectionBuffer.y == 0 && PlayerState.combinedDirectionBuffer.x == 0){
+	if(this.motion == PlayerState.Motion.STOPPED && PlayerState.combinedDirectionBuffer.y == 0 && PlayerState.combinedDirectionBuffer.x == 0){
 			this.rigidBody.velocity = new CANNON.Vec3(0,0,0);
-		}
+	}
+
+	if(this.rotation == PlayerState.Motion.STOPPED){
+			this.rigidBody.angularVelocity = new CANNON.Vec3(0,0,0);
+	}
+	if(this.motion == PlayerState.Motion.STOPPED && this.rotation == PlayerState.Motion.STOPPED){
+		
 		this.isMakingNoise = false;
 	}
 	else this.isMakingNoise = true;
