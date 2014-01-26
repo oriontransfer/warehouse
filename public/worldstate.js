@@ -527,6 +527,9 @@ PlayerState.prototype.update = function(dt){
 	}
 
 	if(this.motion == PlayerState.Motion.STOPPED && this.rotation == PlayerState.Motion.STOPPED){
+		if(PlayerState.combinedDirectionBuffer.y == 0 && PlayerState.combinedDirectionBuffer.x == 0){
+			this.rigidBody.velocity = new CANNON.Vec3(0,0,0);
+		}
 		this.isMakingNoise = false;
 	}
 	else this.isMakingNoise = true;
