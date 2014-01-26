@@ -13,7 +13,7 @@ function GeometryController (scene, container)
 
 GeometryController.prototype.onAdd = function(key, object)
 {
-	var box = AngryBox.assets.get('box');
+	var box = Warehouse.assets.get('box');
 	
 	object.mesh = new THREE.Mesh(box.geometry, box.material);
 	object.mesh.receiveShadow = true;
@@ -50,18 +50,18 @@ function FloorController (scene, size)
 	this.random = new RandomGenerator(612351234);
 	
 	this.tiles = [
-		AngryBox.assets.get('floor-flat'),
-		AngryBox.assets.get('floor-flat'),
-		AngryBox.assets.get('floor-flat'),
-		AngryBox.assets.get('floor-flat'),
-		AngryBox.assets.get('floor-flat'),
-		AngryBox.assets.get('floor-flat'),
-		AngryBox.assets.get('floor-flat'),
-		AngryBox.assets.get('floor-flat'),
-		AngryBox.assets.get('floor-flat'),
-		AngryBox.assets.get('floor-flat'),
-		AngryBox.assets.get('floor-flat'),
-		AngryBox.assets.get('floor-cracked')
+		Warehouse.assets.get('floor-flat'),
+		Warehouse.assets.get('floor-flat'),
+		Warehouse.assets.get('floor-flat'),
+		Warehouse.assets.get('floor-flat'),
+		Warehouse.assets.get('floor-flat'),
+		Warehouse.assets.get('floor-flat'),
+		Warehouse.assets.get('floor-flat'),
+		Warehouse.assets.get('floor-flat'),
+		Warehouse.assets.get('floor-flat'),
+		Warehouse.assets.get('floor-flat'),
+		Warehouse.assets.get('floor-flat'),
+		Warehouse.assets.get('floor-cracked')
 	];
 	
 	this.done = false;
@@ -95,9 +95,9 @@ function WallController (scene, size)
 	this.random = new RandomGenerator(612351235);
 	
 	this.tiles = [
-		AngryBox.assets.get('wall-corner'),
-		AngryBox.assets.get('wall-window'),
-		AngryBox.assets.get('wall-supported')
+		Warehouse.assets.get('wall-corner'),
+		Warehouse.assets.get('wall-window'),
+		Warehouse.assets.get('wall-supported')
 	];
 } 
 

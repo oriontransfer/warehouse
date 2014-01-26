@@ -1,5 +1,5 @@
 
-AngryBox = {
+Warehouse = {
 	assets: new ResourceLoader(),
 	
 	loadAssets: function(callback) {
@@ -60,10 +60,10 @@ AngryBox = {
 		},
 		serverUpdate: function(data) {
 			if (data.phase == "preparing") {
-				var mapTemplate = AngryBoxMaps[data.map];
+				var mapTemplate = WarehouseMaps[data.map];
 				
 				// Replace the controller with local world controller for the specified map:
-				AngryBox.setController(new WorldController(mapTemplate));
+				Warehouse.setController(new WorldController(mapTemplate));
 			}
 		},
 		resizeWindow: function(width, height) {

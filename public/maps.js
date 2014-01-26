@@ -8,9 +8,9 @@ GameMap.prototype.spawn = function()
 {
 }
 
-AngryBoxMaps = [];
+WarehouseMaps = [];
 
-AngryBoxMaps.push({
+WarehouseMaps.push({
 	name: 'The Warehouse',
 	
 	create: function(worldState, rendererState) {

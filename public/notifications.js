@@ -5,8 +5,8 @@ function NotificationController(worldState, currentPlayer, scene){
 
 	this.notifications = {};
 
-	this.assetFootStep = AngryBox.assets.get('notify-footstep');
-	this.assetGunShot = AngryBox.assets.get('notify-gunshot');
+	this.assetFootStep = Warehouse.assets.get('notify-footstep');
+	this.assetGunShot = Warehouse.assets.get('notify-gunshot');
 	this.assetFootStep.material.materials[0].transparent = true;
 	this.assetFootStep.material.materials[0].depthWrite = false
 	this.assetFootStep.material.materials[0].depthTest = false;

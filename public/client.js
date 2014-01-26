@@ -6,7 +6,7 @@ function WorldController(mapTemplate) {
 	this.scene = new THREE.Scene();
 	
 	this.rendererState = {
-		assets: AngryBox.assets,
+		assets: Warehouse.assets,
 		scene: this.scene
 	};
 	

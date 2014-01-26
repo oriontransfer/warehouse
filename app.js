@@ -18,7 +18,7 @@ var CANNON = require('cannon');
 
 eval(fs.readFileSync('./public/timer.js', 'utf8'));
 eval(fs.readFileSync('./public/container.js', 'utf8'));
-eval(fs.readFileSync('./public/worldstate.js', 'utf8'));
+eval(fs.readFileSync('./public/state.js', 'utf8'));
 eval(fs.readFileSync('./public/assets.js', 'utf8'));
 eval(fs.readFileSync('./public/maps.js', 'utf8'));
 
@@ -206,7 +206,7 @@ UserState.prototype.emit = function(name, data) {
 function ServerState () {
 	this.users = new Container();
 	
-	this.gameState = new GameState(AngryBoxMaps, this);
+	this.gameState = new GameState(WarehouseMaps, this);
 	
 	setInterval(this.updateClients.bind(this), Server.updateRate * 1000);
 }
