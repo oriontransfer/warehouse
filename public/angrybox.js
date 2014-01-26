@@ -2,58 +2,48 @@
 AngryBox = {
 	assets: new ResourceLoader(),
 	
+	_loadModel: function(name, completeLoad) {
+		loader.load("models/" + name + "/model.js", function(geometry, materials) {
+			var faceMaterial = new THREE.MeshFaceMaterial(materials);
+			
+			completeLoad({geometry: geometry, material: faceMaterial});
+		});
+	},
+	
 	loadAssets: function(callback) {
 		var loader = new THREE.JSONLoader();
 		
 		// ** Box **
-		this.assets.loadWithCallback('box', function(completeLoad) {
-			loader.load("models/box/model.js", function(geometry, materials) {
-				var faceMaterial = new THREE.MeshFaceMaterial(materials);
-				
-				completeLoad({geometry: geometry, material: faceMaterial});
-			});
-		});
+		
+		this.boxes = ['box', 'crate'];
+		this.assets.loadAll(this.boxes, this._loadModel);
 		
 		// ** Floor **
-		this.assets.loadWithCallback('floor-cracked', function(completeLoad) {
-			loader.load("models/floor-cracked/model.js", function(geometry, materials) {
-				var faceMaterial = new THREE.MeshFaceMaterial(materials);
-				
-				completeLoad({geometry: geometry, material: faceMaterial});
-			});
-		});
 		
-		this.assets.loadWithCallback('floor-flat', function(completeLoad) {
-			loader.load("models/floor-flat/model.js", function(geometry, materials) {
-				var faceMaterial = new THREE.MeshFaceMaterial(materials);
-				
-				completeLoad({geometry: geometry, material: faceMaterial});
-			});
-		});
+		this.tiles = ['floor-cracked', 'floor-flat'];
+		this.assets.loadAll(this.tiles, this._loadModel);
 		
 		// ** Walls **
 		
-		var walls = ['wall-corner', 'wall-window', 'wall-supported'];
-		
-		this.assets.loadAll(walls, function(name, completeLoad) {
-			loader.load("models/" + name + "/model.js", function(geometry, materials) {
-				var faceMaterial = new THREE.MeshFaceMaterial(materials);
-				
-				completeLoad({geometry: geometry, material: faceMaterial});
-			});
-		});
+		this.walls = ['barrel-blue', 'barrel-red'];
+		this.assets.loadAll(this.walls, this._loadModel);
 		
 		// ** Shelves **
 		
-		var shelves = ['shelf-long-boxes', 'shelf-long-crates', 'shelf-long-barrels'];
+		this.shelves = ['shelf-long-boxes', 'shelf-long-crates', 'shelf-long-barrels'];
 		
-		this.assets.loadAll(shelves, function(name, completeLoad) {
+		this.assets.loadAll(this.shelves, function(name, completeLoad) {
 			loader.load("models/" + name + "/model.js", function(geometry, materials) {
 				var faceMaterial = new THREE.MeshFaceMaterial(materials);
 				
 				completeLoad({geometry: geometry, material: faceMaterial});
 			});
 		});
+		
+		// ** Barrels **
+		
+		this.barrels = ['barrel-blue', 'barrel-red'];
+		this.assets.loadAll(this.barrels, this._loadModel);
 		
 		this.assets.loaded(callback);
 	},
