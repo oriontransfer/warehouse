@@ -107,8 +107,8 @@ WorldState.prototype.initPhysics = function(){
 	console.log("Creating physics world...");
 	
 	var solver = new CANNON.GSSolver();
-	solver.iterations = 3;
-	solver.tolerance = 1;
+	solver.iterations = 4;
+	solver.tolerance = 3;
 
 	this.world.solver = solver;
 	this.world.gravity.set(0, 0, -9.8);
@@ -165,7 +165,7 @@ WorldState.prototype.addBoxGeometry = function(locationVEC3, halfExtentsVEC3, ma
 
 WorldState.prototype.createPlayer = function(position) {
 	var newPlayer = new PlayerState(this.nextUniqueID++, position, this.boxPhysicsMaterial);
-	
+	newPlayer.worldInside = this;
 	this.players.push(newPlayer);
 	
 	return newPlayer;
