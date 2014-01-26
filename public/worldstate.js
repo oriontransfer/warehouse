@@ -38,23 +38,31 @@ WorldState.PROJECTILE_MASS = 0.1;
 
 WorldState.STATE_ARRAY = new Array();
 WorldState.prototype.serialize = function(){
-var arrayCounter = 0;
+	var arrayCounter = 0;
 
 	WorldState.STATE_ARRAY[arrayCounter++] = this.players.length;
 	WorldState.STATE_ARRAY[arrayCounter++] = this.geometry.length;
 	WorldState.STATE_ARRAY[arrayCounter++] = this.projectiles.length;
 
-	this.players.forEach(function(player){
-		WorldState.STATE_ARRAY[arrayCounter++] = player.serialize();
-	});
+	if(this.players.length){
+		this.players.forEach(function(player){
+			WorldState.STATE_ARRAY[arrayCounter++] = player.serialize();
+		});
+	}
 
-	this.geometry.forEach(function(geom){
-		WorldState.STATE_ARRAY[arrayCounter++] = geom.serialize();
-	});
+	if(this.geometry.length){
+		this.geometry.forEach(function(geom){
+			WorldState.STATE_ARRAY[arrayCounter++] = geom.serialize();
+		});
+	}
 
-	this.projectiles.forEach(function(projectile){
-		WorldState.STATE_ARRAY[arrayCounter++] = projectile.serialize();
-	});
+	if(this.projectiles.length){
+		this.projectiles.forEach(function(projectile){
+			WorldState.STATE_ARRAY[arrayCounter++] = projectile.serialize();
+		});
+	}
+
+	return WorldState.STATE_ARRAY;
 }
 
 WorldState.ZERO_VEC = new CANNON.Vec3(0,0,0);
@@ -92,6 +100,7 @@ WorldState.prototype.deserialize = function(array){
 		if(!oldProjectile) this.addProjectile(newProjectile);
 		else oldProjectile.deserialize(array[arrayCounter++], this);
 	}
+}
 
 WorldState.prototype.initPhysics = function(){
 
@@ -164,6 +173,9 @@ WorldState.prototype.update = function(dt){
 	this.projectiles.forEach(function(projectile){
 		projectile.update(dt);
 	});
+
+	//var state = this.serialize();
+	//this.deserialize(state);
 }
 
 WorldState.prototype.addBoxGeometry = function(locationVEC3, halfExtentsVEC3, mass, shader){
@@ -296,7 +308,7 @@ PlayerState.prototype.serialize = function(){
 	state_array[arrayCounter++] = this.name;
 
 
-	return STATE_ARRAY;
+	return state_array;
 
 }
 
@@ -397,6 +409,7 @@ PlayerState.lastShotTime = 0;
 PlayerState.prototype.update = function(dt){
 	this.position = this.rigidBody.position;
 	this.rotationQuat = this.rigidBody.quaternion;
+	this.velocity = this.rigidBody.velocity;
 	//this.rotationQuat.vmult(PlayerState.FORWARD, this.direction);
 	
 	if(this.isShooting){
