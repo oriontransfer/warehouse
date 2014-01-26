@@ -27,12 +27,12 @@ function WorldState() {
 	
 	// ** Player Container **
 	this.players = Container.createObjectContainer(function(key, data) {
-		var player = new PlayerState(key);
+		var player = new PlayerState(key, new CANNON.Vec3(0, 0, 0), this.boxPhysicsMaterial);
 		
 		player.deserialize(data);
 		
 		return player;
-	});
+	}.bind(this));
 	
 	this.players.onRemove = function(object) {
 		this.world.remove(object.rigidBody);
