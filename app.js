@@ -28,7 +28,7 @@ Server = {
 	physicsRate: 1.0/30.0,
 	
 	// The refresh rate of the server in FPS.
-	updateRate: 1.0/10.0
+	updateRate: 1.0/10.0,
 };
 
 // ** Game Map **
@@ -86,7 +86,7 @@ GameState.prototype.serialize = function() {
 
 GameState.prototype.setPhase = function(phase) {
 	this.phase = phase;
-	console.log("GameState entering phase", phase);
+	console.log("GameState entering phase:", phase);
 }
 
 GameState.prototype.update = function(dt) {
