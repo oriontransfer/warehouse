@@ -40,7 +40,7 @@ function WorldState() {
 	
 	this.players.onAdd = function(object) {
 		this.world.add(object.rigidBody);
-		object.insideWorld = this;
+		object.worldState = this;
 	}.bind(this);
 	
 	this.players.deserializeObject = function(object, key, data) {
@@ -68,7 +68,7 @@ function WorldState() {
 	
 	this.boxes.onAdd = function(object) {
 		this.world.add(object.rigidBody);
-		object.insideWorld = this;
+		object.worldState = this;
 	}.bind(this);
 	
 	this.nextUniqueID = 0;
@@ -189,7 +189,7 @@ function ProjectileState(ID, startingLocation, speed, direction, emittedFrom) {
 	this.direction.normalize();
 	this.speed = speed;
 	this.bodyEmittedFrom = emittedFrom;
-	this.worldInside = null;
+	this.worldState = null;
 	//this.timeaAlive = 0;
 }
 
@@ -219,7 +219,7 @@ ProjectileState.prototype.update = function(dt) {
 	var bodiesToIntersect = [];
 
 	//Copy only the player bodies into the list for intersection
-	this.worldInside.players.forEach(function(player){ 
+	this.worldState.players.forEach(function(player){ 
 		bodiesToIntersect.push(player.rigidBody);
 	});
 
@@ -246,7 +246,7 @@ ProjectileState.prototype.update = function(dt) {
 
 	//this.timeAlive += dt;
 	//if(this.timeAlive > ProjectileState.LIFETIME_MS){
-		this.worldInside.projectiles.pop(this);
+		this.worldState.projectiles.pop(this);
 		console.log('Particle has died');
 	//}
 
@@ -288,14 +288,17 @@ function PlayerState(ID, position, material) {
 	
 	this.combinedDirectionBuffer = new CANNON.Vec3(0,0,0);
 
-	this.worldInside = null;
+	this.worldState = null;
 
 	var boxHalfExtents = new CANNON.Vec3(WorldState.PLAYER_SIZE_HALF, WorldState.PLAYER_SIZE_HALF, WorldState.PLAYER_SIZE_HALF);
 	var boxShape = new CANNON.Box(boxHalfExtents);
 	this.rigidBody = new CANNON.RigidBody(WorldState.PLAYER_MASS, boxShape, material);
 	this.rigidBody.collisionFilterGroup = 2;
 	this.rigidBody.collisionFilterMask = 1 | 2;
-
+	
+	//this.rigidBody.position.set(position.x, position.y, position.z);
+	position.copy(this.rigidBody.position);
+	
 	this.rigidBody.angularDamping = WorldState.ANGULAR_DAMPING;
 	this.rigidBody.userData = this;
 }
@@ -461,7 +464,7 @@ PlayerState.prototype.update = function(dt){
 		else if(PlayerState.FIRE_RATE_PER_SECOND < this.lastShotTime){
 			var bulletDirection = this.rotationQuat.vmult(PlayerState.FORWARD);
 			//bulletPosition = this.rigidBody.position.vadd(bulletDirection.mult(2.0));
-			this.worldInside.addProjectileState(this.rigidBody.position, PlayerState.BULLET_SPEED, bulletDirection, this);
+			this.worldState.addProjectileState(this.rigidBody.position, PlayerState.BULLET_SPEED, bulletDirection, this);
 			this.lastShotTime = 0;
 			this.roundsInClip -= 1;
 			if(this.roundsInClip < 1){
