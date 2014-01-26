@@ -101,6 +101,10 @@ GameState.prototype.preparing = function(dt) {
 	if (this.serverState.users.length < 1) return;
 	
 	this.timeout -= dt;
+
+	ifthis.serverState.users.forEach(function (user){
+		user.emit("timeout", {remaining:this.timeout});
+	});
 	
 	if (this.timeout <= 0) {
 		var y = 1;
@@ -115,7 +119,8 @@ GameState.prototype.preparing = function(dt) {
 		
 		this.worldState.update(dt);
 		
-		this.timeout = 60;
+		if(this.serverState.users.length > 2)this.timeout = 60*5;
+		else this.timeout = 60;
 		this.setPhase("running");
 		
 		this.physicsUpdateTimer.start();
@@ -124,9 +129,23 @@ GameState.prototype.preparing = function(dt) {
 
 GameState.prototype.running = function(dt) {
 	this.timeout -= dt;
-	
-	if (this.timeout <= 0 || this.serverState.users == 0) {
+	var leftAlive = 0;
+	var lastLeftAlive
+	var thoseLeft = [];
+	this.serverState.users.forEach(function (user){
+		user.emit("timeout", {remaining:this.timeout});
+		if(user.player.isAlive){
+			leftAlive+=1;
+			lastLeftAlive = user.player;
+			thoseLeft.push[user.player];
+		}
+		else user.emit("timeout", {remaining:"You're many dead"});
+	});
+	if (this.timeout <= 0 || this.serverState.users == 0 ) {
 		this.setPhase("finishing");
+	}
+	if(leftAlive == 1 && this.timeout < ((this.serverState.users.length > 2) ? 60*4 : 30)){
+		this.serverState.sendGlobalMessage('There can be only one! That is you ' + lastLeftAlive.name);
 	}
 }
 
