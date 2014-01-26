@@ -48,6 +48,9 @@ function WorldController() {
 	this.wallController = new WallController(this.scene, [32, 12]);
 	this.wallController.generate();
 	
+	this.shelveController = new ShelvesController(this.scene, [new CANNON.Vec3(2,2,0), new CANNON.Vec3(32*8,12*8,0)], 1, this.worldState);
+	this.shelveController.generateHorizontalLines();	
+	
 	//WALLS COLLISION
 	this.worldState.addBoxGeometry(new CANNON.Vec3(-5,12*4,0), new CANNON.Vec3(1,12*4+4,100), 0, "");//left
 	this.worldState.addBoxGeometry(new CANNON.Vec3(32*8-3,12*4,0), new CANNON.Vec3(1,12*4+4,100), 0, "");//right
