@@ -23,7 +23,7 @@ function WorldController() {
 	light.castShadow = true;
 
 	light.shadowCameraNear = 1.0;
-	light.shadowCameraFar = 40.0;
+	light.shadowCameraFar = 60.0;
 	light.shadowCameraFov = 72.0;
 	
 	light.shadowBias = 0.001;
