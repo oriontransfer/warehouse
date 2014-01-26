@@ -21,6 +21,16 @@ eval(fs.readFileSync('./public/worldstate.js', 'utf8'));
 eval(fs.readFileSync('./public/assets.js', 'utf8'));
 eval(fs.readFileSync('./public/maps.js', 'utf8'));
 
+// ** Server Configuration **
+
+// ** Server State **
+Server = {
+	physicsRate: 1.0/30.0,
+	
+	// The refresh rate of the server in FPS.
+	updateRate: 1.0/10.0
+};
+
 // ** Game Map **
 
 //function GameMap (size) {
@@ -48,6 +58,22 @@ function GameState (maps, serverState) {
 	this.maps = maps;
 	
 	this.currentMapIndex = -1;
+}
+
+GameState.prototype.startPhysicsUpdates = function() {
+	if (this.physicsUpdate == null) {
+		this.physicsUpdate = setInterval(function() {
+			this.worldState.update(Server.physicsRate);
+		}.bind(this), Server.physicsRate * 1000);
+	} else {
+		console.warn("Tried to start physics updates, but already running!");
+	}
+}
+
+GameState.prototype.stopPhysicsUpdates = function() {
+	clearInterval(this.physicsUpdate);
+	
+	this.physicsUpdate = null;
 }
 
 GameState.prototype.serialize = function() {
@@ -82,6 +108,9 @@ GameState.prototype.reset = function(dt) {
 }
 
 GameState.prototype.preparing = function(dt) {
+	// Don't start the game unless there is at least one person:
+	if (this.serverState.users.length < 1) return;
+	
 	this.timeout -= dt;
 	
 	if (this.timeout <= 0) {
@@ -99,15 +128,15 @@ GameState.prototype.preparing = function(dt) {
 		
 		this.timeout = 60;
 		this.setPhase("running");
+		
+		this.startPhysicsUpdates();
 	}
 }
 
 GameState.prototype.running = function(dt) {
-	this.worldState.update(dt);
-	
 	this.timeout -= dt;
 	
-	if (this.timeout <= 0) {
+	if (this.timeout <= 0 || this.serverState.users == 0) {
 		this.setPhase("finishing");
 	}
 }
@@ -119,6 +148,8 @@ GameState.prototype.finishing = function(dt) {
 	this.serverState.users.forEach(function(user) {
 		delete user.player;
 	});
+	
+	this.stopPhysicsUpdates();
 }
 
 GameState.prototype.handleEvent = function(user, event, state) {
@@ -141,12 +172,6 @@ function UserState (name, socket) {
 UserState.prototype.emit = function(name, data) {
 	this.socket.emit(name, data);
 }
-
-// ** Server State **
-Server = {
-	// The refresh rate of the server in FPS.
-	updateRate: 1.0/5.0
-};
 
 function ServerState () {
 	this.users = new Container();
