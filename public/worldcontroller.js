@@ -60,10 +60,12 @@ function WorldController() {
 	this.worldState.addBoxGeometry(new CANNON.Vec3(32*8-3,12*4,0), new CANNON.Vec3(1,12*4+4,100), 0, "");//right
 	this.worldState.addBoxGeometry(new CANNON.Vec3(32*4,12*8-3,0), new CANNON.Vec3(32*8,1,100), 0, "");//up
 	this.worldState.addBoxGeometry(new CANNON.Vec3(32*4,-5,0), new CANNON.Vec3(32*8,1,100), 0, "");//down
+
+	this.notificationController = new NotificationController(this.worldState, this.currentPlayer, this.scene);
 }
 
 WorldController.prototype.serverUpdate = function(data) {
-	console.log("serverUpdate", data);
+	//console.log("serverUpdate", data);
 	
 	this.worldState.deserialize(data.worldState);
 }
@@ -129,7 +131,7 @@ WorldController.HEALTH_LIGHT_HEIGHT_OFFSET = new CANNON.Vec3(0,0,2);
 
 WorldController.prototype.updateCurrentPlayer = function() {
 	//this.currentPlayer.rigidBody.position.copy(this.camera.position);
-	
+
 	WorldController.FORWARD_ROT = this.currentPlayer.rigidBody.quaternion.vmult(WorldController.FORWARD); //Rotate the camera so we see more of what's infront of the user
 	
 	WorldController.FORWARD_ROT.copy(this.camera.position);
@@ -161,6 +163,8 @@ WorldController.prototype.update = function(dt) {
 	this.playerGeometryController.update();
 	
 	this.updateCurrentPlayer();
+
+	this.notificationController.update(dt);
 	
 	//console.log(this.currentPlayer.position.x);
 }
