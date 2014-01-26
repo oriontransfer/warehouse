@@ -108,7 +108,7 @@ GameState.prototype.finishing = function(dt) {
 
 GameState.prototype.handleEvent = function(user, event, state) {
 	if (this.worldState && user.player) {
-		console.log("event", user.player.name, user.player.position, event, state);
+		//console.log("event", user.player.name, user.player.position, event, state);
 		user.player.handleEvent(event, state);
 	}
 }
@@ -200,7 +200,7 @@ io.sockets.on('connection', function (socket) {
 	
 	socket.on('event', function(data) {
 		if (user) {
-			console.log("User Event", user.name, data);
+			//console.log("User Event", user.name, data);
 		
 			SERVER.handleEvent(user, data);
 		}
