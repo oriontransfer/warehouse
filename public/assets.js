@@ -102,3 +102,88 @@ ShelvesController.prototype.generateHorizontalLines = function()
 		}
 	}
 }
+
+function ClutterController(seed, region, density, worldState, renderer){
+	this.random = new RandomGenerator(seed);
+	this.worldState = worldState;
+	this.renderer = renderer;
+	
+	this.region = region;
+	this.density = density;
+}
+
+ClutterController.prototype.add = function(position, type){
+
+	if(this.renderer){
+		this.renderer.add(position, type); //Add to the clutter renderer
+	}
+
+	var boxsize = new CANNON.Vec3(1,1,1);
+
+	this.worldState.addBoxGeometry(position, boxsize, 1700, "");
+}
+
+ClutterController.REGION_DIVISION_SIZE = 1.0;
+ClutterController.GenerateLotsOfClutter = function(){
+
+	var horzDivisions = this.region[0].x/ClutterController.REGION_DIVISION_SIZE;
+	var vertDivisions = this.region[0].y/ClutterController.REGION_DIVISION_SIZE;
+
+	var sinStartHorz1 = Math.Random();
+	var sinStartVert1 = Math.Random();
+	var sinStartHorz2 = Math.Random();
+	var sinStartVert2 = Math.Random();
+
+	for(var i = 0; i < horzDivisions; i++){
+		var horzProb1 = Math.sin(i/this.region[0].x + sinStartHorz1);
+		var horzProb2 = Math.sin(i/this.region[0].x + sinStartHorz2);
+		var horzProb = (horzProb1 + horzProb2)/2.0;
+		for(var j = 0; j < vertDivisions; j++){
+			var vertProb1 = Math.sin(j/this.region[0].y + sinStartVert1);
+			var vertProb2 = Math.sin(j/this.region[0].y + sinStartVert2);
+			var vertProb = (vertProb1 + vertProb2)/2.0;
+
+		}
+	}
+
+	var position = new CANNON.Vec3(0,0,0);
+	var type = [];
+
+	position.x = Math.random() * this.region[0].x;
+	position.y = Math.random() * this.region[0].x;
+	position.z = 2;
+
+	var type = Math.random() * 4;
+}
+
+function ClutterRenderer(rendererState){
+	this.assets = rendererState.assets;
+	this.scene = rendererState.scene;
+
+	this.clutter = [
+		this.assets.get('barrel-red'),
+		this.assets.get('barrel-blue'),
+		this.assets.get('box'),
+		this.assets.get('crate'),
+	]
+
+	this.clutterMeshes = [];
+
+	for(var i = 0; i < this.clutterMeshes.length, i++){
+		this.clutter[i].material
+		var newMesh = new THREE.Mesh(this.clutter[i].geometry, this.clutter[i].material);
+		newMesh.castShadow    = true;
+		newMesh.receiveShadow = true;
+		clutterMeshes.push(newMesh);
+	}
+}
+
+ClutterRenderer.prototype.add = function(position, typeofclutter){
+	var clutter = this.clutterMeshes[typeofclutter];
+
+	clutter.position.x = position.x;
+	clutter.position.y = position.y;
+	clutter.position.z = position.z;
+
+	this.scene.add(clutter);
+}
