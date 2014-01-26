@@ -37,7 +37,7 @@ function ShelvesRenderer(rendererState)
 	]
 }
 
-ShelvesRenderer.prototype.add = function(assetIndex, pos_x, pos_y, rot_vec, angle)
+ShelvesRenderer.prototype.add = function(assetIndex, pos_x, pos_y, angle)
 {
 	var shelve = this.shelves[assetIndex];
 	
@@ -67,34 +67,7 @@ function ShelvesController(seed, region, density, worldState, renderer)
 	this.grid_height = Math.floor( (this.region[1].y - this.region[0].y)/this.shelve_size );
 }
 
-ShelvesController.AssetIndices = [
-	0,
-	1,
-	0,
-	2,
-	0,
-	0,
-	3,
-	2,
-	0,
-	1,
-	0,
-	3,
-	4,
-	0,
-	4,
-	0,
-];
-
-ShelvesController.prototype.generate = function()
-{
-	var shelf = this.generateShelf();
-	
-	this.addPhysics(shelf);
-	
-	if (this.renderer)
-		this.renderer.add(shelf);
-}
+ShelvesController.AssetIndices = [0, 1, 0, 2, 0, 0, 3, 2, 0, 1, 0, 3, 4, 0, 4, 0];
 
 ShelvesController.prototype.generateShelveAtPosition = function(pos_x, pos_y, angle, type_of_shelve)
 {
