@@ -119,7 +119,7 @@ GameState.prototype.preparing = function(dt) {
 		
 		if (this.serverState.users.length > 1) {
 			this.serverState.sendGlobalMessage("There are " + this.serverState.users.length + " players in the game. Who will be first?");
-			this.demoMOde = false;
+			this.demoMode = false;
 		} else {
 			this.serverState.sendGlobalMessage("You are alone. Invite your friends to play.");
 			this.demoMode = true;
