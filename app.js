@@ -18,6 +18,8 @@ var CANNON = require('cannon');
 
 eval(fs.readFileSync('./public/container.js', 'utf8'));
 eval(fs.readFileSync('./public/worldstate.js', 'utf8'));
+eval(fs.readFileSync('./public/assets.js', 'utf8'));
+eval(fs.readFileSync('./public/maps.js', 'utf8'));
 
 // ** Game Map **
 
@@ -36,16 +38,21 @@ BlankWorldState.prototype.serialize = function() {
 
 // ** Game State **
 
-function GameState (serverState) {
+function GameState (maps, serverState) {
 	this.phase = "reset";
 	
 	this.serverState = serverState;
 	
 	this.worldState = new BlankWorldState();
+	
+	this.maps = maps;
+	
+	this.currentMapIndex = -1;
 }
 
 GameState.prototype.serialize = function() {
 	return {
+		map: this.currentMapIndex,
 		phase: this.phase,
 		worldState: this.worldState.serialize()
 	};
@@ -65,6 +72,12 @@ GameState.prototype.reset = function(dt) {
 	this.worldState = new WorldState();
 	this.timeout = 5.0;
 	
+	// Select the next map:
+	this.currentMapIndex = (this.currentMapIndex + 1) % this.maps.length;
+	console.log("Next map:", this.currentMapIndex, this.maps);
+	
+	this.currentMap = this.maps[this.currentMapIndex].create(this.worldState);
+	
 	this.setPhase("preparing");
 }
 
@@ -75,9 +88,11 @@ GameState.prototype.preparing = function(dt) {
 		var y = 1;
 		
 		this.serverState.users.forEach(function(user) {
-			user.player = this.worldState.addPlayer(user.name, new CANNON.Vec3(5, y * 5, 10));
+			user.player = this.currentMap.spawn();
 			
-			y += 1; 
+			user.emit('spawn', {ID: user.player.ID});
+			
+			y += 1;
 		}.bind(this));
 		
 		this.worldState.update(dt);
@@ -136,7 +151,7 @@ Server = {
 function ServerState () {
 	this.users = new Container();
 	
-	this.gameState = new GameState(this);
+	this.gameState = new GameState(AngryBoxMaps, this);
 	
 	setInterval(this.updateClients.bind(this), Server.updateRate * 1000);
 }

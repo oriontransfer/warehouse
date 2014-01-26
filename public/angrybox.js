@@ -47,40 +47,28 @@ AngryBox = {
 	},
 	
 	controller: {
-		scene: new THREE.Scene(),
-		camera: new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000),
-		
 		setup: function() {
-			// Add the test cube:
-			var geometry = new THREE.CubeGeometry(1,1,1);
-			var material = new THREE.MeshBasicMaterial({color: 0x00ff00});
-
-			this.cube = new THREE.Mesh(geometry, material);
-			this.scene.add(this.cube);
-		
-			this.camera.position.z = 5;
 		},
 		
 		update: function(timestep) {
-			console.log("update", timestep);
 		},
 		
 		handleEvent: function(event, state) {
-			console.log("handleEvent", event, state);
-			
-			switch(event) {
-			case Event.MOVE_FORWARDS:
-				this.cube.position.x -= 1; break;
-			case Event.MOVE_BACKWARDS:
-				this.cube.position.x += 1; break;
-			}
 		},
 		
 		render: function(renderer) {
-			this.cube.rotation.x += 0.1;
-			this.cube.rotation.y += 0.1;
-
-			renderer.render(this.scene, this.camera);
+		},
+		serverUpdate: function(data) {
+			console.log("serverUpdate:", data);
+			
+			if (data.phase == "preparing") {
+				var mapTemplate = AngryBoxMaps[data.map];
+				
+				// Replace the controller with local world controller for the specified map:
+				AngryBox.setController(new WorldController(mapTemplate));
+			}
+		},
+		resizeWindow: function(width, height) {
 		}
 	},
 	
@@ -124,10 +112,6 @@ AngryBox = {
 		this.controller.update(this.timestep);
 	},
 	
-	serverUpdate: function(data) {
-		this.controller.serverUpdate(data);
-	},
-	
 	eventState: {
 	},
 	
@@ -137,7 +121,11 @@ AngryBox = {
 		this.socket.emit('register', {name: 'Box Killer'});
 		
 		this.socket.on('update', function(data) {
-			this.serverUpdate(data);
+			this.controller.serverUpdate(data);
+		}.bind(this));
+		
+		this.socket.on('spawn', function(data) {
+			this.controller.serverSpawned(data);
 		}.bind(this));
 	},
 	

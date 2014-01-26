@@ -23,16 +23,65 @@ EventType = {
 /// *** Class Gamestate ***
 /// The state of the gmae map is stored in this Class
 function WorldState() {
-	this.players = new Container();
-	this.projectiles = new Container();
-	this.geometry = new Container();
-	this.obstructions = new Container();
-	
-	this.playerIDCounter = 0;
-	this.projectileIDCounter = 0;
-	this.geometryIDCounter = 0;
-	
 	this.initPhysics();
+	
+	// ** Player Container **
+	this.players = Container.createObjectContainer(function(key, data) {
+		var player = new PlayerState(key);
+		
+		player.deserialize(data);
+		
+		return player;
+	});
+	
+	this.players.onRemove = function(object) {
+		this.world.remove(object.rigidBody);
+	}.bind(this);
+	
+	this.players.onAdd = function(object) {
+		this.world.add(object.rigidBody);
+		object.insideWorld = this;
+	}.bind(this);
+	
+	this.players.deserializeObject = function(object, key, data) {
+		object.deserialize(data);
+		
+		this.world.remove(object.rigidBody);
+		var body = object.rigidBody;
+		
+		// We forcefully update the state of the rigid body:
+		body.position.copy(body.initPosition);
+		body.velocity.copy(body.initVelocity);
+		body.quaternion.copy(body.initQuaternion);
+		
+		this.world.add(object.rigidBody);
+	}.bind(this);
+	
+	this.projectiles = new Container();
+	
+	this.projectiles.deserializeObject = function(object, key, data) {
+		object.deserialize(data, this.players);
+	}.bind(this);
+	
+	// ** Box Container **
+	this.boxes = new Container.createObjectContainer(function(key, data) {
+		var box = new BoxState(key);
+		
+		box.deserialize(data);
+		
+		return box;
+	});
+	
+	this.boxes.onRemove = function(object) {
+		this.world.remove(object.rigidBody);
+	}.bind(this);
+	
+	this.boxes.onAdd = function(object) {
+		this.world.add(object.rigidBody);
+		object.insideWorld = this;
+	}.bind(this);
+	
+	this.nextUniqueID = 0;
 }
 
 //Const world variables
@@ -43,89 +92,23 @@ WorldState.ANGULAR_DAMPING = 0.99;
 WorldState.PROJECTILE_SIZE_HALF = 0.05;
 WorldState.PROJECTILE_MASS = 0.1;
 
-WorldState.STATE_ARRAY = new Array();
-WorldState.prototype.serialize = function(){
-	var arrayCounter = 0;
-	var state_array = new Array();
-
-	//WorldState.STATE_ARRAY[arrayCounter++] = this.players.length;
-	//WorldState.STATE_ARRAY[arrayCounter++] = this.geometry.length;
-	//WorldState.STATE_ARRAY[arrayCounter++] = this.projectiles.length;
-
-	if(this.players.length){
-		state_array[arrayCounter] = new Array();
-		this.players.forEach(function(player){
-			state_array[arrayCounter].push(player.serialize());
-		});
-	}
-
-	arrayCounter+= 1;
-
-	if(this.geometry.length){
-		state_array[arrayCounter] = new Array();
-		this.geometry.forEach(function(geom){
-			state_array[arrayCounter].push(geom.serialize());
-		});
-	}
-
-	arrayCounter+= 1;
-
-	if(this.projectiles.length){
-		state_array[arrayCounter] = new Array();
-		this.projectiles.forEach(function(projectile){
-			state_array[arrayCounter].push(projectile.serialize());
-		});
-	}
-
-	return state_array;
+WorldState.prototype.serialize = function() {
+	return {
+		players: this.players.serialize(),
+		projectiles: this.projectiles.serialize(),
+		boxes: this.boxes.serialize()
+	};
 }
 
 WorldState.ZERO_VEC = new CANNON.Vec3(0,0,0);
 
-WorldState.prototype.deserialize = function(array){
-	var arrayCounter = 0;
-
-	//var playerArray = new Array();
-	if(array[arrayCounter]){
-		for(var i = 0; i < array[arrayCounter].length; i++){
-			newPlayer = new PlayerState('new', 0);
-			newPlayer.deserialize(array[arrayCounter][i]);
-			//playerArray.push(newPlayer)
-			oldPlayer = this.players.values[newPlayer.ID];
-			if(!oldPlayer) this.addPlayer(newPlayer);
-			else oldPlayer.deserialize(array[arrayCounter][i], this);
-		}
-	}
-
-	arrayCounter += 1;
-
-	if(array[arrayCounter]){
-		for(var i = 0; i < array[arrayCounter].length; i++){
-			newGeometry = new GeometryState(WorldState.ZERO_VEC, 0, WorldState.ZERO_VEC, null, 0);
-			newGeometry.deserialize(array[arrayCounter][i], this);
-			//playerArray.push(newPlayer)
-			oldGeometry = this.geometry.values[newGeometry.ID];
-			if(!oldGeometry) this.addBoxGeometry(newGeometry);
-			else oldGeometry.deserialize(array[arrayCounter][i], this);
-		}
-	}
-
-	arrayCounter += 1;
-
-	if(array[arrayCounter]){
-		for(var i = 0; i < array[arrayCounter].length; i++){
-			newProjectile = new Projectile('new', 0);
-			newProjectile.deserialize(array[arrayCounter][i], this);
-			//playerArray.push(newPlayer)
-			oldProjectile = this.projectiles.values[newProjectile.ID];
-			if(!oldProjectile) this.addProjectile(newProjectile);
-			else oldProjectile.deserialize(array[arrayCounter][i], this);
-		}
-	}
+WorldState.prototype.deserialize = function(data) {
+	this.players.deserialize(data.players);
+	this.projectiles.deserialize(data.projectiles);
+	this.boxes.deserialize(data.boxes);
 }
 
 WorldState.prototype.initPhysics = function(){
-
 	//Initialise the world
 	this.world = new CANNON.World();
 	this.world.broadphase = new CANNON.NaiveBroadphase();
@@ -144,16 +127,12 @@ WorldState.prototype.initPhysics = function(){
 
     world.gravity.set(0, 0, -9.8);
 
-	
-
 	//Initialise the physics contact materials.
 	this.boxPhysicsMaterial = new CANNON.Material("BOX_PHY_MATERIAL");
 	// this.boxPhysicsContactMaterial = new CANNON.ContactMaterial(this.boxPhysicsMaterial,
 	// 															this.boxPhysicsMaterial,
 	// 															0,
 	// 															0);
-
-	
 
 	this.groundPhysicsMaterial = new CANNON.Material("GROUND_PHY_MATERIAL");
 	this.groundPhysicsContactMaterial = new CANNON.ContactMaterial(this.groundPhysicsMaterial,
@@ -186,7 +165,6 @@ WorldState.prototype.initPhysics = function(){
 }
 
 WorldState.prototype.update = function(dt){
-
 	this.world.step(dt);
 
 	this.players.forEach(function(player){
@@ -196,89 +174,30 @@ WorldState.prototype.update = function(dt){
 	this.projectiles.forEach(function(projectile){
 		projectile.update(dt);
 	});
-
-	// var state = this.serialize();
-	// this.deserialize(state);
 }
 
-WorldState.prototype.addBoxGeometry = function(locationVEC3, halfExtentsVEC3, mass, shader){
-	var newGeometry = new GeometryState(shader, this.geometryIDCounter++);
-	this.geometry.push(newGeometry);
+WorldState.prototype.addBoxGeometry = function(locationVEC3, halfExtentsVEC3, mass) {
+	var newBox = new BoxState(this.nextUniqueID++, locationVEC3, halfExtentsVEC3, mass, this.boxPhysicsMaterial);
 
-	// var tileInside = new Vec2(startingLocationVEC2[0] / this.tileMap.tileSize[0], startingLocationVEC2[1] / this.tileMap.tileSize[1]);
-	// newPlayer.tileInside = this.tileMap.get(tileInside);
-	// tileInside.playersInTile.push(newPlayer);
-
-	//Create box shape and add it to the world.
-	var boxShape = new CANNON.Box(halfExtentsVEC3);
-	var boxBody = new CANNON.RigidBody(mass, boxShape, this.boxPhysicsMaterial);
-
-	boxBody.position = locationVEC3;
-	//Store references to each other for call backs.
-	boxBody.userData = newGeometry;
-	newGeometry.RigidBody = boxBody;
-	newGeometry.position = boxBody.position;
-	newGeometry.rotationQuat = boxBody.quaternion;
-
-	if(mass <= 1){
-		boxBody.allowSleep = true;
-		boxBody.sleepState = 2;
-	}
-
-	this.world.add(boxBody);
-
-	return newGeometry;
-}
-
-
-WorldState.prototype.addPlayer = function(name, startingLocationVEC3){
-	var newPlayer = new PlayerState(name, this.playerIDCounter++);
-	// var tileInside = new Vec2(startingLocationVEC2[0] / this.tileMap.tileSize[0], startingLocationVEC2[1] / this.tileMap.tileSize[1]);
-	// newPlayer.tileInside = this.tileMap.get(tileInside);
-	// tileInside.playersInTile.push(newPlayer);
-
-	//Create box shape and add it to the world.
-	var boxHalfExtents = new CANNON.Vec3(WorldState.PLAYER_SIZE_HALF, WorldState.PLAYER_SIZE_HALF, WorldState.PLAYER_SIZE_HALF);
-	var boxShape = new CANNON.Box(boxHalfExtents);
-	var boxBody = new CANNON.RigidBody(WorldState.PLAYER_MASS, boxShape, this.boxPhysicsMaterial);
-
-	boxBody.angularDamping = WorldState.ANGULAR_DAMPING;
-	//boxBody.material = this.boxPhysicsMaterial;
-	startingLocationVEC3.z += 1;
-	startingLocationVEC3.copy(boxBody.position);
-
-	//Store references to each other for call backs.
-	boxBody.userData = newPlayer;
-	newPlayer.rigidBody = boxBody;
-	this.world.add(boxBody);
-	newPlayer.worldInside = this;
+	this.boxes.push(newBox);
 	
+	return newBox;
+}
+
+WorldState.prototype.createPlayer = function(position) {
+	var newPlayer = new PlayerState(this.nextUniqueID++, position, this.boxPhysicsMaterial);
+
 	this.players.push(newPlayer);
-	
+
 	return newPlayer;
 }
 
-WorldState.prototype.reAddPlayerPhysics = function(playerState, newLocation, newVelocity, newQuat){
-	if(playerState.rigidBody){
-		this.world.remove(playerState.rigidBody);
-		var boxShape = playerState.rigidBody.shape;
-		var body = playerState.rigidBody;
-
-		newLocation.copy(body.initPosition);
-		newVelocity.copy(body.initVelocity);
-		newQuat.copy(body.initQuaternion);
-
-		this.world.add(body);
-	}
-}
-
-WorldState.prototype.removePlayer = function(player){
-	this.players.pop(player);
-	this.world.remove(player.RigidBody);
-}
 
 //Starting location and direction is a Vec3
-WorldState.prototype.addProjectile = function(startingLocation, startingSpeed ,startingDirection, emittedFrom){
+WorldState.prototype.addProjectileState = function (startingLocation, startingSpeed ,startingDirection, emittedFrom){
+	var newProjectileState = new ProjectileState(this.nextUniqueID++, startingLocation, startingSpeed, startingDirection, emittedFrom);
+	this.projectiles.push(newProjectileState);
+	
 	// projShape = new CANNON.Sphere(WorldState.PROJECTILE_SIZE_HALF);
 	// projBody = new CANNON.RigidBody(WorldState.PROJECTILE_MASS, projShape, this.boxPhysicsMaterial);
 	// projBody.position.set(startingLocation[0], startingLocation[1], startingLocation[2]);
@@ -289,26 +208,103 @@ WorldState.prototype.addProjectile = function(startingLocation, startingSpeed ,s
 	// initVelocity.mult(startingSpeed);
 	// projBody.initVelocity = initVelocity;
 
-	var newProjectile = new Projectile(startingLocation, startingSpeed, startingDirection, emittedFrom, this.projectileIDCounter++);
-
-	// projBody.userData = newProjectile;
-	// newProjectile.rigidBody = projBody;
+	
+	// projBody.userData = newProjectileState;
+	// newProjectileState.rigidBody = projBody;
 
 	// this.world.add(projBody);
-	newProjectile.worldInside = this;
-	this.projectiles.push(newProjectile);
-
 }
 
-WorldState.prototype.removeProjectile = function(projectile){
-	this.projectiles.pop(projectile);
-}
-
-function PlayerState(name, ID) {
+function ProjectileState(ID, startingLocation, speed, direction, emittedFrom) {
 	this.ID = ID;
 
 	//Positional
-	this.position = null;
+	this.position = startingLocation;
+	this.direction = direction;
+	this.direction.normalize();
+	this.speed = speed;
+	this.bodyEmittedFrom = emittedFrom;
+	this.worldInside = null;
+	//this.timeaAlive = 0;
+}
+
+ProjectileState.prototype.serialize = function(){
+	var p = this.position, d = this.direction;
+	
+	return [
+		p.x, p.y, p.z,
+		d.x, d.y, d.z,
+		bodyEmittedFrom.ID
+	];
+}
+
+ProjectileState.prototype.deserialize = function(data, players) {
+	this.position.set(data[0], data[1], data[2]);
+	this.direction.set(data[3], data[4], data[5]);
+	
+	this.bodyEmittedFrom = players.values[data[6]];
+}
+
+ProjectileState.ORIGIN = new CANNON.Vec3(0,0,0); //constant used for distance calculations
+//ProjectileState.LIFETIME_MS = 0.5;
+ProjectileState.KNOCK_BACK = 40000;
+ProjectileState.DAMAGE = 30;
+ProjectileState.bodiesToIntersect = new Array();
+ProjectileState.prototype.update = function(dt){
+
+	//Fill the bodies to intersect array
+	while(ProjectileState.bodiesToIntersect.length > 0){
+		ProjectileState.bodiesToIntersect.pop(); //Clear the array
+	}
+
+	//Copy only the player bodies into the list for intersection
+	this.worldInside.players.forEach(function(player){
+		ProjectileState.bodiesToIntersect.push(player.rigidBody);
+	});
+
+	this.position.copy(ProjectileState.ORIGIN);
+	this.ray = this.direction;//.mult(this.speed);
+	this.ray.z = 0;
+
+	var ray = new CANNON.Ray(ProjectileState.ORIGIN, this.ray);
+	var intersections = ray.intersectBodies(ProjectileState.bodiesToIntersect);
+	
+	for(var i = 0; i < intersections.length; i+=1){
+		if(intersections[i] != this.bodyEmittedFrom){
+			intersections[i].body.applyForce(intersections[i].body.position, this.direction.mult(ProjectileState.KNOCK_BACK));
+			if(intersections[i].body.userData && intersections[i].body.userData instanceof PlayerState){
+				intersections[i].body.userData.doDamage(ProjectileState.DAMAGE);
+				console.log('Damage done', ProjectileState.DAMAGE);
+			}
+		
+			i = intersections.length+1;
+			//this.timeAlive = ProjectileState.LIFETIME_MS+1;
+		}
+	}
+	//this.position = this.position.vadd(this.direction.mult(this.speed));
+
+	//this.timeAlive += dt;
+	//if(this.timeAlive > ProjectileState.LIFETIME_MS){
+		this.worldInside.projectiles.pop(this);
+		console.log('Particle has died');
+	//}
+
+	//if(intersections.length > 0){
+	//	console.log('Particle has collided!');
+	//}
+
+	
+}
+
+// ** Player State **
+
+
+
+function PlayerState(ID, position, material) {
+	this.ID = ID;
+
+	//Positional
+	this.position = position;
 	this.direction = new CANNON.Vec3(0, 0, 0);
 	this.rotationQuat = null;
 	this.velocity = null;
@@ -328,87 +324,44 @@ function PlayerState(name, ID) {
 	this.timeSpentReloading = 0;
 
 	this.worldInside = null;
-	this.name = name;
 
-	this.rigidBody; //The box has some sexy body.
+	var boxHalfExtents = new CANNON.Vec3(WorldState.PLAYER_SIZE_HALF, WorldState.PLAYER_SIZE_HALF, WorldState.PLAYER_SIZE_HALF);
+	var boxShape = new CANNON.Box(boxHalfExtents);
+	this.rigidBody = new CANNON.RigidBody(WorldState.PLAYER_MASS, boxShape, material);
+
+	this.rigidBody.angularDamping = WorldState.ANGULAR_DAMPING;
+	this.rigidBody.userData = this;
 }
 
-PlayerState.prototype.serialize = function(){
-	var state_array = new Array();
-	var arrayCounter = 0;
-	state_array[arrayCounter++] = this.position.x;
-	state_array[arrayCounter++] = this.position.y;
-	state_array[arrayCounter++] = this.position.z;
-
-	state_array[arrayCounter++] = this.rotationQuat.x;
-	state_array[arrayCounter++] = this.rotationQuat.y;
-	state_array[arrayCounter++] = this.rotationQuat.z;
-	state_array[arrayCounter++] = this.rotationQuat.w;
-
-	state_array[arrayCounter++] = this.velocity.x;
-	state_array[arrayCounter++] = this.velocity.y;
-	state_array[arrayCounter++] = this.velocity.z;
-
-	state_array[arrayCounter++] = this.health;
-	state_array[arrayCounter++] = this.isShooting;
-	state_array[arrayCounter++] = this.isAlive;
-	state_array[arrayCounter++] = this.isReloading;
-	state_array[arrayCounter++] = this.roundsInClip;
-	state_array[arrayCounter++] = this.timeSpentReloading;
-	state_array[arrayCounter++] = this.name;
-
-
-	return state_array;
-
+PlayerState.prototype.serialize = function() {
+	var p = this.rigidBody.position, q = this.rigidBody.quaternion, v = this.rigidBody.velocity;
+	
+	return [
+		p.x, p.y, p.z,
+		q.x, q.y, q.z, q.w,
+		v.x, v.y, v.z,
+		this.health,
+		this.isShooting,
+		this.isAlive,
+		this.isReloading,
+		this.roundsInClip,
+		this.timeSpentReloading
+	];
 }
 
-PlayerState.BUFFER_VEC3_POS = new CANNON.Vec3(0,0,0);
-PlayerState.BUFFER_VEC3_VEL = new CANNON.Vec3(0,0,0);
-PlayerState.BUFFER_QUAT = new CANNON.Quaternion(0,0,0,0);
-PlayerState.prototype.deserialize = function(array, world){
-	var arrayCounter = 0;
-
-	if(this.position && this.rotationQuat && this.velocity){
-
-		PlayerState.BUFFER_VEC3_POS.x = array[arrayCounter++];
-		PlayerState.BUFFER_VEC3_POS.y = array[arrayCounter++];
-		PlayerState.BUFFER_VEC3_POS.z = array[arrayCounter++];
-
-		PlayerState.BUFFER_QUAT.x = array[arrayCounter++];
-		PlayerState.BUFFER_QUAT.y = array[arrayCounter++];
-		PlayerState.BUFFER_QUAT.z = array[arrayCounter++];
-		PlayerState.BUFFER_QUAT.w = array[arrayCounter++];
-
-		PlayerState.BUFFER_VEC3_VEL.x = array[arrayCounter++];
-		PlayerState.BUFFER_VEC3_VEL.y = array[arrayCounter++];
-		PlayerState.BUFFER_VEC3_VEL.z = array[arrayCounter++];
-
-		if(world)world.reAddPlayerPhysics(this, PlayerState.BUFFER_VEC3_POS, PlayerState.BUFFER_VEC3_VEL, PlayerState.BUFFER_QUAT);
-	}
-	else arrayCounter+= 10;
-
-	//if(){
-		
-	//}
-	//else arrayCounter+= 4;
-
-	//if(){
-		
-	//}
-	//else arrayCounter+= 3;
-
-
-	//if(this.position)this.rigidBody.position = this.position;
-	//if(this.rotatioQuat)this.rigidBody.quaternion = this.rotationQuat;
-	//if(this.velocity)this.rigidBody.velocity = this.velocity;
-
-	this.health = array[arrayCounter++];
-	this.isShooting = array[arrayCounter++];
-	this.isAlive = array[arrayCounter++];
-	this.isReloading = array[arrayCounter++];
-	this.roundsInClip = array[arrayCounter++];
-	this.timeSpentReloading = array[arrayCounter++];
-	this.name = array[arrayCounter++];
+PlayerState.prototype.deserialize = function(data) {
+	var r = this.rigidBody;
+	
+	r.position.set(data[0], data[1], data[2]);
+	r.quaternion.set(data[3], data[4], data[5], data[6]);
+	r.velocity.set(data[7], data[8], data[9]);
+	
+	this.health = data[10];
+	this.isShooting = data[11];
+	this.isAlive = data[12];
+	this.isReloading = data[13];
+	this.roundsInClip = data[14];
+	this.timeSpentReloading = data[15];
 }
 
 //Const player variables.
@@ -422,35 +375,24 @@ PlayerState.FIRE_RATE_PER_SECOND = 1;
 PlayerState.BULLET_SPEED = 1;
 PlayerState.RELOAD_TIME = 3;
 PlayerState.CLIP_SIZE = 6;
+
 PlayerState.Motion = {
 	WALKING: 1,
 	STOPPED: 2,
 };
+
 PlayerState.Direction = {
 	FORWARD: 1,
 	BACKWARD: 2,
 	LEFT: 3,
 	RIGHT: 4,
 }
+
 PlayerState.HEALTH = 100;
-
-
-PlayerState.prototype.setName = function(name) {
-	this.name = name;
-}
 
 PlayerState.prototype.doDamage = function(damage){
 	this.health -= damage;
 }
-
-// PlayerState.prototype.setLocation = function(x, y) {
-// 	this.position.x = x;
-// 	this.position.y = y;
-// }
-
-// PlayerState.prototype.setRunning = function(running){
-// 	this.
-// }
 
 PlayerState.prototype.setDirection = function(x, y){
 	this.direction.x = x;
@@ -558,7 +500,7 @@ PlayerState.prototype.update = function(dt){
 		else if(PlayerState.FIRE_RATE_PER_SECOND < PlayerState.lastShotTime){
 			bulletDirection = this.rotationQuat.vmult(PlayerState.FORWARD);
 			//bulletPosition = this.rigidBody.position.vadd(bulletDirection.mult(2.0));
-			this.worldInside.addProjectile(this.rigidBody.position, PlayerState.BULLET_SPEED, bulletDirection, this);
+			this.worldInside.addProjectileState(this.rigidBody.position, PlayerState.BULLET_SPEED, bulletDirection, this);
 			PlayerState.lastShotTime = 0;
 			this.roundsInClip -= 1;
 			if(this.roundsInClip < 1){
@@ -640,156 +582,37 @@ PlayerState.prototype.update = function(dt){
 		console.log('Player has died');
 		this.isAlive = false;
 	}
-
 }
 
-function Projectile(startingLocation, speed, direction, emittedFrom, ID) {
+// ** Box State **
+
+function BoxState(ID, position, extents, mass, material) {
 	this.ID = ID;
-
-	//Positional
-	this.position = startingLocation;
-	this.direction = direction;
-	this.direction.normalize();
-	this.speed = speed;
-	this.bodyEmittedFrom = emittedFrom;
-	this.worldInside = null;
-	//this.timeaAlive = 0;
-}
-
-Projectile.prototype.serialize = function(){
-	var state_array = new Array();
-	var arrayCounter = 0;
-	state_array[arrayCounter++] = this.position.x;
-	state_array[arrayCounter++] = this.position.y;
-	state_array[arrayCounter++] = this.position.z;
-
-	state_array[arrayCounter++] = this.direction.x;
-	state_array[arrayCounter++] = this.direction.y;
-	state_array[arrayCounter++] = this.direction.z;
-
-	state_array[arrayCounter++] = bodyEmittedFrom.ID;
-
-	return state_array;
-}
-
-Projectile.prototype.deserialize = function(array, worldstate){
-	var arrayCounter = 0;
-	this.position.x = array[arrayCounter++];
-	this.position.y = array[arrayCounter++];
-	this.position.z = array[arrayCounter++];
-
-	this.direction.x = array[arrayCounter++];
-	this.direction.y = array[arrayCounter++];	
-	this.direction.z = array[arrayCounter++];
-
-	bodyEmittedFrom = worldstate.players.values[array[arrayCounter++]];
-
-}
-
-Projectile.ORIGIN = new CANNON.Vec3(0,0,0); //constant used for distance calculations
-//Projectile.LIFETIME_MS = 0.5;
-Projectile.KNOCK_BACK = 40000;
-Projectile.DAMAGE = 30;
-Projectile.bodiesToIntersect = new Array();
-Projectile.prototype.update = function(dt){
-
-	//Fill the bodies to intersect array
-	while(Projectile.bodiesToIntersect.length > 0){
-		Projectile.bodiesToIntersect.pop(); //Clear the array
-	}
-
-	//Copy only the player bodies into the list for intersection
-	this.worldInside.players.forEach(function(player){
-		Projectile.bodiesToIntersect.push(player.rigidBody);
-	});
-
-	this.position.copy(Projectile.ORIGIN);
-	this.ray = this.direction;//.mult(this.speed);
-	this.ray.z = 0;
-
-	var ray = new CANNON.Ray(Projectile.ORIGIN, this.ray);
-	var intersections = ray.intersectBodies(Projectile.bodiesToIntersect);
 	
-	for(var i = 0; i < intersections.length; i+=1){
-		if(intersections[i] != this.bodyEmittedFrom){
-			intersections[i].body.applyForce(intersections[i].body.position, this.direction.mult(Projectile.KNOCK_BACK));
-			if(intersections[i].body.userData && intersections[i].body.userData instanceof PlayerState){
-				intersections[i].body.userData.doDamage(Projectile.DAMAGE);
-				console.log('Damage done', Projectile.DAMAGE);
-			}
-		
-			i = intersections.length+1;
-			//this.timeAlive = Projectile.LIFETIME_MS+1;
-		}
-	}
-	//this.position = this.position.vadd(this.direction.mult(this.speed));
-
-	//this.timeAlive += dt;
-	//if(this.timeAlive > Projectile.LIFETIME_MS){
-		this.worldInside.removeProjectile(this);
-		console.log('Particle has died');
-	//}
-
-	//if(intersections.length > 0){
-	//	console.log('Particle has collided!');
-	//}
-
+	var boxShape = new CANNON.Box(extents);
+	this.rigidBody = new CANNON.RigidBody(mass, boxShape, material);
 	
-}
-
-function GeometryState(shader, ID){
-	this.ID = ID;
-	this.position = null;
-	this.rotationQuat = null;
-	this.ray = null
-	this.rigidBody = null;
-
-	this.shader = "";
-}
-
-GeometryState.prototype.update = function(dt){
-	this.position = this.rigidBody.position;
-	this.rotationQuat = this.rigidBody.quaternion;
-}
-
-GeometryState.STATE_ARRAY = new Array();
-GeometryState.prototype.serialize = function(){
-	var arrayCounter = 0;
-	var state_array = new Array();
-
-	state_array[arrayCounter++] = this.position.x;
-	state_array[arrayCounter++] = this.position.y;
-	state_array[arrayCounter++] = this.position.z;
-
-	state_array[arrayCounter++] = this.rotationQuat.x;
-	state_array[arrayCounter++] = this.rotationQuat.y;
-	state_array[arrayCounter++] = this.rotationQuat.z;
-	state_array[arrayCounter++] = this.rotationQuat.w;
-
-	state_array[arrayCounter++] = this.ID;
-}
-
-GeometryState.prototype.deserialize = function(array, worldstate){
-	var arrayCounter = 0;
-	if(array){
-		if(this.position){
-			this.position.x = array[arrayCounter++];
-			this.position.y = array[arrayCounter++];
-			this.position.z = array[arrayCounter++];
-		}
-		else arrayCounter+= 3;
-
-		if(this.rotationQuat){
-			this.rotationQuat.x = array[arrayCounter++];
-			this.rotationQuat.y = array[arrayCounter++];
-			this.rotationQuat.z = array[arrayCounter++];
-			this.rotationQuat.w = array[arrayCounter++];
-		}
-		else arrayCounter+= 4;
-
-		if(this.position) this.rigidBody.position = this.position;
-		if(this.rotationQuat) this.rigidBody.quaternion = this.rotationQuat;
-
-		this.ID = array[arrayCounter++];
+	this.rigidBody.position = position;
+	this.rigidBody.userData = this;
+	
+	if (mass <= 1) {
+		this.rigidBody.allowSleep = true;
+		this.rigidBody.sleepState = 2;
 	}
+}
+
+BoxState.prototype.serialize = function() {
+	var p = this.rigidBody.position, q = this.rigidBody.quaternion;
+	
+	return [
+		p.x, p.y, p.z,
+		q.x, q.y, q.z, q.w
+	];
+}
+
+BoxState.prototype.deserialize = function(data) {
+	var r = this.rigidBody;
+	
+	r.position.set(data[0], data[1], data[2]);
+	r.quaternion.set(data[3], data[4], data[5], data[6]);
 }

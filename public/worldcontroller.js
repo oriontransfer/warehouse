@@ -1,9 +1,18 @@
 
-function WorldController() {
+function WorldController(mapTemplate) {
 	this.worldState = new WorldState();
 	this.currentPlayer = null;
 	
 	this.scene = new THREE.Scene();
+	
+	this.rendererState = {
+		assets: AngryBox.assets,
+		scene: this.scene
+	};
+	
+	this.rendererState.shelvesRenderer = new ShelvesRenderer(this.rendererState);
+	
+	this.map = mapTemplate.create(this.worldState, this.rendererState);
 	
 	var ambientLight = new THREE.AmbientLight(0x111111);
 	this.scene.add(ambientLight);
@@ -40,26 +49,6 @@ function WorldController() {
 	//light.shadowCameraVisible = true;
 	this.playerLight = light;
 	this.scene.add(this.playerLight);
-	
-	this.currentPlayer = this.worldState.addPlayer("Mr Pickles", new CANNON.Vec3(0, 0, 0));
-	this.worldState.addPlayer("Bob", new CANNON.Vec3(5, 5, 0));
-	this.worldState.addPlayer("John", new CANNON.Vec3(-5, 5, 0));
-	this.worldState.addPlayer("Peach", new CANNON.Vec3(-5, 2, 0));
-		
-	this.floorController = new FloorController(this.scene, [32, 12]);
-	this.floorController.generate();
-	
-	this.wallController = new WallController(this.scene, [32, 12]);
-	this.wallController.generate();
-	
-	this.shelveController = new ShelvesController(this.scene, [new CANNON.Vec3(2,2,0), new CANNON.Vec3(32*8,12*8,0)], 0.5, this.worldState);
-	this.shelveController.generateHorizontalLines();
-	
-	//WALLS COLLISION
-	this.worldState.addBoxGeometry(new CANNON.Vec3(-5,12*4,0), new CANNON.Vec3(1,12*4+4,100), 0, "");//left
-	this.worldState.addBoxGeometry(new CANNON.Vec3(32*8-3,12*4,0), new CANNON.Vec3(1,12*4+4,100), 0, "");//right
-	this.worldState.addBoxGeometry(new CANNON.Vec3(32*4,12*8-3,0), new CANNON.Vec3(32*8,1,100), 0, "");//up
-	this.worldState.addBoxGeometry(new CANNON.Vec3(32*4,-5,0), new CANNON.Vec3(32*8,1,100), 0, "");//down
 
 	this.notificationController = new NotificationController(this.worldState, this.currentPlayer, this.scene);
 }
@@ -68,6 +57,13 @@ WorldController.prototype.serverUpdate = function(data) {
 	//console.log("serverUpdate", data);
 	
 	this.worldState.deserialize(data.worldState);
+	
+	this.currentPlayer = this.worldState.players.values[this.currentPlayerID];
+}
+
+WorldController.prototype.serverSpawned = function(data) {
+	console.log("Player spawned with ID", data.ID);
+	this.currentPlayerID = data.ID;
 }
 
 WorldController.prototype.setup = function(renderer) {
@@ -130,8 +126,6 @@ WorldController.FORWARD_ROT = new CANNON.Vec3(0,0,0);
 WorldController.HEALTH_LIGHT_HEIGHT_OFFSET = new CANNON.Vec3(0,0,2);
 
 WorldController.prototype.updateCurrentPlayer = function() {
-	//this.currentPlayer.rigidBody.position.copy(this.camera.position);
-
 	WorldController.FORWARD_ROT = this.currentPlayer.rigidBody.quaternion.vmult(WorldController.FORWARD); //Rotate the camera so we see more of what's infront of the user
 	
 	WorldController.FORWARD_ROT.copy(this.camera.position);
@@ -162,11 +156,11 @@ WorldController.prototype.update = function(dt) {
 	
 	this.playerGeometryController.update();
 	
-	this.updateCurrentPlayer();
-
-	this.notificationController.update(dt);
-	
-	//console.log(this.currentPlayer.position.x);
+	if (this.currentPlayer) {
+		this.notificationController.update(dt);
+		
+		this.updateCurrentPlayer();
+	}
 }
 
 WorldController.prototype.render = function(renderer) {
@@ -181,6 +175,7 @@ WorldController.prototype.render = function(renderer) {
 	}*/
 }
 
-WorldController.prototype.handleEvent = function(event, action){
-	this.currentPlayer.handleEvent(event, action);
+WorldController.prototype.handleEvent = function(event, action) {
+	if (this.currentPlayer)
+		this.currentPlayer.handleEvent(event, action);
 }
