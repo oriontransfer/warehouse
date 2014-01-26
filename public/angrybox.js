@@ -135,8 +135,12 @@ AngryBox = {
 		this.socket.on('message', function(data) {
 			var messageElement = document.createElement('div');
 			
-			var messageTextNode = document.createTextNode(data.text);
-			messageElement.appendChild(messageTextNode);
+			if (data.html) {
+				messageElement.innerHTML = data.text;
+			} else {
+				var messageTextNode = document.createTextNode(data.text);
+				messageElement.appendChild(messageTextNode);
+			}
 			
 			this.messagesElement.appendChild(messageElement);
 			

@@ -1,0 +1,7 @@
+<p style="color: #ccffcc">You're the man in the box hiding out in a jewel warehouse. It's protected by the mafia but you cunningly snuck in inside a box. However you're not the only one with the same crafty plan. Try to find the others and eliminate them before they eliminate you in this point of view stealth last man standing game. You can only see the world from the vision cone out your the front of your box. Beware other boxes as they may be foes ... or just another box. [<a href="http://www.gmsoc.org/ggj-2014" target="_blank">GGJ2014</a>]</p>
+
+<p style="color: #ccccff">
+	WASD - Movement<br/>
+	SHIFT - Run<br/>
+	SPACE - Fire your pistol<br/>
+</p>

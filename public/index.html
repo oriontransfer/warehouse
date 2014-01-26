@@ -17,20 +17,34 @@
 				padding: 0;
 			}
 			
+			a {
+				color: #ffffff;
+				font-weight: bold;
+				text-decoration: none;
+			}
+			
 			#messages {
 				position: fixed;
 				
 				left: 0;
-				right: 0;
+				right: 50pt;
 				top: 0;
-				height: 48pt;
 				
 				padding: 6pt;
 			}
 			
 			#timeout {
-				float: right;
 				font-size: 25pt;
+				
+				position: fixed;
+				
+				width: 50pt;
+				right: 0;
+				top: 0;
+				
+				padding: 6pt;
+				
+				text-align: right;
 			}
 		</style>
 		
@@ -75,7 +89,8 @@
 	</head>
 	<body>
 		<div id="messages">
-			<div id="timeout">xxs</div>
 		</div>
+		
+		<div id="timeout">xxs</div>
 	</body>
 </html>

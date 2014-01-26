@@ -29,7 +29,9 @@ Server = {
 	physicsRate: 1.0/30.0,
 	
 	// The refresh rate of the server in FPS.
-	updateRate: 1.0/8.0,
+	updateRate: 1.0/15.0,
+	
+	message: fs.readFileSync("motd.txt", "utf8")
 };
 
 // ** Game Map **
@@ -209,18 +211,18 @@ function ServerState () {
 	setInterval(this.updateClients.bind(this), Server.updateRate * 1000);
 }
 
-ServerState.prototype.sendGlobalMessage = function(text) {
+ServerState.prototype.sendGlobalMessage = function(text, html) {
 	console.log("Global Message:", text);
 	
 	this.users.forEach(function(user){
-		user.emit('message', {text:text});
+		user.emit('message', {text:text, html:html});
 	});
 }
 
-ServerState.prototype.sendMessage = function(user, text) {
+ServerState.prototype.sendMessage = function(user, text, html) {
 	console.log("User Message:", user.name, text);
 	
-	user.emit('message', {text:text});
+	user.emit('message', {text:text, html: html});
 }
 
 ServerState.prototype.updateClients = function() {
@@ -248,6 +250,7 @@ ServerState.prototype.addUser = function(name, socket) {
 	this.users.push(user);
 	
 	this.sendMessage(user, "Your name is " + assignedName);
+	this.sendMessage(user, Server.message, true);
 	
 	if (this.gameState.phase == 'running') {
 		this.sendMessage(user, "A game is currently in progress with " + Math.floor(this.gameState.timeout) + "s remaining. Please hold on.");
