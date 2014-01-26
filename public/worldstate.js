@@ -39,66 +39,81 @@ WorldState.PROJECTILE_MASS = 0.1;
 WorldState.STATE_ARRAY = new Array();
 WorldState.prototype.serialize = function(){
 	var arrayCounter = 0;
+	var state_array = new Array();
 
-	WorldState.STATE_ARRAY[arrayCounter++] = this.players.length;
-	WorldState.STATE_ARRAY[arrayCounter++] = this.geometry.length;
-	WorldState.STATE_ARRAY[arrayCounter++] = this.projectiles.length;
+	//WorldState.STATE_ARRAY[arrayCounter++] = this.players.length;
+	//WorldState.STATE_ARRAY[arrayCounter++] = this.geometry.length;
+	//WorldState.STATE_ARRAY[arrayCounter++] = this.projectiles.length;
 
 	if(this.players.length){
+		state_array[arrayCounter] = new Array();
 		this.players.forEach(function(player){
-			WorldState.STATE_ARRAY[arrayCounter++] = player.serialize();
+			state_array[arrayCounter].push(player.serialize());
 		});
 	}
+
+	arrayCounter+= 1;
 
 	if(this.geometry.length){
+		state_array[arrayCounter] = new Array();
 		this.geometry.forEach(function(geom){
-			WorldState.STATE_ARRAY[arrayCounter++] = geom.serialize();
+			state_array[arrayCounter].push(geom.serialize());
 		});
 	}
+
+	arrayCounter+= 1;
 
 	if(this.projectiles.length){
+		state_array[arrayCounter] = new Array();
 		this.projectiles.forEach(function(projectile){
-			WorldState.STATE_ARRAY[arrayCounter++] = projectile.serialize();
+			state_array[arrayCounter].push(projectile.serialize());
 		});
 	}
 
-	return WorldState.STATE_ARRAY;
+	return state_array;
 }
 
 WorldState.ZERO_VEC = new CANNON.Vec3(0,0,0);
 
 WorldState.prototype.deserialize = function(array){
 	var arrayCounter = 0;
-	var playerCount = array[arrayCounter++];
-	var geomCount = array[arrayCounter++];
-	var projCount = array[arrayCounter++];
 
 	//var playerArray = new Array();
-	for(var i = 0; i < playerCount; i++){
-		newPlayer = new PlayerState('new', 0);
-		newPlayer.deserialize(array[arrayCounter++]);
-		//playerArray.push(newPlayer)
-		oldPlayer = this.players.values[newPlayer.ID];
-		if(!oldPlayer) this.addPlayer(newPlayer);
-		else oldPlayer.deserialize(array[arrayCounter++]);
+	if(array[arrayCounter]){
+		for(var i = 0; i < array[arrayCounter].length; i++){
+			newPlayer = new PlayerState('new', 0);
+			newPlayer.deserialize(array[arrayCounter][i]);
+			//playerArray.push(newPlayer)
+			oldPlayer = this.players.values[newPlayer.ID];
+			if(!oldPlayer) this.addPlayer(newPlayer);
+			else oldPlayer.deserialize(array[arrayCounter][i]);
+		}
 	}
 
-	for(var i = 0; i < geomCount; i++){
-		newGeometry = new GeometryState(WorldState.ZERO_VEC, 0, WorldState.ZERO_VEC, null, 0);
-		newGeometry.deserialize(array[arrayCounter++], this);
-		//playerArray.push(newPlayer)
-		oldGeometry = this.geometry.values[newGeometry.ID];
-		if(!oldGeometry) this.addBoxGeometry(newGeometry);
-		else oldGeometry.deserialize(array[arrayCounter++], this);
+	arrayCounter += 1;
+
+	if(array[arrayCounter]){
+		for(var i = 0; i < array[arrayCounter].length; i++){
+			newGeometry = new GeometryState(WorldState.ZERO_VEC, 0, WorldState.ZERO_VEC, null, 0);
+			newGeometry.deserialize(array[arrayCounter][i], this);
+			//playerArray.push(newPlayer)
+			oldGeometry = this.geometry.values[newGeometry.ID];
+			if(!oldGeometry) this.addBoxGeometry(newGeometry);
+			else oldGeometry.deserialize(array[arrayCounter][i], this);
+		}
 	}
 
-	for(var i = 0; i < projCount; i++){
-		newProjectile = new Projectile('new', 0);
-		newProjectile.deserialize(array[arrayCounter++], this);
-		//playerArray.push(newPlayer)
-		oldProjectile = this.projectiles.values[newProjectile.ID];
-		if(!oldProjectile) this.addProjectile(newProjectile);
-		else oldProjectile.deserialize(array[arrayCounter++], this);
+	arrayCounter += 1;
+
+	if(array[arrayCounter]){
+		for(var i = 0; i < array[arrayCounter].length; i++){
+			newProjectile = new Projectile('new', 0);
+			newProjectile.deserialize(array[arrayCounter][i], this);
+			//playerArray.push(newPlayer)
+			oldProjectile = this.projectiles.values[newProjectile.ID];
+			if(!oldProjectile) this.addProjectile(newProjectile);
+			else oldProjectile.deserialize(array[arrayCounter][i], this);
+		}
 	}
 }
 
@@ -174,8 +189,8 @@ WorldState.prototype.update = function(dt){
 		projectile.update(dt);
 	});
 
-	//var state = this.serialize();
-	//this.deserialize(state);
+	var state = this.serialize();
+	this.deserialize(state);
 }
 
 WorldState.prototype.addBoxGeometry = function(locationVEC3, halfExtentsVEC3, mass, shader){
