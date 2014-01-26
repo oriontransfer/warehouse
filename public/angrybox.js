@@ -69,6 +69,16 @@ AngryBox = {
 			});
 		});
 		
+		// ** Shelves **
+		
+		this.assets.loadWithCallback('shelf-long-boxes', function(completeLoad) {
+			loader.load("models/shelf-long-boxes/model.js", function(geometry, materials) {
+				var faceMaterial = new THREE.MeshFaceMaterial(materials);
+				
+				completeLoad({geometry: geometry, material: faceMaterial});
+			});
+		});
+		
 		this.assets.loaded(callback);
 	},
 	
