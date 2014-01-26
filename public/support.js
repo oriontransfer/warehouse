@@ -56,7 +56,7 @@ function ResourceLoader (parent) {
 ResourceLoader.prototype.onLoad = function(name) {
 	this.counter -= 1;
 	
-	console.log("Resource loaded", name);
+	console.log("Loaded resource:", name, this.resources[name]);
 	
 	if (this.counter == 0) {
 		this.callback(this);
@@ -79,6 +79,8 @@ ResourceLoader.prototype.loadAll = function(names, callback) {
 	this.counter += names.length;
 	
 	for (var i in names) {
+		var name = names[i];
+		
 		callback(name, this.completeLoad.bind(this, name));
 	}
 }
