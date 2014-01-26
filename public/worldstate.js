@@ -120,10 +120,10 @@ WorldState.prototype.initPhysics = function(){
 	console.log("Creating physics world...");
 	
 	var solver = new CANNON.GSSolver();
-	solver.iterations = 8;
+	solver.iterations = 5;
 	solver.tolerance = 3;
 
-	this.world.solver = new CANNON.SplitSolver(solver);
+	this.world.solver = solver;
 	this.world.gravity.set(0, 0, -9.8);
 
 	//Initialise the physics contact materials.
@@ -134,13 +134,16 @@ WorldState.prototype.initPhysics = function(){
 
 	// Adjust constraint equation parameters
    	this.groundPhysicsContactMaterial.contactEquationStiffness = 1e8;
-    this.groundPhysicsContactMaterial.contactEquationRegularizationTime = 3;
+    this.groundPhysicsContactMaterial.contactEquationRegularizationTime = 10;
 
     this.groundPhysicsContactMaterial.frictionEquationStiffness = 1e8;
-	this.groundPhysicsContactMaterial.frictionEquationRegularizationTime = 3;
+	this.groundPhysicsContactMaterial.frictionEquationRegularizationTime = 10;
 
 	//orld.addContactMaterial(this.boxPhysicsContactMaterial);
 	this.world.addContactMaterial(this.groundPhysicsContactMaterial);
+
+	this.world.quatNormalizeFast = true;
+	this.world.quatNormalizeSkip = 4;
 
 	//Initialise the ground plane
 	var groundShape = new CANNON.Plane();

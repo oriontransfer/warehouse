@@ -118,7 +118,7 @@ ClutterController.prototype.add = function(position, type){
 		this.renderer.add(position, type); //Add to the clutter renderer
 	}
 
-	var boxsize = new CANNON.Vec3(1,1,1);
+	var boxsize = new CANNON.Vec3(.1,.1,.1);
 
 	this.worldState.addBoxGeometry(position, boxsize, 1700, "", true);
 }
