@@ -126,6 +126,8 @@ ClutterController.prototype.add = function(position, type){
 ClutterController.REGION_DIVISION_SIZE = 1.0;
 ClutterController.prototype.GenerateLotsOfClutter = function(){ //Randomly generate some clutter with densities defined by overlapping sine functions.
 
+	var numAdded = 0;
+
 	var horzDivisions = this.region[1].x/ClutterController.REGION_DIVISION_SIZE;
 	var vertDivisions = this.region[1].y/ClutterController.REGION_DIVISION_SIZE;
 
@@ -149,14 +151,15 @@ ClutterController.prototype.GenerateLotsOfClutter = function(){ //Randomly gener
 
 				position.x = i * ClutterController.REGION_DIVISION_SIZE;
 				position.y = j * ClutterController.REGION_DIVISION_SIZE;
-				position.z = 2;
+				position.z = 0;
 
 				var type = this.random.nextNumber() * 4;
-
+				numAdded++; 
 				this.add(position, type);
 			}
 		}
 	}	
+	console.log(numAdded, 'added objects');
 }
 
 function ClutterRenderer(rendererState){

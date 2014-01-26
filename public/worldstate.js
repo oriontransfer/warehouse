@@ -120,8 +120,8 @@ WorldState.prototype.initPhysics = function(){
 	console.log("Creating physics world...");
 	
 	var solver = new CANNON.GSSolver();
-	solver.iterations = 20;
-	solver.tolerance = 0;
+	solver.iterations = 8;
+	solver.tolerance = 3;
 
 	this.world.solver = new CANNON.SplitSolver(solver);
 	this.world.gravity.set(0, 0, -9.8);
