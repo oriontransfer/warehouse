@@ -16,6 +16,7 @@ var io = socketio.listen(server);
 
 var CANNON = require('cannon');
 
+eval(fs.readFileSync('./public/timer.js', 'utf8'));
 eval(fs.readFileSync('./public/container.js', 'utf8'));
 eval(fs.readFileSync('./public/worldstate.js', 'utf8'));
 eval(fs.readFileSync('./public/assets.js', 'utf8'));
@@ -58,22 +59,10 @@ function GameState (maps, serverState) {
 	this.maps = maps;
 	
 	this.currentMapIndex = -1;
-}
-
-GameState.prototype.startPhysicsUpdates = function() {
-	if (this.physicsUpdate == null) {
-		this.physicsUpdate = setInterval(function() {
-			this.worldState.update(Server.physicsRate);
-		}.bind(this), Server.physicsRate * 1000);
-	} else {
-		console.warn("Tried to start physics updates, but already running!");
-	}
-}
-
-GameState.prototype.stopPhysicsUpdates = function() {
-	clearInterval(this.physicsUpdate);
 	
-	this.physicsUpdate = null;
+	this.physicsUpdateTimer = new Timer(function() {
+		this.worldState.update(Server.physicsRate);
+	}.bind(this), Server.physicsRate * 1000.0);
 }
 
 GameState.prototype.serialize = function() {
@@ -129,7 +118,7 @@ GameState.prototype.preparing = function(dt) {
 		this.timeout = 60;
 		this.setPhase("running");
 		
-		this.startPhysicsUpdates();
+		this.physicsUpdateTimer.start();
 	}
 }
 
@@ -149,7 +138,7 @@ GameState.prototype.finishing = function(dt) {
 		delete user.player;
 	});
 	
-	this.stopPhysicsUpdates();
+	this.physicsUpdateTimer.stop();
 }
 
 GameState.prototype.handleEvent = function(user, event, state) {

@@ -88,7 +88,11 @@ AngryBox = {
 		window.addEventListener('keyup', this.handleUserInput.bind(this, false), false);
 		window.addEventListener('resize', this.resizeWindow.bind(this), false);
 		
-		this.renderer = new THREE.WebGLRenderer({antialias: true, precision: 'highp'});
+		var options = {};
+		//options.antialias = true;
+		//options.precision = 'highp';
+		
+		this.renderer = new THREE.WebGLRenderer(options);
 		
 		this.renderer.setSize(window.innerWidth, window.innerHeight);
 		document.body.appendChild(this.renderer.domElement);
@@ -97,7 +101,8 @@ AngryBox = {
 		else this.setController(this.controller);
 		
 		this.timestep = 1.0/30.0;
-		this.timer = setInterval(this.update.bind(this), this.timestep * 1000.0);
+		this.timer = new Timer(this.update.bind(this), this.timestep * 1000.0);
+		this.timer.start();
 		
 		this.render();
 	},
