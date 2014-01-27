@@ -278,7 +278,7 @@ io.sockets.on('connection', function (socket) {
 		// Unregistered user:
 		if (user == null) return;
 		
-		console.log("Disconnect", user);
+		console.log("Disconnect", user.name);
 		
 		SERVER.removeUser(user);
 	});
