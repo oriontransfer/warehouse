@@ -234,6 +234,8 @@ ServerState.prototype.addUser = function(name, socket) {
 		if (i == 2) assignedName = name + " the 2nd";
 		else if (i == 3) assignedName = name + " the 3rd";
 		else assignedName = name + ' the ' + i + 'th';
+		
+		i = i + 1;
 	}
 	
 	var user = new UserState(assignedName, socket);
