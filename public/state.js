@@ -90,7 +90,7 @@ WorldState.prototype.serialize = function() {
 	return {
 		players: this.players.serialize(),
 		projectiles: this.projectiles.serialize(),
-		boxes: this.boxes.serialize()
+		//boxes: this.boxes.serialize()
 	};
 }
 
@@ -99,7 +99,7 @@ WorldState.ZERO_VEC = new CANNON.Vec3(0,0,0);
 WorldState.prototype.deserialize = function(data) {
 	this.players.deserialize(data.players);
 	this.projectiles.deserialize(data.projectiles);
-	this.boxes.deserialize(data.boxes);
+	//this.boxes.deserialize(data.boxes);
 }
 
 WorldState.prototype.initPhysics = function(){
