@@ -24,6 +24,7 @@ EventType = {
 /// The state of the gmae map is stored in this Class
 function WorldState() {
 	this.initPhysics();
+	this.renderState = null;
 	
 	// ** Player Container **
 	this.players = Container.createObjectContainer(function(key, data) {
@@ -181,6 +182,10 @@ WorldState.prototype.addBoxGeometry = function(locationVEC3, halfExtentsVEC3, ma
 WorldState.prototype.createPlayer = function(position) {
 	var newPlayer = new PlayerState(this.nextUniqueID++, position, this.boxPhysicsMaterial);
 	newPlayer.worldInside = this;
+	if(this.renderState){
+		newPlayer.renderer = new PlayerStateRenderer(this.renderState, newPlayer);
+	}
+	
 	this.players.push(newPlayer);
 	
 	return newPlayer;
@@ -272,10 +277,53 @@ ProjectileState.prototype.update = function(dt) {
 	
 }
 
+// Player state renderer
+
+PlayerStateRenderer.MUZZLE_OFFSET = new CANNON.Vec3(0,1,0);
+PlayerStateRenderer.MUZZLE_FLASH_TIME = 5;
+function PlayerStateRenderer(scene, playerState){
+	this.scene = scene;
+	this.playerState = playerState;
+	
+	var muzLight =  new THREE.PointLight( 0xFFFFFF, 10, 100);
+	muzLight.position.set(0,0,3);
+	this.muzzleFlash = muzLight;
+	scene.add(muzLight);
+	
+	var sphereSize = 1;
+	var pointLightHelper = new THREE.PointLightHelper( muzLight, sphereSize );
+	scene.add( pointLightHelper );
+	
+	this.muzzleTime = 0;
+}
+
+PlayerStateRenderer.prototype.update = function(dt){
+	if(this.muzzleTime > 0){
+		if((this.muzzleTime - dt) <= 0){
+			this.scene.remove(this.muzzleFlash);
+		}
+		
+		this.muzzleTime -= dt;
+	}
+}
+
+PlayerStateRenderer.prototype.showMuzzleFlash = function(){
+	this.muzzleTime = PlayerStateRenderer.MUZZLE_FLASH_TIME;
+	
+	this.muzzleFlash.position = new CANNON.Vec3(0,0,3);
+	this.muzzleFlash.color.r = 1.0;
+	this.muzzleFlash.color.g = 1.0;
+	this.muzzleFlash.color.b = 1.0;
+	
+	this.scene.add(this.muzzleFlash);
+}
+
 // ** Player State **
 
 function PlayerState(ID, position, material) {
 	console.log("PlayerState:", ID, position, material);
+	
+	this.renderer = null;
 	
 	this.ID = ID;
 
@@ -478,6 +526,11 @@ PlayerState.prototype.update = function(dt){
 	this.rotationQuat = this.rigidBody.quaternion;
 	this.velocity = this.rigidBody.velocity;
 	//this.rotationQuat.vmult(PlayerState.FORWARD, this.direction);
+	
+	if(this.renderer){
+		this.renderer.update(dt);
+	}
+	
 	if(this.isAlive){
 		if(this.isShooting){
 			if(this.isReloading){
@@ -488,6 +541,10 @@ PlayerState.prototype.update = function(dt){
 				this.timeSpentReloading += dt;
 			}
 			else if(PlayerState.FIRE_RATE_PER_SECOND < this.lastShotTime){
+				if(this.renderer){
+					this.renderer.showMuzzleFlash();
+				}
+				
 				var bulletDirection = this.rotationQuat.vmult(PlayerState.FORWARD);
 				//bulletPosition = this.rigidBody.position.vadd(bulletDirection.mult(2.0));
 				this.worldState.addProjectileState(this.rigidBody.position, PlayerState.BULLET_SPEED, bulletDirection, this);

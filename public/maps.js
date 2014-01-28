@@ -15,6 +15,7 @@ WarehouseMaps.push({
 	
 	create: function(worldState, rendererState) {
 		var map = new GameMap(worldState);
+		worldState.renderState = rendererState;
 		
 		var size = [32, 12], seed = 801923458, spawnY = 0;
 		

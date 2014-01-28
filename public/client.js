@@ -1,3 +1,11 @@
+function PlayerController(scene){ //A call back class for the player container to associate a renderer with the player state when it's created.
+  this.scene = scene;
+}
+
+PlayerController.prototype.onAdd = function(key, playerState){
+  playerState.renderer = new PlayerStateRenderer(this.scene, playerState);
+}
+
 
 function WorldController(mapTemplate) {
 	this.worldState = new WorldState();
@@ -9,6 +17,8 @@ function WorldController(mapTemplate) {
 		assets: Warehouse.assets,
 		scene: this.scene
 	};
+	
+	this.worldState.players.observers.push(new PlayerController(this.scene));
 	
 	this.rendererState.shelvesRenderer = new ShelvesRenderer(this.rendererState);
 	this.rendererState.clutterRenderer = new ClutterRenderer(this.rendererState);
@@ -44,12 +54,15 @@ function WorldController(mapTemplate) {
 
 	var healthLight = new THREE.PointLight( 0xFFFFFF, 1, 5);
 	healthLight.position.set(2,2,2);
-	this.playerHealthLight = healthLight;
-	this.scene.add(healthLight);
 	
 	//light.shadowCameraVisible = true;
 	this.playerLight = light;
 	this.scene.add(this.playerLight);
+	
+	this.playerHealthLight = healthLight;
+	this.scene.add(healthLight);
+	
+	
 }
 
 WorldController.prototype.serverUpdate = function(data) {
