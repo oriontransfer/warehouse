@@ -24,16 +24,19 @@ WarehouseMaps.push({
 			return this.worldState.createPlayer(new CANNON.Vec3(0, spawnY * 8, 1.0));
 		}
 		
+		map.wallController = new WallController(size, worldState);
+		
 		if (rendererState) {
 			// Generate floor:
 			map.floorController = new FloorController(rendererState.scene, size);
 			map.floorController.generate();
 			
 			// Generate walls:
-			map.wallController = new WallController(rendererState.scene, size);
-			map.wallController.generate();
+			map.wallController.renderer = new WallRenderer(rendererState.scene, size);
+			
 		}
 		
+		map.wallController.generate();
 		// Generate shelves:
 		var region = [new CANNON.Vec3(2,2,0), new CANNON.Vec3(size[0]*8, size[1]*8, 0)], density = 0.5;
 		
@@ -52,11 +55,7 @@ WarehouseMaps.push({
 
 		map.clutterController.GenerateLotsOfClutter();
 		
-		// Bounding planes for walls:
-		map.worldState.addBoxGeometry(new CANNON.Vec3(-5,size[1]*4,0), new CANNON.Vec3(1,size[1]*4+4,100), 0, "");//left
-		map.worldState.addBoxGeometry(new CANNON.Vec3(size[0]*8-3,size[1]*4,0), new CANNON.Vec3(1,size[1]*4+4,100), 0, "");//right
-		map.worldState.addBoxGeometry(new CANNON.Vec3(size[0]*4,size[1]*8-3,0), new CANNON.Vec3(size[0]*8,1,100), 0, "");//up
-		map.worldState.addBoxGeometry(new CANNON.Vec3(size[0]*4,-5,0), new CANNON.Vec3(size[0]*8,1,100), 0, "");//down
+		// Bounding planes for walls;
 		
 		return map;
 	}

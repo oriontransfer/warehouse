@@ -20,6 +20,7 @@ eval(fs.readFileSync('./public/timer.js', 'utf8'));
 eval(fs.readFileSync('./public/container.js', 'utf8'));
 eval(fs.readFileSync('./public/state.js', 'utf8'));
 eval(fs.readFileSync('./public/assets.js', 'utf8'));
+eval(fs.readFileSync('./public/geometry.js', 'utf8'));
 eval(fs.readFileSync('./public/maps.js', 'utf8'));
 
 // ** Server Configuration **
@@ -28,7 +29,7 @@ Server = {
 	physicsRate: 1.0/30.0,
 	
 	// The refresh rate of the server in FPS.
-	updateRate: 1.0/4.0,
+	updateRate: 1.0/10.0,
 	
 	message: fs.readFileSync("motd.txt", "utf8")
 };

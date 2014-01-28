@@ -134,7 +134,7 @@ WorldState.prototype.initPhysics = function(){
 	this.world.addContactMaterial(this.groundPhysicsContactMaterial);
 
 	this.world.quatNormalizeFast = true;
-	this.world.quatNormalizeSkip = 4;
+	this.world.quatNormalizeSkip = 2;
 
 	//Initialise the ground plane
 	var groundShape = new CANNON.Plane();
@@ -159,6 +159,17 @@ WorldState.prototype.update = function(dt) {
 	});
 }
 
+
+WorldState.prototype.addPlaneGeometry = function(locationVEC3, rotationVEC3, angleRAD){
+	var groundShape = new CANNON.Plane();
+	var groundBody = new CANNON.RigidBody(0, groundShape, this.groundPhysicsMaterial);
+	groundBody.collisionFilterGroup = 1;
+	groundBody.collisionFilterMask = 2;
+	groundBody.position = locationVEC3;
+	groundBody.quaternion.setFromAxisAngle(rotationVEC3,angleRAD);
+	
+	this.world.add(groundBody);
+}
 WorldState.prototype.addBoxGeometry = function(locationVEC3, halfExtentsVEC3, mass, sleeping) {
 	var newBox = new BoxState(this.nextUniqueID++, locationVEC3, halfExtentsVEC3, mass, this.boxPhysicsMaterial, sleeping);
 

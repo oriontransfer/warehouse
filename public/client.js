@@ -16,7 +16,7 @@ function WorldController(mapTemplate) {
 	this.map = mapTemplate.create(this.worldState, this.rendererState);
 	
 	var ambientLight = new THREE.AmbientLight(0x111111);
-	this.scene.add(ambientLight);
+	//this.scene.add(ambientLight);
 	
 	//this.scene.fog = new THREE.Fog(0x59472b, 25, 40);
 	this.scene.fog = new THREE.Fog(0x000000, 25, 40);

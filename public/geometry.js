@@ -87,29 +87,26 @@ FloorController.prototype.generate = function()
 	}
 }
 
-function WallController (scene, size)
-{
+function FloorRenderer (scene){
+ 
+}
+
+function WallRenderer (scene, size){
 	this.scene = scene;
-	this.size = size;
-	
-	this.random = new RandomGenerator(612351235);
-	
 	this.tiles = [
 		Warehouse.assets.get('wall-corner'),
 		Warehouse.assets.get('wall-window'),
 		Warehouse.assets.get('wall-supported')
 	];
-} 
-
-WallController.prototype.add = function(mesh)
-{
-	mesh.receiveShadow = true;
-	this.scene.add(mesh);
+	
+	this.random = new RandomGenerator(612351235);
+	this.size = size;
 }
 
-WallController.prototype.generate = function()
-{
-	//CORNERS
+WallRenderer.prototype.generate = function(){
+	
+	
+		//CORNERS
 	var corner_tile = this.tiles[0];
 	var corner_mesh_1 = new THREE.Mesh(corner_tile.geometry, corner_tile.material);
 	corner_mesh_1.position.x = (this.size[0]+1)*8 - 8 ;
@@ -150,6 +147,37 @@ WallController.prototype.generate = function()
 		mesh.position.y = y * 8 ;	
 		mesh.rotateOnAxis((new THREE.Vector3(0, 0, 1)).normalize(), D2R(270));
 		this.add(mesh);
+	}
+}
+
+WallRenderer.prototype.add = function(mesh){
+	mesh.receiveShadow = true;
+	this.scene.add(mesh);
+}
+
+
+function WallController(size, worldState){
+	this.size = size;
+	this.renderer = null;
+	this.worldState = worldState;
+	
+} 
+
+WallController.prototype.generate = function(){
+	var size = this.size;
+	//this.worldState.addBoxGeometry(new CANNON.Vec3(-5,size[1]*4,0), new CANNON.Vec3(1,size[1]*4+4,100), 0, "");//left
+	//this.worldState.addBoxGeometry(new CANNON.Vec3(size[0]*8-3,size[1]*4,0), new CANNON.Vec3(1,size[1]*4+4,100), 0, "");//right
+	//this.worldState.addBoxGeometry(new CANNON.Vec3(size[0]*4,size[1]*8-3,0), new CANNON.Vec3(size[0]*8,1,100), 0, "");//up
+	//this.worldState.addBoxGeometry(new CANNON.Vec3(size[0]*4,-5,0), new CANNON.Vec3(size[0]*8,1,100), 0, "");//down
+	
+	//Initialise the ground plane
+	this.worldState.addPlaneGeometry(new CANNON.Vec3(-4, 0, 0), new CANNON.Vec3(0,1,0), Math.PI/2); //Left
+	this.worldState.addPlaneGeometry(new CANNON.Vec3(0, -4, 0), new CANNON.Vec3(-1,0,0), Math.PI/2); //Down
+	this.worldState.addPlaneGeometry(new CANNON.Vec3(0, size[1]*8 - 4, 0), new CANNON.Vec3(1,0,0), Math.PI/2); //Up
+	this.worldState.addPlaneGeometry(new CANNON.Vec3(size[0]*8 - 4, 0, 0), new CANNON.Vec3(0,-1,0), Math.PI/2); //Up
+	
+	if(this.renderer){
+		this.renderer.generate();
 	}
 	
 }
