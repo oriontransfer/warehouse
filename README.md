@@ -29,6 +29,7 @@ If you add new modules for the client to use:
 - Ricardo David Castañeda Marin (Programmer)
 - Samuel Williams (Lead Programmer & Designer)
 - Sam Prebble (Lead Artist & Designer)
+- Richie Jehan (Artist)
 
 The initial game code and art was made in about 30 hours of actual work as part of the Global Game Jam 2014. During that time, there were approximately 5 commits per hour.
 
