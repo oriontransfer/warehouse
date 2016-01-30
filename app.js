@@ -85,7 +85,7 @@ GameController.prototype.update = function(dt) {
 }
 
 GameController.prototype.reset = function(dt) {
-	this.timeout = 3.0;
+	this.timeout = 2.0;
 	
 	// Select the next map:
 	this.currentMapIndex = (this.currentMapIndex + 1) % this.maps.length;
@@ -114,6 +114,10 @@ GameController.prototype.preparing = function(dt) {
 	this.sendTimeout();
 	
 	if (this.timeout <= 0) {
+		this.serverState.users.forEach(function (user) {
+			user.emit('map', {name:this.name});
+		}.bind(this.currentMap));
+		
 		this.serverState.sendGlobalMessage("Welcome to " + this.currentMap.title);
 		
 		if (this.serverState.users.length > 1) {
@@ -131,12 +135,24 @@ GameController.prototype.preparing = function(dt) {
 			user.emit('spawn', {ID: user.player.ID});
 		}.bind(this));
 		
-		this.worldState.update(dt);
-		
+		this.timeout = 3.0;
+		this.setPhase("spawning");
+	}
+}
+
+GameController.prototype.spawning = function(dt) {
+	this.timeout -= dt;
+	this.sendTimeout();
+	
+	if (this.timeout <= 0) {
 		if (this.serverState.users.length > 2)
 			this.timeout = 60*5;
 		else
 			this.timeout = 60;
+		
+		this.serverState.users.forEach(function (user) {
+			user.emit("start");
+		}.bind(this));
 		
 		this.setPhase("running");
 		
@@ -250,7 +266,7 @@ ServerController.prototype.addUser = function(name, socket) {
 	
 	var user = new UserState(assignedName, socket);
 	
-	console.log("Adding user", assignedName);
+	console.log("Adding user", assignedName, this.gameState.phase, this.currentMap);
 	this.users.push(user);
 	
 	this.sendMessage(user, "Your name is " + assignedName);

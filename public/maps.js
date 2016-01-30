@@ -1,26 +1,21 @@
 
 function MapController ()
 {
-}
-
-MapController.prototype.reset = function()
-{
-	this.worldState = new WorldState();
+	this.map = null;
 }
 
 MapController.prototype.loadMap = function(name, options)
 {
-	this.reset();
+	if (this.map) {
+		this.map.deallocate();
+		this.map = null;
+	}
 	
 	options = options || {}
 	
 	console.log("Loading map", name, options);
 	
 	var mapTemplate = MapController.maps[name];
-	
-	if (this.map) {
-		this.map.deallocate();
-	}
 	
 	this.map = mapTemplate.create(this, name, options);
 	
@@ -46,6 +41,8 @@ GameMap.prototype.spawn = function()
 
 GameMap.prototype.deallocate = function()
 {
+	// Doesn't exist yet, but I think we need it to avoid memory leaks.
+	//this.worldState.deallocate();
 }
 
 MapController.add({
@@ -75,7 +72,6 @@ MapController.add({
 			
 			// Generate walls:
 			map.wallController.renderer = new WallRenderer(rendererState.scene, size);
-			
 		}
 		
 		map.wallController.generate();

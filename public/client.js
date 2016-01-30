@@ -8,7 +8,6 @@ PlayerController.prototype.onAdd = function(key, playerState){
 
 function WorldController() {
 	this.mapController = new MapController();
-	this.mapController.reset = this.resetMapController.bind(this, this.mapController);
 	
 	this.scene = new THREE.Scene();
 	
@@ -44,16 +43,7 @@ function WorldController() {
 }
 
 WorldController.prototype.serverMap = function(data) {
-	this.mapController.loadMap(data.name);
-}
-
-WorldController.prototype.resetMapController = function(mapController) {
-	if (this.worldState) this.worldState.deallocate();
-	
 	if (this.levelScene) this.scene.remove(this.levelScene);
-	
-	this.worldState = worldState;
-	
 	this.levelScene = new THREE.Object3D();
 	
 	this.rendererState = {
@@ -63,19 +53,17 @@ WorldController.prototype.resetMapController = function(mapController) {
 	
 	this.rendererState.shelvesRenderer = new ShelvesRenderer(this.rendererState);
 	this.rendererState.clutterRenderer = new ClutterRenderer(this.rendererState);
-	
-	this.worldState = new WorldState();
 	this.currentPlayer = null;
-	
-	this.map = mapTemplate.create(this.worldState, this.rendererState);
 	
 	//this.worldState.players.observers.push(new PlayerController(this.scene));
 	
-	this.playerGeometryController = new GeometryController(this.levelScene, this.worldState.players);
 	this.scene.add(this.levelScene);
-}
-
-WorldController.prototype.initializeMap = function(mapTemplate) {
+	
+	this.currentMap = this.mapController.loadMap(data.name, {
+		rendererState: this.rendererState
+	});
+	
+	this.playerGeometryController = new GeometryController(this.levelScene, this.currentMap.worldState.players);
 }
 
 WorldController.prototype.serverUpdate = function(data) {
