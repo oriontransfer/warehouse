@@ -122,30 +122,23 @@ WorldState.prototype.initPhysics = function(){
 	this.boxPhysicsMaterial = new CANNON.Material("BOX_PHY_MATERIAL");
 
 	this.groundPhysicsMaterial = new CANNON.Material("GROUND_PHY_MATERIAL");
-	this.groundPhysicsContactMaterial = new CANNON.ContactMaterial(this.groundPhysicsMaterial, this.boxPhysicsMaterial, 0.0005, 0.3);
-
-	// Adjust constraint equation parameters
-   	this.groundPhysicsContactMaterial.contactEquationStiffness = 1e8;
-    this.groundPhysicsContactMaterial.contactEquationRegularizationTime = 3;
-
-    this.groundPhysicsContactMaterial.frictionEquationStiffness = 1e8;
-	this.groundPhysicsContactMaterial.frictionEquationRegularizationTime = 3;
+	this.groundPhysicsContactMaterial = new CANNON.ContactMaterial(this.groundPhysicsMaterial, this.boxPhysicsMaterial, {
+		friction: 0.4,
+		restitution: 0.3,
+		contactEquationStiffness: 1e8,
+		contactEquationRelaxation: 3,
+		frictionEquationStiffness: 1e8,
+		frictionEquationRegularizationTime: 3,
+	});
 
 	//orld.addContactMaterial(this.boxPhysicsContactMaterial);
 	this.world.addContactMaterial(this.groundPhysicsContactMaterial);
 
-	this.world.quatNormalizeFast = true;
-	this.world.quatNormalizeSkip = 2;
+	//this.world.quatNormalizeFast = true;
+	//this.world.quatNormalizeSkip = 2;
 
 	//Initialise the ground plane
-	var groundShape = new CANNON.Plane();
-	var groundBody = new CANNON.RigidBody(0, groundShape, this.groundPhysicsMaterial);
-	groundBody.collisionFilterGroup = 1;
-	groundBody.collisionFilterMask = 2;
-	
-	groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(0,0,1),-Math.PI/2);
-	
-	this.world.add(groundBody);
+	this.addPlaneGeometry(new CANNON.Vec3(0, 0, 0), new CANNON.Vec3(0,0,1),-Math.PI/2);
 }
 
 WorldState.prototype.update = function(dt) {
@@ -162,14 +155,18 @@ WorldState.prototype.update = function(dt) {
 
 
 WorldState.prototype.addPlaneGeometry = function(locationVEC3, rotationVEC3, angleRAD){
-	var groundShape = new CANNON.Plane();
-	var groundBody = new CANNON.RigidBody(0, groundShape, this.groundPhysicsMaterial);
-	groundBody.collisionFilterGroup = 1;
-	groundBody.collisionFilterMask = 2;
-	groundBody.position = locationVEC3;
-	groundBody.quaternion.setFromAxisAngle(rotationVEC3,angleRAD);
+	var body = new CANNON.Body({mass: 0, material: this.groundPhysicsMaterial});
 	
-	this.world.add(groundBody);
+	body.collisionFilterGroup = 1;
+	body.collisionFilterMask = 2;
+	
+	body.addShape(new CANNON.Plane());
+	body.position = locationVEC3;
+	body.quaternion.setFromAxisAngle(rotationVEC3,angleRAD);
+	
+	this.world.addBody(body);
+	
+	return body;
 }
 WorldState.prototype.addBoxGeometry = function(locationVEC3, halfExtentsVEC3, mass, sleeping) {
 	var newBox = new BoxState(this.nextUniqueID++, locationVEC3, halfExtentsVEC3, mass, this.boxPhysicsMaterial, sleeping);
@@ -355,7 +352,9 @@ function PlayerState(ID, position, material) {
 
 	var boxHalfExtents = new CANNON.Vec3(WorldState.PLAYER_SIZE_HALF, WorldState.PLAYER_SIZE_HALF, WorldState.PLAYER_SIZE_HALF);
 	var boxShape = new CANNON.Box(boxHalfExtents);
-	this.rigidBody = new CANNON.RigidBody(WorldState.PLAYER_MASS, boxShape, material);
+	this.rigidBody = new CANNON.Body({mass: WorldState.PLAYER_MASS, material: material});
+	this.rigidBody.addShape(boxShape);
+	
 	this.rigidBody.collisionFilterGroup = 2;
 	this.rigidBody.collisionFilterMask = 1 | 2;
 	
@@ -641,14 +640,14 @@ PlayerState.prototype.update = function(dt){
 function BoxState(ID, position, extents, mass, material, sleeping) {
 	this.ID = ID;
 	
-	var boxShape = new CANNON.Box(extents);
-	this.rigidBody = new CANNON.RigidBody(mass, boxShape, material);
+	this.rigidBody = new CANNON.Body({mass: mass, material: material});
+	this.rigidBody.addShape(new CANNON.Box(extents));
 	
 	this.rigidBody.position = position;
 	this.rigidBody.userData = this;
 
 	this.rigidBody.collisionFilterGroup = 1;
-	this.rigidBody.collisionFilterMask = 2 ;
+	this.rigidBody.collisionFilterMask = 2;
 	
 	if (mass <= 1 || sleeping || sleeping) {
 		this.rigidBody.allowSleep = true;
