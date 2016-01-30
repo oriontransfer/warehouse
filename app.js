@@ -91,8 +91,8 @@ GameController.prototype.reset = function(dt) {
 	this.currentMapIndex = (this.currentMapIndex + 1) % this.maps.length;
 	console.log("Next map:", this.currentMapIndex, this.maps);
 	
-	this.mapController.loadMap(this.maps[this.currentMapIndex]);
-	this.worldState = this.mapController.worldState();
+	this.currentMap = this.mapController.loadMap(this.maps[this.currentMapIndex]); 
+	this.worldState = this.currentMap.worldState;
 	
 	this.sendTimeout();
 	
@@ -114,7 +114,7 @@ GameController.prototype.preparing = function(dt) {
 	this.sendTimeout();
 	
 	if (this.timeout <= 0) {
-		this.serverState.sendGlobalMessage("Welcome to " + this.maps[this.currentMapIndex].name);
+		this.serverState.sendGlobalMessage("Welcome to " + this.currentMap.title);
 		
 		if (this.serverState.users.length > 1) {
 			this.serverState.sendGlobalMessage("There are " + this.serverState.users.length + " players in the game. Who will be first?");

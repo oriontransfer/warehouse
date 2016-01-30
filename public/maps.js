@@ -5,19 +5,26 @@ function MapController ()
 
 MapController.prototype.reset = function()
 {
+	this.worldState = new WorldState();
 }
 
-MapController.prototype.loadMap = function(name)
+MapController.prototype.loadMap = function(name, options)
 {
 	this.reset();
 	
-	var mapTemplate = WarehouseMaps[name];
+	options = options || {}
+	
+	console.log("Loading map", name, options);
+	
+	var mapTemplate = MapController.maps[name];
 	
 	if (this.map) {
 		this.map.deallocate();
 	}
 	
-	this.map = mapTemplate.create(this);
+	this.map = mapTemplate.create(this, name, options);
+	
+	return this.map;
 }
 
 MapController.maps = {}
@@ -26,10 +33,11 @@ MapController.add = function(mapTemplate) {
 	MapController.maps[mapTemplate.name] = mapTemplate;
 }
 
-function GameMap(name, worldState)
+function GameMap(name, mapController)
 {
 	this.name = name;
-	this.worldState = worldState;
+	this.title = name;
+	this.worldState = new WorldState();
 }
 
 GameMap.prototype.spawn = function()
@@ -41,15 +49,16 @@ GameMap.prototype.deallocate = function()
 }
 
 MapController.add({
-	name: 'The Warehouse',
+	name: 'warehouse',
 	
-	create: function(mapController) {
-		var worldState = mapController.worldState, rendererState = mapController.rendererState;
-		
-		var map = new GameMap(this.name, worldState);
-		worldState.renderState = rendererState;
+	create: function(mapController, name, options) {
+		var map = new GameMap(this.name, mapController);
+		var rendererState = options.rendererState;
+		var worldState = map.worldState;
 		
 		var size = [32, 12], seed = 801923458, spawnY = 0;
+		
+		map.title = "The Warehouse";
 		
 		map.spawn = function(playerState) {
 			spawnY = (spawnY + 1) % size[1];

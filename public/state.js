@@ -21,7 +21,7 @@ EventType = {
 };
 
 /// *** Class Gamestate ***
-/// The state of the gmae map is stored in this Class
+/// The state of the game map is stored in this Class
 function WorldState() {
 	this.initPhysics();
 	this.renderState = null;
