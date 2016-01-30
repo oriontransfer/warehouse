@@ -1,0 +1,20 @@
+   barrelBlue		culled polygons
+barrelRed		culled polygons
+
+floorCrackedSmall	new asset
+floorFlatBoxes		new asset
+floorGems		new asset, to combine with gem box
+floorOilStain		new asset
+
+gemBox			new asset
+palletJack		new asset
+palletStack		new asset
+roadCone		new asset
+
+soundDisplayFootstep	new asset
+soundDisplayGunshot	new asset
+
+wallSupported		updated for better lighting results, gradient to black on top
+wallWindows		updated for better lighting results, gradient to black on top, grunge windows
+
+crateCardboard		updated mesh for better lighting results
