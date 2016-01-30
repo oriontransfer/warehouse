@@ -1,6 +1,34 @@
 
-function GameMap(worldState)
+function MapController ()
 {
+}
+
+MapController.prototype.reset = function()
+{
+}
+
+MapController.prototype.loadMap = function(name)
+{
+	this.reset();
+	
+	var mapTemplate = WarehouseMaps[name];
+	
+	if (this.map) {
+		this.map.deallocate();
+	}
+	
+	this.map = mapTemplate.create(this);
+}
+
+MapController.maps = {}
+
+MapController.add = function(mapTemplate) {
+	MapController.maps[mapTemplate.name] = mapTemplate;
+}
+
+function GameMap(name, worldState)
+{
+	this.name = name;
 	this.worldState = worldState;
 }
 
@@ -8,13 +36,17 @@ GameMap.prototype.spawn = function()
 {
 }
 
-WarehouseMaps = [];
+GameMap.prototype.deallocate = function()
+{
+}
 
-WarehouseMaps.push({
+MapController.add({
 	name: 'The Warehouse',
 	
-	create: function(worldState, rendererState) {
-		var map = new GameMap(worldState);
+	create: function(mapController) {
+		var worldState = mapController.worldState, rendererState = mapController.rendererState;
+		
+		var map = new GameMap(this.name, worldState);
 		worldState.renderState = rendererState;
 		
 		var size = [32, 12], seed = 801923458, spawnY = 0;

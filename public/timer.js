@@ -27,8 +27,11 @@ Timer.prototype._dispatch = function() {
 	
 	//console.log("timer error:", this.error, "duration:", duration);
 	
-	if (duration < 0) {
-		duration = 0
+	while (duration < 0) {
+		// Dropping frames:
+		this.lastTime = Timer.currentTime();
+		
+		duration = 0;
 	}
 	
 	setTimeout(

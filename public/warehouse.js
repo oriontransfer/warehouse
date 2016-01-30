@@ -46,29 +46,7 @@ Warehouse = {
 		this.assets.loaded(callback);
 	},
 	
-	controller: {
-		setup: function() {
-		},
-		
-		update: function(timestep) {
-		},
-		
-		handleEvent: function(event, state) {
-		},
-		
-		render: function(renderer) {
-		},
-		serverUpdate: function(data) {
-			if (data.phase == "preparing") {
-				var mapTemplate = WarehouseMaps[data.map];
-				
-				// Replace the controller with local world controller for the specified map:
-				Warehouse.setController(new WorldController(mapTemplate));
-			}
-		},
-		resizeWindow: function(width, height) {
-		}
-	},
+	controller: null,
 	
 	setController: function(controller) {
 		console.log("Setting controller:", controller);
@@ -96,7 +74,7 @@ Warehouse = {
 		document.body.appendChild(this.renderer.domElement);
 		
 		if (controller) this.setController(controller);
-		else this.setController(this.controller);
+		else this.setController(new WorldController());
 		
 		this.timestep = 1.0/30.0;
 		this.timer = new Timer(this.update.bind(this), this.timestep * 1000.0);
@@ -125,6 +103,10 @@ Warehouse = {
 		
 		this.socket.on('update', function(data) {
 			this.controller.serverUpdate(data);
+		}.bind(this));
+		
+		this.socket.on('map', function(data) {
+			this.controller.serverMap(data);
 		}.bind(this));
 		
 		this.socket.on('spawn', function(data) {

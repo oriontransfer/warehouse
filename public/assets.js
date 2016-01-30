@@ -42,7 +42,7 @@ ShelvesRenderer.prototype.add = function(assetIndex, pos_x, pos_y, angle)
 	var shelve = this.shelves[assetIndex];
 	
 	var mesh = new THREE.Mesh(shelve.geometry, shelve.material);
-	mesh.castShadow    = true;
+	mesh.castShadow = true;
 	mesh.receiveShadow = true;
 	mesh.position.x = pos_x;
 	mesh.position.y = pos_y;
@@ -50,6 +50,14 @@ ShelvesRenderer.prototype.add = function(assetIndex, pos_x, pos_y, angle)
 	
 	// Create mesh for shelf
 	this.scene.add(mesh);
+	
+	//var cube = new THREE.BoxHelper(mesh);
+	//cube.material.color.setRGB(0, 0, 1);
+	//cube.position.set(position.x, position.y, position.z);
+	//cube.scale.set(boxsize.x, boxsize.y, boxsize.z);
+	//this.scene.add(cube);
+	
+	//console.log("bb", mesh.geometry.boundingBox);
 }
 
 function ShelvesController(seed, region, density, worldState, renderer)
@@ -78,10 +86,13 @@ ShelvesController.prototype.generateShelveAtPosition = function(pos_x, pos_y, an
 	
 	var position = new CANNON.Vec3(pos_x, pos_y, 0);
 	
-	var boxsize = (angle == 270 || angle == 0 ? new CANNON.Vec3(this.shelve_size/2,this.shelve_size/3,100) : new CANNON.Vec3(this.shelve_size/3,this.shelve_size/2,100) );
-	var mass = (assetIndex == 3 || assetIndex == 4) ? 2000 : 0;
+	var boxsize = (angle == 270 || angle == 0 ? 
+		new CANNON.Vec3(this.shelve_size/2,this.shelve_size/3,10) : 
+		new CANNON.Vec3(this.shelve_size/3,this.shelve_size/2,10) );
 	
-	this.worldState.addBoxGeometry(position, boxsize, mass, "");
+	//var mass = (assetIndex == 3 || assetIndex == 4) ? 2000 : 0;
+	
+	this.worldState.addBoxGeometry(position, boxsize, 2000, true);
 }
 
 ShelvesController.prototype.generateHorizontalLines = function()

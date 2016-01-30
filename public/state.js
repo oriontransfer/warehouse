@@ -108,6 +108,7 @@ WorldState.prototype.initPhysics = function(){
 	this.world = new CANNON.World();
 	this.world.broadphase = new CANNON.NaiveBroadphase();
 	this.world.broadphase.useBoundingBoxes = true;
+	this.world.allowSleep = true;
 	
 	console.log("Creating physics world...");
 	
@@ -153,7 +154,6 @@ WorldState.prototype.update = function(dt) {
 	});
 }
 
-
 WorldState.prototype.addPlaneGeometry = function(locationVEC3, rotationVEC3, angleRAD){
 	var body = new CANNON.Body({mass: 0, material: this.groundPhysicsMaterial});
 	
@@ -168,6 +168,7 @@ WorldState.prototype.addPlaneGeometry = function(locationVEC3, rotationVEC3, ang
 	
 	return body;
 }
+
 WorldState.prototype.addBoxGeometry = function(locationVEC3, halfExtentsVEC3, mass, sleeping) {
 	var newBox = new BoxState(this.nextUniqueID++, locationVEC3, halfExtentsVEC3, mass, this.boxPhysicsMaterial, sleeping);
 
@@ -649,9 +650,10 @@ function BoxState(ID, position, extents, mass, material, sleeping) {
 	this.rigidBody.collisionFilterGroup = 1;
 	this.rigidBody.collisionFilterMask = 2;
 	
-	if (mass <= 1 || sleeping || sleeping) {
-		this.rigidBody.allowSleep = true;
-		this.rigidBody.sleepState = 2;
+	if (mass <= 1 || sleeping) {
+		//this.rigidBody.allowSleep = true;
+		//this.rigidBody.sleepState = 2;
+		//this.rigidBody.sleep();
 	}
 }
 

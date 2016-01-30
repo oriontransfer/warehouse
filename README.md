@@ -23,7 +23,7 @@ If you add new modules for the client to use:
 	$ npm install -g browserify
 	$ browserify public/index.js -o public/bundle.js
 
-## Credits ##
+## Credits
 
 - Leigh Beattie (Programmer & Designer)
 - Ricardo David Castañeda Marin (Programmer)
@@ -33,7 +33,7 @@ If you add new modules for the client to use:
 
 The initial game code and art was made in about 30 hours of actual work as part of the Global Game Jam 2014. During that time, there were approximately 5 commits per hour.
 
-### Dependencies ###
+### Dependencies
 
 - [three.js](https://github.com/mrdoob/three.js) for rendering.
 - [cannon.js](https://github.com/schteppe/cannon.js) for physics.
@@ -45,6 +45,10 @@ The initial game code and art was made in about 30 hours of actual work as part 
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
+
+### Ideas
+
+- Music: http://en.wikipedia.org/wiki/Living_in_a_Box
 
 ## License
 

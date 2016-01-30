@@ -1,29 +1,16 @@
 function PlayerController(scene){ //A call back class for the player container to associate a renderer with the player state when it's created.
-  this.scene = scene;
+	this.scene = scene;
 }
 
 PlayerController.prototype.onAdd = function(key, playerState){
-  playerState.renderer = new PlayerStateRenderer(this.scene, playerState);
+	playerState.renderer = new PlayerStateRenderer(this.scene, playerState);
 }
 
-
-function WorldController(mapTemplate) {
-	this.worldState = new WorldState();
-	this.currentPlayer = null;
+function WorldController() {
+	this.mapController = new MapController();
+	this.mapController.reset = this.resetMapController.bind(this, this.mapController);
 	
 	this.scene = new THREE.Scene();
-	
-	this.rendererState = {
-		assets: Warehouse.assets,
-		scene: this.scene
-	};
-	
-	this.worldState.players.observers.push(new PlayerController(this.scene));
-	
-	this.rendererState.shelvesRenderer = new ShelvesRenderer(this.rendererState);
-	this.rendererState.clutterRenderer = new ClutterRenderer(this.rendererState);
-	
-	this.map = mapTemplate.create(this.worldState, this.rendererState);
 	
 	var ambientLight = new THREE.AmbientLight(0x111111);
 	//this.scene.add(ambientLight);
@@ -34,8 +21,6 @@ function WorldController(mapTemplate) {
 	this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 10, 100);
 	this.camera.position.z = 20;
     this.camera.rotateOnAxis((new THREE.Vector3(1, 0, 0)).normalize(), D2R(45));
-	
-	this.playerGeometryController = new GeometryController(this.scene, this.worldState.players);
 	
 	var light = new THREE.SpotLight(0xffffff, 2.5, 50, D2R(72/2), 2.0);
 	light.position.set(10, 10, 10);
@@ -51,30 +36,58 @@ function WorldController(mapTemplate) {
 	
 	light.shadowMapWidth = 1024;
 	light.shadowMapHeight = 1024;
+	this.playerLight = light;
+	this.scene.add(this.playerLight);
 
 	var healthLight = new THREE.PointLight( 0xFFFFFF, 1, 5);
 	healthLight.position.set(2,2,2);
+}
+
+WorldController.prototype.serverMap = function(data) {
+	this.mapController.loadMap(data.name);
+}
+
+WorldController.prototype.resetMapController = function(mapController) {
+	if (this.worldState) this.worldState.deallocate();
 	
-	//light.shadowCameraVisible = true;
-	this.playerLight = light;
-	this.scene.add(this.playerLight);
+	if (this.levelScene) this.scene.remove(this.levelScene);
 	
-	this.playerHealthLight = healthLight;
-	this.scene.add(healthLight);
+	this.worldState = worldState;
 	
+	this.levelScene = new THREE.Object3D();
 	
+	this.rendererState = {
+		assets: Warehouse.assets,
+		scene: this.levelScene
+	};
+	
+	this.rendererState.shelvesRenderer = new ShelvesRenderer(this.rendererState);
+	this.rendererState.clutterRenderer = new ClutterRenderer(this.rendererState);
+	
+	this.worldState = new WorldState();
+	this.currentPlayer = null;
+	
+	this.map = mapTemplate.create(this.worldState, this.rendererState);
+	
+	//this.worldState.players.observers.push(new PlayerController(this.scene));
+	
+	this.playerGeometryController = new GeometryController(this.levelScene, this.worldState.players);
+	this.scene.add(this.levelScene);
+}
+
+WorldController.prototype.initializeMap = function(mapTemplate) {
 }
 
 WorldController.prototype.serverUpdate = function(data) {
-	//console.log("serverUpdate", data);
-	
-	this.worldState.deserialize(data.worldState);
-	
-	if (this.currentPlayer == null) {
-		this.currentPlayer = this.worldState.players.values[this.currentPlayerID];
+	if (data.phase == 'running' && this.worldState) {
+		this.worldState.deserialize(data.worldState);
 		
-		if (this.currentPlayer) {
-			this.notificationController = new NotificationController(this.worldState, this.currentPlayer, this.scene);
+		if (this.currentPlayer == null) {
+			this.currentPlayer = this.worldState.players.values[this.currentPlayerID];
+		
+			if (this.currentPlayer) {
+				this.notificationController = new NotificationController(this.worldState, this.currentPlayer, this.levelScene);
+			}
 		}
 	}
 }
@@ -156,10 +169,10 @@ WorldController.prototype.updateCurrentPlayer = function() {
 	this.currentPlayer.rigidBody.position.copy(this.playerLight.position);
 	this.playerLight.position.z += 0.6;
 
-	this.currentPlayer.rigidBody.position.copy(this.playerHealthLight.position);
-	this.playerHealthLight.position = this.playerHealthLight.position.add(WorldController.HEALTH_LIGHT_HEIGHT_OFFSET);
-	this.playerHealthLight.color.g = Math.sin(this.currentPlayer.health/PlayerState.HEALTH * Math.PI/2);
-	this.playerHealthLight.color.b = Math.sin(this.currentPlayer.health/PlayerState.HEALTH * Math.PI/2);
+	//this.currentPlayer.rigidBody.position.copy(this.playerHealthLight.position);
+	//this.playerHealthLight.position = this.playerHealthLight.position.add(WorldController.HEALTH_LIGHT_HEIGHT_OFFSET);
+	//this.playerHealthLight.color.g = Math.sin(this.currentPlayer.health/PlayerState.HEALTH * Math.PI/2);
+	//this.playerHealthLight.color.b = Math.sin(this.currentPlayer.health/PlayerState.HEALTH * Math.PI/2);
 
 	var rotation = new THREE.Quaternion();
 	
@@ -172,11 +185,12 @@ WorldController.prototype.updateCurrentPlayer = function() {
 }
 
 WorldController.prototype.update = function(dt) {
-	this.worldState.update(dt);
+	if (this.worldState) {
+		this.worldState.update(dt);
+		this.playerGeometryController.update();
+	}
 	
-	this.playerGeometryController.update();
-	
-	if (this.currentPlayer) {
+	if (this.currentPlayer != null) {
 		this.notificationController.update(dt);
 		
 		this.updateCurrentPlayer();

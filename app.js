@@ -31,7 +31,9 @@ Server = {
 	// The refresh rate of the server in FPS.
 	updateRate: 1.0/10.0,
 	
-	message: fs.readFileSync("motd.txt", "utf8")
+	message: fs.readFileSync("motd.txt", "utf8"),
+	
+	maps: ['warehouse']
 };
 
 function BlankWorldState () {
@@ -44,14 +46,13 @@ BlankWorldState.prototype.serialize = function() {
 
 // ** Game State **
 
-function GameState (maps, serverState) {
+function GameController (maps, serverState) {
 	this.phase = "reset";
 	
 	this.serverState = serverState;
 	
-	this.worldState = new BlankWorldState();
-	
 	this.maps = maps;
+	this.mapController = new MapController();
 	
 	this.currentMapIndex = -1;
 	
@@ -60,46 +61,51 @@ function GameState (maps, serverState) {
 	}.bind(this), Server.physicsRate * 1000.0);
 }
 
-GameState.prototype.serialize = function() {
+GameController.prototype.serialize = function() {
+	var mapName = null;
+	
+	if (this.mapController.map)
+		mapName = this.mapController.map.name;
+	
 	return {
-		map: this.currentMapIndex,
+		map: mapName,
 		phase: this.phase,
 		worldState: this.worldState.serialize()
 	};
 }
 
-GameState.prototype.setPhase = function(phase) {
+GameController.prototype.setPhase = function(phase) {
 	this.phase = phase;
-	console.log("GameState entering phase:", phase);
+	console.log("GameController entering phase:", phase);
 }
 
-GameState.prototype.update = function(dt) {
+GameController.prototype.update = function(dt) {
 	// A simple state machine:
 	this[this.phase](dt);
 }
 
-GameState.prototype.reset = function(dt) {
-	this.worldState = new WorldState();
+GameController.prototype.reset = function(dt) {
 	this.timeout = 3.0;
 	
 	// Select the next map:
 	this.currentMapIndex = (this.currentMapIndex + 1) % this.maps.length;
 	console.log("Next map:", this.currentMapIndex, this.maps);
 	
-	this.currentMap = this.maps[this.currentMapIndex].create(this.worldState);
+	this.mapController.loadMap(this.maps[this.currentMapIndex]);
+	this.worldState = this.mapController.worldState();
 	
 	this.sendTimeout();
 	
 	this.setPhase("preparing");
 }
 
-GameState.prototype.sendTimeout = function() {
+GameController.prototype.sendTimeout = function() {
 	this.serverState.users.forEach(function (user) {
 		user.emit("timeout", {remaining:this.timeout});
 	}.bind(this));
 }
 
-GameState.prototype.preparing = function(dt) {
+GameController.prototype.preparing = function(dt) {
 	// Don't start the game unless there is at least one person:
 	if (this.serverState.users.length < 1) return;
 	
@@ -127,15 +133,18 @@ GameState.prototype.preparing = function(dt) {
 		
 		this.worldState.update(dt);
 		
-		if(this.serverState.users.length > 2)this.timeout = 60*5;
-		else this.timeout = 60;
+		if (this.serverState.users.length > 2)
+			this.timeout = 60*5;
+		else
+			this.timeout = 60;
+		
 		this.setPhase("running");
 		
 		this.physicsUpdateTimer.start();
 	}
 }
 
-GameState.prototype.running = function(dt) {
+GameController.prototype.running = function(dt) {
 	this.timeout -= dt;
 	var remaining = [];
 	
@@ -164,7 +173,7 @@ GameState.prototype.running = function(dt) {
 	}
 }
 
-GameState.prototype.finishing = function(dt) {
+GameController.prototype.finishing = function(dt) {
 	this.setPhase("reset");
 	
 	// Disconnect users from player state:
@@ -175,7 +184,7 @@ GameState.prototype.finishing = function(dt) {
 	this.physicsUpdateTimer.stop();
 }
 
-GameState.prototype.handleEvent = function(user, event, state) {
+GameController.prototype.handleEvent = function(user, event, state) {
 	if (this.worldState && user.player) {
 		//console.log("event", user.player.name, user.player.position, event, state);
 		user.player.handleEvent(event, state);
@@ -196,15 +205,15 @@ UserState.prototype.emit = function(name, data) {
 	this.socket.emit(name, data);
 }
 
-function ServerState () {
+function ServerController () {
 	this.users = new Container();
 	
-	this.gameState = new GameState(WarehouseMaps, this);
+	this.gameState = new GameController(Server.maps, this);
 	
 	setInterval(this.updateClients.bind(this), Server.updateRate * 1000);
 }
 
-ServerState.prototype.sendGlobalMessage = function(text, html) {
+ServerController.prototype.sendGlobalMessage = function(text, html) {
 	console.log("Global Message:", text);
 	
 	this.users.forEach(function(user){
@@ -212,13 +221,13 @@ ServerState.prototype.sendGlobalMessage = function(text, html) {
 	});
 }
 
-ServerState.prototype.sendMessage = function(user, text, html) {
+ServerController.prototype.sendMessage = function(user, text, html) {
 	console.log("User Message:", user.name, text);
 	
 	user.emit('message', {text:text, html: html});
 }
 
-ServerState.prototype.updateClients = function() {
+ServerController.prototype.updateClients = function() {
 	this.gameState.update(Server.updateRate);
 	
 	var state = this.gameState.serialize();
@@ -228,7 +237,7 @@ ServerState.prototype.updateClients = function() {
 	});
 }
 
-ServerState.prototype.addUser = function(name, socket) {
+ServerController.prototype.addUser = function(name, socket) {
 	var assignedName = name, i = 2;
 	
 	while (this.users.contains(assignedName)) {
@@ -254,16 +263,16 @@ ServerState.prototype.addUser = function(name, socket) {
 	return user;
 }
 
-ServerState.prototype.removeUser = function(user) {
+ServerController.prototype.removeUser = function(user) {
 	this.users.pop(user);
 }
 
-ServerState.prototype.handleEvent = function(user, data) {
+ServerController.prototype.handleEvent = function(user, data) {
 	this.gameState.handleEvent(user, data.event, data.state);
 }
 
 // ** Connection Code **
-SERVER = new ServerState();
+SERVER = new ServerController();
 
 // Less logging output:
 io.set('log level', 1);
@@ -286,7 +295,7 @@ io.sockets.on('connection', function (socket) {
 	
 	socket.on('event', function(data) {
 		if (user) {
-			//console.log("User Event", user.name, data);
+			console.log("User Event", user.name, data);
 		
 			SERVER.handleEvent(user, data);
 		}
