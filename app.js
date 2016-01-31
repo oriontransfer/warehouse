@@ -27,7 +27,7 @@ eval(fs.readFileSync('./public/maps.js', 'utf8'));
 
 Server = {
 	// The refresh rate of the server in FPS.
-	updateRate: 1.0,
+	updateRate: 1/15.0,
 	
 	message: fs.readFileSync("motd.txt", "utf8"),
 	

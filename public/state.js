@@ -26,6 +26,8 @@ function WorldState() {
 	this.initPhysics();
 	this.renderState = null;
 	
+	this.runPhysics = true;
+	
 	// ** Player Container **
 	this.players = Container.createObjectContainer(function(key, data) {
 		var player = new PlayerState(key, new CANNON.Vec3(0, 0, 0), this.boxPhysicsMaterial);
@@ -155,7 +157,8 @@ WorldState.prototype.initPhysics = function(){
 }
 
 WorldState.prototype.update = function(dt) {
-	this.world.step(dt);
+	if (this.runPhysics)
+		this.world.step(dt);
 
 	this.players.forEach(function(player){
 		player.update(dt);

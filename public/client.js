@@ -65,6 +65,7 @@ WorldController.prototype.serverMap = function(data) {
 	});
 	
 	this.worldState = this.currentMap.worldState;
+	this.worldState.runPhysics = false;
 	
 	this.playerGeometryController = new GeometryController(this.levelScene, this.currentMap.worldState.players);
 }
