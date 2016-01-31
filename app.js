@@ -26,10 +26,8 @@ eval(fs.readFileSync('./public/maps.js', 'utf8'));
 // ** Server Configuration **
 
 Server = {
-	physicsRate: 1.0/30.0,
-	
 	// The refresh rate of the server in FPS.
-	updateRate: 5.0, //1.0/10.0,
+	updateRate: 1.0,
 	
 	message: fs.readFileSync("motd.txt", "utf8"),
 	
@@ -56,9 +54,11 @@ function GameController (maps, serverState) {
 	
 	this.currentMapIndex = -1;
 	
+	this.timestep = WorldState.PHYSICS_RATE;
+	
 	this.physicsUpdateTimer = new Timer(function() {
-		this.worldState.update(Server.physicsRate);
-	}.bind(this), Server.physicsRate * 1000.0);
+		this.worldState.update(this.timestep);
+	}.bind(this), this.timestep * 1000.0);
 }
 
 GameController.prototype.serialize = function() {
@@ -246,8 +246,6 @@ ServerController.prototype.updateClients = function() {
 	this.gameState.update(Server.updateRate);
 	
 	var state = this.gameState.serialize();
-	
-	console.log("updateClients", state);
 	
 	this.users.forEach(function(user) {
 		user.emit('update', state);

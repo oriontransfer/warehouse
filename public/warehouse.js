@@ -76,7 +76,7 @@ Warehouse = {
 		if (controller) this.setController(controller);
 		else this.setController(new WorldController());
 		
-		this.timestep = 1.0/30.0;
+		this.timestep = WorldState.PHYSICS_RATE;
 		this.timer = new Timer(this.update.bind(this), this.timestep * 1000.0);
 		this.timer.start();
 		
@@ -94,6 +94,24 @@ Warehouse = {
 	},
 	
 	eventState: {
+	},
+	
+	appendMessage: function(data) {
+		var messageElement = document.createElement('div');
+		
+		if (data.html) {
+			messageElement.innerHTML = data.text;
+		} else {
+			var messageTextNode = document.createTextNode(data.text);
+			messageElement.appendChild(messageTextNode);
+		}
+		
+		this.messagesElement.appendChild(messageElement);
+		
+		// Only show 4 most recent messages:
+		while (this.messagesElement.children.length > 4) {
+			this.messagesElement.removeChild(this.messagesElement.children[0]);
+		}
 	},
 	
 	connectToServer: function(host) {
@@ -119,21 +137,7 @@ Warehouse = {
 		
 		// Messages from server:
 		this.socket.on('message', function(data) {
-			var messageElement = document.createElement('div');
-			
-			if (data.html) {
-				messageElement.innerHTML = data.text;
-			} else {
-				var messageTextNode = document.createTextNode(data.text);
-				messageElement.appendChild(messageTextNode);
-			}
-			
-			this.messagesElement.appendChild(messageElement);
-			
-			// Only show 4 most recent messages:
-			while (this.messagesElement.children.length > 4) {
-				this.messagesElement.removeChild(this.messagesElement.children[0]);
-			}
+			this.appendMessage(data);
 		}.bind(this));
 		
 		this.socket.on('timeout', function(data) {

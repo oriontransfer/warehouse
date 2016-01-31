@@ -96,8 +96,8 @@ WorldController.prototype.serverSpawned = function(data) {
 }
 
 WorldController.prototype.setup = function(renderer) {
-	renderer.shadowMapEnabled = true;
-	renderer.shadowMapType = THREE.PCFShadowMap;
+	renderer.shadowMap.enabled = true;
+	renderer.shadowMap.type = THREE.PCFShadowMap;
 	
 	renderer.setClearColor(this.scene.fog.color, 1);
 	renderer.autoClear = false;

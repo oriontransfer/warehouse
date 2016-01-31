@@ -21,7 +21,6 @@
 		"DbgIndex" : 0,
 		"DbgName" : "default",
 		"blending" : "NormalBlending",
-		"colorAmbient" : [1.0, 1.0, 1.0],
 		"colorDiffuse" : [1.0, 1.0, 1.0],
 		"colorSpecular" : [0.0, 0.0, 0.0],
 		"depthTest" : true,
@@ -31,7 +30,7 @@
 		"mapNormalWrap" : ["repeat", "repeat"],
 		"shading" : "Phong",
 		"specularCoef" : 50,
-		"transparency" : 1.0,
+
 		"transparent" : false,
 		"vertexColors" : false
 	}],

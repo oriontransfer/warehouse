@@ -81,10 +81,11 @@ function WorldState() {
 	this.nextUniqueID = 0;
 }
 
+WorldState.PHYSICS_RATE = 1.0/30.0;
+
 //Const world variables
 WorldState.PLAYER_SIZE_HALF = 0.8;
-WorldState.PLAYER_MASS = 100;
-WorldState.ANGULAR_DAMPING = 0.99;
+WorldState.PLAYER_MASS = 80;
 
 WorldState.PROJECTILE_SIZE_HALF = 0.05;
 WorldState.PROJECTILE_MASS = 0.1;
@@ -135,10 +136,8 @@ WorldState.prototype.initPhysics = function(){
 	});
 	
 	this.groundMovingContactMaterial = new CANNON.ContactMaterial(this.groundPhysicsMaterial, this.boxMovingMaterial, {
-		friction: 0,
-		restitution: 0.3,
-		contactEquationStiffness: 1e8,
-		contactEquationRelaxation: 3
+		friction: 0.1,
+		restitution: 0.6
 	});
 	
 	this.world.addContactMaterial(this.groundMovingContactMaterial);
@@ -193,9 +192,7 @@ WorldState.prototype.addBoxGeometry = function(locationVEC3, halfExtentsVEC3, ma
 WorldState.prototype.createPlayer = function(position) {
 	var newPlayer = new PlayerState(this.nextUniqueID++, position, this.boxPhysicsMaterial);
 	
-	newPlayer.worldInside = this;
-	
-	if(this.renderState){
+	if (this.renderState) {
 		newPlayer.renderer = new PlayerStateRenderer(this.renderState, newPlayer);
 	}
 	
@@ -334,8 +331,6 @@ PlayerStateRenderer.prototype.showMuzzleFlash = function(){
 // ** Player State **
 
 function PlayerState(ID, position, material) {
-	console.log("PlayerState:", ID, position, material);
-	
 	this.renderer = null;
 	
 	this.ID = ID;
@@ -359,25 +354,81 @@ function PlayerState(ID, position, material) {
 	this.worldState = null;
 
 	var boxHalfExtents = new CANNON.Vec3(WorldState.PLAYER_SIZE_HALF, WorldState.PLAYER_SIZE_HALF, WorldState.PLAYER_SIZE_HALF);
+	
 	var boxShape = new CANNON.Box(boxHalfExtents);
-	this.rigidBody = new CANNON.Body({mass: WorldState.PLAYER_MASS, material: material});
-	this.rigidBody.addShape(boxShape);
+	
+	this.rigidBody = new CANNON.Body({mass: WorldState.PLAYER_MASS, material: material, shape: boxShape});
 	
 	this.rigidBody.collisionFilterGroup = 2;
 	this.rigidBody.collisionFilterMask = 1 | 2;
 	this.rigidBody.position.copy(position);
 	
-	this.rigidBody.angularDamping = WorldState.ANGULAR_DAMPING;
+	this.rigidBody.damping = 0.8;
+	this.rigidBody.angularDamping = 0.8;
+	
 	this.rigidBody.userData = this;
 }
 
-PlayerState.prototype.serialize = function() {
-	var p = this.rigidBody.position, q = this.rigidBody.quaternion, v = this.rigidBody.velocity, tau = this.rigidBody.tau;
-	
+CANNON.Body.prototype.serialize = function() {
 	return [
-		p.x, p.y, p.z,
-		q.x, q.y, q.z, q.w,
-		v.x, v.y, v.z,
+		// Position
+		this.position.x, this.position.y, this.position.z,
+		this.previousPosition.x, this.previousPosition.y, this.previousPosition.z,
+		this.interpolatedPosition.x, this.interpolatedPosition.y, this.interpolatedPosition.z,
+		this.initPosition.x, this.initPosition.y, this.initPosition.z,
+		
+		// Orientation
+		this.quaternion.x, this.quaternion.y, this.quaternion.z, this.quaternion.w,
+		this.previousQuaternion.x, this.previousQuaternion.y, this.previousQuaternion.z, this.previousQuaternion.w,
+		this.interpolatedQuaternion.x, this.interpolatedQuaternion.y, this.interpolatedQuaternion.z, this.interpolatedQuaternion.w,
+		this.initQuaternion.x, this.initQuaternion.y, this.initQuaternion.z, this.initQuaternion.w,
+		
+		// Velocity
+		this.velocity.x, this.velocity.y, this.velocity.z,
+		this.initVelocity.x, this.initVelocity.y, this.initVelocity.z,
+		this.angularVelocity.x, this.angularVelocity.y, this.angularVelocity.z,
+		this.initAngularVelocity.x, this.initAngularVelocity.y, this.initAngularVelocity.z,
+		
+		this.force.x, this.force.y, this.force.z,
+		this.torque.x, this.torque.y, this.torque.z,
+		
+		this.sleepState,
+		this.timeLastSleepy,
+		this._wakeUpAfterNarrowphase
+	];
+}
+
+CANNON.Body.prototype.deserialize = function(data) {
+	this.position.set(data[0], data[1], data[2]);
+	this.previousPosition.set(data[3], data[4], data[5]);
+	this.interpolatedPosition.set(data[6], data[7], data[8]);
+	this.initPosition.set(data[9], data[10], data[11]);
+	
+	// orientation
+	this.quaternion.set(data[12], data[13], data[14], data[15]);
+	this.previousQuaternion.set(data[16], data[17], data[18], data[19]);
+	this.interpolatedQuaternion.set(data[20], data[21], data[22], data[23]);
+	this.initQuaternion.set(data[24], data[25], data[26], data[27]);
+
+	// Velocity
+	this.velocity.set(data[28], data[29], data[30]);
+	this.initVelocity.set(data[31], data[32], data[33]);
+	this.angularVelocity.set(data[34], data[35], data[36]);
+	this.initAngularVelocity.set(data[37], data[38], data[39]);
+
+	// Force
+	this.force.set(data[40], data[41], data[42]);
+	this.torque.set(data[43], data[44], data[45]);
+
+	// Sleep state reset
+	this.sleepState = data[46];
+	this.timeLastSleepy = data[47];
+	this._wakeUpAfterNarrowphase = data[48];
+}
+
+PlayerState.prototype.serialize = function() {
+	return [
+		this.rigidBody.serialize(),
 		this.health,
 		this.isShooting,
 		this.isAlive,
@@ -395,35 +446,21 @@ PlayerState.prototype.serialize = function() {
 PlayerState.prototype.deserialize = function(data) {
 	var body = this.rigidBody;
 	
-	body.position.set(data[0], data[1], data[2]);
-	body.quaternion.set(data[3], data[4], data[5], data[6]);
-	body.velocity.set(data[7], data[8], data[9]);
+	body.deserialize(data[0])
 	
-	this.health = data[10];
-	this.isShooting = data[11];
-	this.isAlive = data[12];
-	this.isReloading = data[13];
-	this.roundsInClip = data[14];
-	this.timeSpentReloading = data[15];
-	this.isMakingNoise = data[16];
+	this.health = data[1];
+	this.isShooting = data[2];
+	this.isAlive = data[3];
+	this.isReloading = data[4];
+	this.roundsInClip = data[5];
+	this.timeSpentReloading = data[6];
+	this.isMakingNoise = data[7];
 	
-	this.motion = data[17];
-	this.motionDirection = data[18];
-	this.rotation = data[19];
-	this.rotationDirection = data[20];
+	this.motion = data[8];
+	this.motionDirection = data[9];
+	this.rotation = data[10];
+	this.rotationDirection = data[11];
 }
-
-//Const player variables.
-PlayerState.WALKING_SPEED = 400;
-PlayerState.RUNNING_SPEED = 800;
-PlayerState.WALKING_ROT_SPEED = 0.7;
-PlayerState.RUNNING_ROT_SPEED = 2;
-PlayerState.MAX_WALKING_SPEED = 402;
-PlayerState.MAX_RUNNING_SPEED = 804;
-PlayerState.FIRE_RATE_PER_SECOND = 1;
-PlayerState.BULLET_SPEED = 1;
-PlayerState.RELOAD_TIME = 3;
-PlayerState.CLIP_SIZE = 6;
 
 PlayerState.Motion = {
 	WALKING: 1,
@@ -526,7 +563,18 @@ PlayerState.prototype.handleEvent = function(event, action){
 	}
 }
 
-PlayerState.prototype.update = function(dt){
+PlayerState.WALKING_SPEED = 100;
+PlayerState.RUNNING_SPEED = 200;
+PlayerState.WALKING_ROT_SPEED = 0.7;
+PlayerState.RUNNING_ROT_SPEED = 2;
+PlayerState.MAX_WALKING_SPEED = 402;
+PlayerState.MAX_RUNNING_SPEED = 804;
+PlayerState.FIRE_RATE_PER_SECOND = 1;
+PlayerState.BULLET_SPEED = 1;
+PlayerState.RELOAD_TIME = 3;
+PlayerState.CLIP_SIZE = 6;
+
+PlayerState.prototype.update = function(dt) {
 	var movement = new CANNON.Vec3(0,0,0);
 	
 	switch(this.motionDirection){
@@ -548,16 +596,21 @@ PlayerState.prototype.update = function(dt){
 		break;
 	}
 	
+	var moving = false;
+	
 	if (this.motion == PlayerState.Motion.WALKING) {
+		movement.z += 0.1;
+		
 		var speed = this.isRunning ? PlayerState.RUNNING_SPEED : PlayerState.WALKING_SPEED;
 		
 		movement.mult(speed, movement);
 		
-		this.rigidBody.applyForce(movement, CANNON.Vec3.ZERO);
+		// Apply the rotation to the vector:
+		movement = this.rigidBody.quaternion.vmult(movement);
 		
-		this.rigidBody.material = this.boxMovingMaterial;
-	} else {
-		this.rigidBody.material = this.boxPhysicsMaterial;
+		this.rigidBody.applyImpulse(movement, CANNON.Vec3.ZERO);
+		
+		moving = true;
 	}
 	
 	// Handle left and right rotations:
@@ -569,6 +622,14 @@ PlayerState.prototype.update = function(dt){
 		} else {
 			this.rigidBody.angularVelocity.z = 0;
 		}
+		
+		moving = true;
+	}
+	
+	if (moving) {
+		this.rigidBody.material = this.worldState.boxMovingMaterial;
+	} else {
+		this.rigidBody.material = this.worldState.boxPhysicsMaterial;
 	}
 	
 	if(this.health <= 0 && this.isAlive){

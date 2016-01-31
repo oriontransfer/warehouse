@@ -14,18 +14,34 @@ function GeometryController (scene, container)
 GeometryController.prototype.onAdd = function(key, object)
 {
 	var box = Warehouse.assets.get('box');
+	box.geometry.computeBoundingBox();
 	
-	object.mesh = new THREE.Mesh(box.geometry, box.material);
+	object.mesh = new THREE.Object3D();
+	
+	var boxMesh = new THREE.Mesh(box.geometry, box.material);
 	object.mesh.receiveShadow = true;
 	object.mesh.castShadow = true;
+	
+	// Center the mesh since it's position is based on a physics bounding box which is modelled using half extents:
+	boxMesh.position.copy(box.geometry.boundingBox.center().negate());
+	
+	object.mesh.add(boxMesh);
+	
+	var shape = object.rigidBody.shapes[0];
+	var wireframeMaterial = new THREE.MeshLambertMaterial({color: 0xffffff, wireframe:true});
+	var wireframe = new THREE.BoxGeometry(
+		shape.halfExtents.x*2,
+		shape.halfExtents.y*2,
+		shape.halfExtents.z*2
+	);
+	
+	object.mesh.add(new THREE.Mesh(wireframe, wireframeMaterial));
 	
 	this.scene.add(object.mesh);
 }
 
 GeometryController.prototype.onRemove = function(key, object)
 {
-	console.log("Removing mesh", object.mesh);
-	
 	this.scene.remove(object.mesh);
 }
 
@@ -35,6 +51,7 @@ GeometryController.prototype.update = function()
 		if (object.mesh) {
 			var mesh = object.mesh, rigidBody = object.rigidBody;
 			
+			// Center
 			mesh.position.copy(rigidBody.position);
 			mesh.quaternion.set(
 				rigidBody.quaternion.x,
@@ -42,9 +59,6 @@ GeometryController.prototype.update = function()
 				rigidBody.quaternion.z,
 				rigidBody.quaternion.w
 			);
-			
-			// Bug in geometry
-			mesh.position.z -= 0.8;
 		}
 	});
 }
