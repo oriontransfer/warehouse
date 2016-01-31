@@ -110,15 +110,14 @@ WorldState.prototype.initPhysics = function(){
 	
 	this.world.broadphase = new CANNON.NaiveBroadphase();
 	this.world.broadphase.useBoundingBoxes = true;
-	//this.world.allowSleep = true;
+	this.world.allowSleep = true;
 	
 	console.log("Creating physics world...");
 	
-	//var solver = new CANNON.GSSolver();
-	//solver.iterations = 4;
-	//solver.tolerance = 3;
-
-	//this.world.solver = solver;
+	var solver = new CANNON.GSSolver();
+	solver.iterations = 4;
+	solver.tolerance = 3;
+	this.world.solver = solver;
 		
 	//Initialise the physics contact materials.
 	this.boxPhysicsMaterial = new CANNON.Material("BOX_PHY_MATERIAL");
@@ -136,12 +135,12 @@ WorldState.prototype.initPhysics = function(){
 	//orld.addContactMaterial(this.boxPhysicsContactMaterial);
 	this.world.addContactMaterial(this.groundPhysicsContactMaterial);
 
-	//this.world.quatNormalizeFast = true;
-	//this.world.quatNormalizeSkip = 2;
+	this.world.quatNormalizeFast = true;
+	this.world.quatNormalizeSkip = 2;
 
 	//Initialise the ground plane
 	var groundShape = new CANNON.Plane();
-	var groundBody = new CANNON.Body({mass: 0, shape: groundShape});
+	var groundBody = new CANNON.Body({mass: 0, shape: groundShape, material: this.groundPhysicsMaterial});
 	groundBody.collisionFilterGroup = 1;
 	groundBody.collisionFilterMask = 2;
 	this.world.add(groundBody);
@@ -388,10 +387,6 @@ PlayerState.prototype.deserialize = function(data) {
 	var body = this.rigidBody;
 	
 	body.position.set(data[0], data[1], data[2]);
-	body.previousPosition.set(data[0], data[1], data[2]);
-	body.interpolatedPosition.set(data[0], data[1], data[2]);
-	body.initPosition.set(data[0], data[1], data[2]);
-	
 	body.quaternion.set(data[3], data[4], data[5], data[6]);
 	body.velocity.set(data[7], data[8], data[9]);
 	
@@ -527,21 +522,32 @@ PlayerState.prototype.update = function(dt){
 	
 	switch(this.motionDirection){
 		case PlayerState.Direction.FORWARD:
-			if(this.motion != PlayerState.Motion.STOPPED)movement.y = 1;
+			if(this.motion != PlayerState.Motion.STOPPED)movement.y = 4000;
 			else movement.y = 0;
 		break;
 		case PlayerState.Direction.BACKWARD:
-			if(this.motion != PlayerState.Motion.STOPPED)movement.y = -1;
+			if(this.motion != PlayerState.Motion.STOPPED)movement.y = -4000;
 			else movement.y = 0;
 		break;
 		case PlayerState.Direction.LEFT:
-			if(this.motion != PlayerState.Motion.STOPPED)movement.x = -1;
+			if(this.motion != PlayerState.Motion.STOPPED)movement.x = -4000;
 			else movement.x = 0;
 		break;
 		case PlayerState.Direction.RIGHT:
-			if(this.motion != PlayerState.Motion.STOPPED)movement.x = 1;
+			if(this.motion != PlayerState.Motion.STOPPED)movement.x = 4000;
 			else movement.x = 0;
 		break;
+	}
+	
+	// Handle left and right rotations:
+	if (this.rotation == PlayerState.Motion.WALKING) {
+		if (this.rotationDirection == PlayerState.Direction.LEFT) {
+			this.rigidBody.angularVelocity.z = this.isRunning ? PlayerState.RUNNING_ROT_SPEED : PlayerState.WALKING_ROT_SPEED;
+		} else if (this.rotationDirection == PlayerState.Direction.RIGHT) {
+			this.rigidBody.angularVelocity.z = this.isRunning ? -PlayerState.RUNNING_ROT_SPEED : -PlayerState.WALKING_ROT_SPEED;
+		} else {
+			this.rigidBody.angularVelocity.z = 0;
+		}
 	}
 	
 	this.rigidBody.applyForce(movement, CANNON.Vec3.ZERO);

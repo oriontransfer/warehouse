@@ -36,7 +36,12 @@ GeometryController.prototype.update = function()
 			var mesh = object.mesh, rigidBody = object.rigidBody;
 			
 			mesh.position.copy(rigidBody.position);
-			//mesh.quaternion.copy(rigidBody.quaternion);
+			mesh.quaternion.set(
+				rigidBody.quaternion.x,
+				rigidBody.quaternion.y,
+				rigidBody.quaternion.z,
+				rigidBody.quaternion.w
+			);
 			
 			// Bug in geometry
 			mesh.position.z -= 0.8;
