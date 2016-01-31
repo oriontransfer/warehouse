@@ -83,7 +83,7 @@ function WorldState() {
 
 //Const world variables
 WorldState.PLAYER_SIZE_HALF = 0.8;
-WorldState.PLAYER_MASS = 2515 * 0.5;
+WorldState.PLAYER_MASS = 100;
 WorldState.ANGULAR_DAMPING = 0.99;
 
 WorldState.PROJECTILE_SIZE_HALF = 0.05;
@@ -120,9 +120,11 @@ WorldState.prototype.initPhysics = function(){
 	this.world.solver = solver;
 		
 	//Initialise the physics contact materials.
-	this.boxPhysicsMaterial = new CANNON.Material("BOX_PHY_MATERIAL");
-
-	this.groundPhysicsMaterial = new CANNON.Material("GROUND_PHY_MATERIAL");
+	this.boxPhysicsMaterial = new CANNON.Material("BoxStatic");
+	this.boxMovingMaterial = new CANNON.Material("BoxMoving")
+	
+	this.groundPhysicsMaterial = new CANNON.Material("Ground");
+	
 	this.groundPhysicsContactMaterial = new CANNON.ContactMaterial(this.groundPhysicsMaterial, this.boxPhysicsMaterial, {
 		friction: 0.4,
 		restitution: 0.3,
@@ -131,8 +133,15 @@ WorldState.prototype.initPhysics = function(){
 		frictionEquationStiffness: 1e8,
 		frictionEquationRegularizationTime: 3,
 	});
-
-	//orld.addContactMaterial(this.boxPhysicsContactMaterial);
+	
+	this.groundMovingContactMaterial = new CANNON.ContactMaterial(this.groundPhysicsMaterial, this.boxMovingMaterial, {
+		friction: 0,
+		restitution: 0.3,
+		contactEquationStiffness: 1e8,
+		contactEquationRelaxation: 3
+	});
+	
+	this.world.addContactMaterial(this.groundMovingContactMaterial);
 	this.world.addContactMaterial(this.groundPhysicsContactMaterial);
 
 	this.world.quatNormalizeFast = true;
@@ -405,12 +414,12 @@ PlayerState.prototype.deserialize = function(data) {
 }
 
 //Const player variables.
-PlayerState.WALKING_SPEED = 4000;
-PlayerState.RUNNING_SPEED = 8000;
+PlayerState.WALKING_SPEED = 400;
+PlayerState.RUNNING_SPEED = 800;
 PlayerState.WALKING_ROT_SPEED = 0.7;
 PlayerState.RUNNING_ROT_SPEED = 2;
-PlayerState.MAX_WALKING_SPEED = 4002;
-PlayerState.MAX_RUNNING_SPEED = 8004;
+PlayerState.MAX_WALKING_SPEED = 402;
+PlayerState.MAX_RUNNING_SPEED = 804;
 PlayerState.FIRE_RATE_PER_SECOND = 1;
 PlayerState.BULLET_SPEED = 1;
 PlayerState.RELOAD_TIME = 3;
@@ -522,21 +531,33 @@ PlayerState.prototype.update = function(dt){
 	
 	switch(this.motionDirection){
 		case PlayerState.Direction.FORWARD:
-			if(this.motion != PlayerState.Motion.STOPPED)movement.y = 4000;
+			if(this.motion != PlayerState.Motion.STOPPED)movement.y = 1;
 			else movement.y = 0;
 		break;
 		case PlayerState.Direction.BACKWARD:
-			if(this.motion != PlayerState.Motion.STOPPED)movement.y = -4000;
+			if(this.motion != PlayerState.Motion.STOPPED)movement.y = -1;
 			else movement.y = 0;
 		break;
 		case PlayerState.Direction.LEFT:
-			if(this.motion != PlayerState.Motion.STOPPED)movement.x = -4000;
+			if(this.motion != PlayerState.Motion.STOPPED)movement.x = -1;
 			else movement.x = 0;
 		break;
 		case PlayerState.Direction.RIGHT:
-			if(this.motion != PlayerState.Motion.STOPPED)movement.x = 4000;
+			if(this.motion != PlayerState.Motion.STOPPED)movement.x = 1;
 			else movement.x = 0;
 		break;
+	}
+	
+	if (this.motion == PlayerState.Motion.WALKING) {
+		var speed = this.isRunning ? PlayerState.RUNNING_SPEED : PlayerState.WALKING_SPEED;
+		
+		movement.mult(speed, movement);
+		
+		this.rigidBody.applyForce(movement, CANNON.Vec3.ZERO);
+		
+		this.rigidBody.material = this.boxMovingMaterial;
+	} else {
+		this.rigidBody.material = this.boxPhysicsMaterial;
 	}
 	
 	// Handle left and right rotations:
@@ -549,8 +570,6 @@ PlayerState.prototype.update = function(dt){
 			this.rigidBody.angularVelocity.z = 0;
 		}
 	}
-	
-	this.rigidBody.applyForce(movement, CANNON.Vec3.ZERO);
 	
 	if(this.health <= 0 && this.isAlive){
 		console.log('Player has died', this.ID);
