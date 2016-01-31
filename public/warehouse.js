@@ -113,6 +113,10 @@ Warehouse = {
 			this.controller.serverSpawned(data);
 		}.bind(this));
 		
+		this.socket.on('start', function(data) {
+			this.controller.serverStart(data);
+		}.bind(this));
+		
 		// Messages from server:
 		this.socket.on('message', function(data) {
 			var messageElement = document.createElement('div');

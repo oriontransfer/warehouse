@@ -1,92 +1,58 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 module.exports={
-  "_args": [
-    [
-      "cannon@git://github.com/schteppe/cannon.js.git#master",
-      "/home/samuel/Documents/Programming/warehouse"
-    ]
-  ],
-  "_from": "git://github.com/schteppe/cannon.js.git#master",
-  "_id": "cannon@0.6.2",
-  "_inCache": true,
-  "_installable": true,
-  "_location": "/cannon",
-  "_phantomChildren": {},
-  "_requested": {
-    "hosted": {
-      "directUrl": "https://raw.githubusercontent.com/schteppe/cannon.js/master/package.json",
-      "gitUrl": "git://github.com/schteppe/cannon.js.git#master",
-      "httpsUrl": "git+https://github.com/schteppe/cannon.js.git#master",
-      "shortcut": "github:schteppe/cannon.js#master",
-      "ssh": "git@github.com:schteppe/cannon.js.git#master",
-      "sshUrl": "git+ssh://git@github.com/schteppe/cannon.js.git#master",
-      "type": "github"
-    },
-    "name": "cannon",
-    "raw": "cannon@git://github.com/schteppe/cannon.js.git#master",
-    "rawSpec": "git://github.com/schteppe/cannon.js.git#master",
-    "scope": null,
-    "spec": "git://github.com/schteppe/cannon.js.git#master",
-    "type": "hosted"
-  },
-  "_requiredBy": [
-    "/"
-  ],
-  "_resolved": "git://github.com/schteppe/cannon.js.git#748afef42e3d844612785a6c32d0196d4b5617bd",
-  "_shasum": "561d2cba6b64173d9fcb7121f9fd720132ca8b8c",
-  "_shrinkwrap": null,
-  "_spec": "cannon@git://github.com/schteppe/cannon.js.git#master",
-  "_where": "/home/samuel/Documents/Programming/warehouse",
+  "name": "cannon",
+  "version": "0.6.2",
+  "description": "A lightweight 3D physics engine written in JavaScript.",
+  "homepage": "https://github.com/schteppe/cannon.js",
   "author": {
-    "email": "schteppe@gmail.com",
     "name": "Stefan Hedman",
+    "email": "schteppe@gmail.com",
     "url": "http://steffe.se"
+  },
+  "keywords": [
+    "cannon.js",
+    "cannon",
+    "physics",
+    "engine",
+    "3d"
+  ],
+  "main": "./src/Cannon.js",
+  "engines": {
+    "node": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/schteppe/cannon.js.git"
   },
   "bugs": {
     "url": "https://github.com/schteppe/cannon.js/issues"
   },
-  "dependencies": {},
-  "description": "A lightweight 3D physics engine written in JavaScript.",
-  "devDependencies": {
-    "browserify": "*",
-    "grunt": "~0.4.0",
-    "grunt-browserify": "^2.1.4",
-    "grunt-contrib-concat": "~0.1.3",
-    "grunt-contrib-jshint": "~0.1.1",
-    "grunt-contrib-nodeunit": "^0.4.1",
-    "grunt-contrib-uglify": "^0.5.1",
-    "grunt-contrib-yuidoc": "^0.5.2",
-    "jshint": "latest",
-    "nodeunit": "^0.9.0",
-    "uglify-js": "latest"
-  },
-  "engines": {
-    "node": "*"
-  },
-  "gitHead": "748afef42e3d844612785a6c32d0196d4b5617bd",
-  "homepage": "https://github.com/schteppe/cannon.js",
-  "keywords": [
-    "3d",
-    "cannon",
-    "cannon.js",
-    "engine",
-    "physics"
-  ],
   "licenses": [
     {
       "type": "MIT"
     }
   ],
-  "main": "./src/Cannon.js",
-  "name": "cannon",
-  "optionalDependencies": {},
+  "devDependencies": {
+    "jshint": "latest",
+    "uglify-js": "latest",
+    "nodeunit": "^0.9.0",
+    "grunt": "~0.4.0",
+    "grunt-contrib-jshint": "~0.1.1",
+    "grunt-contrib-nodeunit": "^0.4.1",
+    "grunt-contrib-concat": "~0.1.3",
+    "grunt-contrib-uglify": "^0.5.1",
+    "grunt-browserify": "^2.1.4",
+    "grunt-contrib-yuidoc": "^0.5.2",
+    "browserify": "*"
+  },
+  "dependencies": {},
+  "gitHead": "748afef42e3d844612785a6c32d0196d4b5617bd",
   "readme": "# cannon.js\n\n### Lightweight 3D physics for the web\nInspired by [three.js](https://github.com/mrdoob/three.js) and [ammo.js](https://github.com/kripken/ammo.js), and driven by the fact that the web lacks a physics engine, here comes cannon.js.\nThe rigid body physics engine includes simple collision detection, various body shapes, contacts, friction and constraints.\n\n[Demos](http://schteppe.github.com/cannon.js) - [Documentation](http://schteppe.github.com/cannon.js/docs) - [Rendering hints](https://github.com/schteppe/cannon.js/tree/master/examples) - [NPM package](https://npmjs.org/package/cannon) - [CDN](https://cdnjs.com/libraries/cannon.js)\n\n### Browser install\n\nJust include [cannon.js](https://github.com/schteppe/cannon.js/releases/download/v0.6.2/cannon.js) or [cannon.min.js](https://github.com/schteppe/cannon.js/releases/download/v0.6.2/cannon.min.js) in your html and you're done:\n\n```html\n<script src=\"cannon.min.js\"></script>\n```\n\n### Node.js install\n\nInstall the cannon package via NPM:\n\n```bash\nnpm install --save cannon\n```\n\nAlternatively, point to the Github repo directly to get the very latest version:\n\n```bash\nnpm install --save schteppe/cannon.js\n```\n\n### Example\n\nThe sample code below creates a sphere on a plane, steps the simulation, and prints the sphere simulation to the console. Note that Cannon.js uses [SI units](http://en.wikipedia.org/wiki/International_System_of_Units) (metre, kilogram, second, etc.).\n\n```javascript\n// Setup our world\nvar world = new CANNON.World();\nworld.gravity.set(0, 0, -9.82); // m/s²\n\n// Create a sphere\nvar radius = 1; // m\nvar sphereBody = new CANNON.Body({\n   mass: 5, // kg\n   position: new CANNON.Vec3(0, 0, 10), // m\n   shape: new CANNON.Sphere(radius)\n});\nworld.addBody(sphereBody);\n\n// Create a plane\nvar groundBody = new CANNON.Body({\n    mass: 0 // mass == 0 makes the body static\n});\nvar groundShape = new CANNON.Plane();\ngroundBody.addShape(groundShape);\nworld.addBody(groundBody);\n\nvar fixedTimeStep = 1.0 / 60.0; // seconds\nvar maxSubSteps = 3;\n\n// Start the simulation loop\nvar lastTime;\n(function simloop(time){\n  requestAnimationFrame(simloop);\n  if(lastTime !== undefined){\n     var dt = (time - lastTime) / 1000;\n     world.step(fixedTimeStep, dt, maxSubSteps);\n  }\n  console.log(\"Sphere z position: \" + sphereBody.position.z);\n  lastTime = time;\n})();\n```\n\nIf you want to know how to use cannon.js with a rendering engine, for example Three.js, see the [Examples](examples).\n\n### Features\n* Rigid body dynamics\n* Discrete collision detection\n* Contacts, friction and restitution\n* Constraints\n   * PointToPoint (a.k.a. ball/socket joint)\n   * Distance\n   * Hinge (with optional motor)\n   * Lock\n   * ConeTwist\n* Gauss-Seidel constraint solver and an island split algorithm\n* Collision filters\n* Body sleeping\n* Experimental SPH / fluid support\n* Various shapes and collision algorithms (see table below)\n\n|             | [Sphere](http://schteppe.github.io/cannon.js/docs/classes/Sphere.html) | [Plane](http://schteppe.github.io/cannon.js/docs/classes/Plane.html) | [Box](http://schteppe.github.io/cannon.js/docs/classes/Box.html) | [Convex](http://schteppe.github.io/cannon.js/docs/classes/ConvexPolyhedron.html) | [Particle](http://schteppe.github.io/cannon.js/docs/classes/Particle.html) | [Heightfield](http://schteppe.github.io/cannon.js/docs/classes/Heightfield.html) | [Trimesh](http://schteppe.github.io/cannon.js/docs/classes/Trimesh.html) |\n| :-----------|:------:|:-----:|:---:|:------:|:--------:|:-----------:|:-------:|\n| Sphere      | Yes    | Yes   | Yes | Yes    | Yes      | Yes         | Yes     |\n| Plane       | -      | -     | Yes | Yes    | Yes      | -           | Yes     |\n| Box         | -      | -     | Yes | Yes    | Yes      | Yes         | (todo)  |\n| Cylinder    | -      | -     | Yes | Yes    | Yes      | Yes         | (todo)  |\n| Convex      | -      | -     | -   | Yes    | Yes      | Yes         | (todo)  |\n| Particle    | -      | -     | -   | -      | -        | (todo)      | (todo)  |\n| Heightfield | -      | -     | -   | -      | -        | -           | (todo)  |\n| Trimesh     | -      | -     | -   | -      | -        | -           | -       |\n\n### Todo\nThe simpler todos are marked with ```@todo``` in the code. Github Issues can and should also be used for todos.\n\n### Help\nCreate an [issue](https://github.com/schteppe/cannon.js/issues) if you need help.\n",
   "readmeFilename": "README.markdown",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/schteppe/cannon.js.git"
-  },
-  "version": "0.6.2"
+  "_id": "cannon@0.6.2",
+  "_shasum": "aff83a2bc1e4ae131c60b27571ff51a70bd14855",
+  "_from": "git://github.com/schteppe/cannon.js.git#master",
+  "_resolved": "git://github.com/schteppe/cannon.js.git#748afef42e3d844612785a6c32d0196d4b5617bd"
 }
 
 },{}],2:[function(require,module,exports){
@@ -14518,4 +14484,4 @@ World.prototype.clearForces = function(){
 },{"../collision/AABB":3,"../collision/ArrayCollisionMatrix":4,"../collision/NaiveBroadphase":7,"../collision/OverlapKeeper":9,"../collision/Ray":10,"../collision/RaycastResult":11,"../equations/ContactEquation":20,"../equations/FrictionEquation":22,"../material/ContactMaterial":25,"../material/Material":26,"../math/Quaternion":29,"../math/Vec3":31,"../objects/Body":32,"../shapes/Shape":44,"../solver/GSSolver":47,"../utils/EventTarget":50,"../utils/TupleDictionary":53,"./Narrowphase":56}],58:[function(require,module,exports){
 CANNON = require('cannon');
 
-},{"cannon":2}]},{},[58]);
+},{"cannon":2}]},{},[58])

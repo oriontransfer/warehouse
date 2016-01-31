@@ -60,7 +60,7 @@ MapController.add({
 		map.spawn = function(playerState) {
 			spawnY = (spawnY + 1) % size[1];
 			
-			return this.worldState.createPlayer(new CANNON.Vec3(0, spawnY * 8, 1.0));
+			return this.worldState.createPlayer(new CANNON.Vec3(0, spawnY * 8, 5.0));
 		}
 		
 		map.wallController = new WallController(size, worldState);

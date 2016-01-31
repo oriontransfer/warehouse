@@ -34,10 +34,12 @@ GeometryController.prototype.update = function()
 	this.container.forEach(function(object) {
 		if (object.mesh) {
 			var mesh = object.mesh, rigidBody = object.rigidBody;
-		
-			rigidBody.position.copy(mesh.position);
+			
+			mesh.position.copy(rigidBody.position);
+			//mesh.quaternion.copy(rigidBody.quaternion);
+			
+			// Bug in geometry
 			mesh.position.z -= 0.8;
-			rigidBody.quaternion.copy(mesh.quaternion);
 		}
 	});
 }

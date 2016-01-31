@@ -44,11 +44,13 @@ function WorldState() {
 		object.worldState = this;
 	}.bind(this);
 	
-	this.players.deserializeObject = function(object, key, data) {
-		object.deserialize(data);
-	}.bind(this);
-	
-	this.projectiles = new Container();
+	this.projectiles = Container.createObjectContainer(function(key, data) {
+		var projectile = new ProjectileState();
+		
+		projectile.deserialize(data, this.players);
+		
+		return projectile;
+	}.bind(this));
 	
 	this.projectiles.deserializeObject = function(object, key, data) {
 		object.deserialize(data, this.players);
@@ -95,8 +97,6 @@ WorldState.prototype.serialize = function() {
 	};
 }
 
-WorldState.ZERO_VEC = new CANNON.Vec3(0,0,0);
-
 WorldState.prototype.deserialize = function(data) {
 	this.players.deserialize(data.players);
 	this.projectiles.deserialize(data.projectiles);
@@ -106,19 +106,20 @@ WorldState.prototype.deserialize = function(data) {
 WorldState.prototype.initPhysics = function(){
 	//Initialise the world
 	this.world = new CANNON.World();
+	this.world.gravity.set(0,0,-9.82);
+	
 	this.world.broadphase = new CANNON.NaiveBroadphase();
 	this.world.broadphase.useBoundingBoxes = true;
-	this.world.allowSleep = true;
+	//this.world.allowSleep = true;
 	
 	console.log("Creating physics world...");
 	
-	var solver = new CANNON.GSSolver();
-	solver.iterations = 4;
-	solver.tolerance = 3;
+	//var solver = new CANNON.GSSolver();
+	//solver.iterations = 4;
+	//solver.tolerance = 3;
 
-	this.world.solver = solver;
-	this.world.gravity.set(0, 0, -9.8);
-
+	//this.world.solver = solver;
+		
 	//Initialise the physics contact materials.
 	this.boxPhysicsMaterial = new CANNON.Material("BOX_PHY_MATERIAL");
 
@@ -139,7 +140,11 @@ WorldState.prototype.initPhysics = function(){
 	//this.world.quatNormalizeSkip = 2;
 
 	//Initialise the ground plane
-	this.addPlaneGeometry(new CANNON.Vec3(0, 0, 0), new CANNON.Vec3(0,0,1),-Math.PI/2);
+	var groundShape = new CANNON.Plane();
+	var groundBody = new CANNON.Body({mass: 0, shape: groundShape});
+	groundBody.collisionFilterGroup = 1;
+	groundBody.collisionFilterMask = 2;
+	this.world.add(groundBody);
 }
 
 WorldState.prototype.update = function(dt) {
@@ -161,7 +166,7 @@ WorldState.prototype.addPlaneGeometry = function(locationVEC3, rotationVEC3, ang
 	body.collisionFilterMask = 2;
 	
 	body.addShape(new CANNON.Plane());
-	body.position = locationVEC3;
+	body.position.copy(locationVEC3);
 	body.quaternion.setFromAxisAngle(rotationVEC3,angleRAD);
 	
 	this.world.addBody(body);
@@ -179,7 +184,9 @@ WorldState.prototype.addBoxGeometry = function(locationVEC3, halfExtentsVEC3, ma
 
 WorldState.prototype.createPlayer = function(position) {
 	var newPlayer = new PlayerState(this.nextUniqueID++, position, this.boxPhysicsMaterial);
+	
 	newPlayer.worldInside = this;
+	
 	if(this.renderState){
 		newPlayer.renderer = new PlayerStateRenderer(this.renderState, newPlayer);
 	}
@@ -325,12 +332,6 @@ function PlayerState(ID, position, material) {
 	
 	this.ID = ID;
 
-	//Positional
-	this.position = position;
-	this.direction = new CANNON.Vec3(0, 0, 0);
-	this.rotationQuat = null;
-	this.velocity = null;
-
 	//Internal state / control state
 	this.motion = PlayerState.Motion.STOPPED;
 	this.motionDirection = PlayerState.Direction.FORWARD;
@@ -347,8 +348,6 @@ function PlayerState(ID, position, material) {
 	
 	this.lastShotTime = 0;
 	
-	this.combinedDirectionBuffer = new CANNON.Vec3(0,0,0);
-
 	this.worldState = null;
 
 	var boxHalfExtents = new CANNON.Vec3(WorldState.PLAYER_SIZE_HALF, WorldState.PLAYER_SIZE_HALF, WorldState.PLAYER_SIZE_HALF);
@@ -358,9 +357,7 @@ function PlayerState(ID, position, material) {
 	
 	this.rigidBody.collisionFilterGroup = 2;
 	this.rigidBody.collisionFilterMask = 1 | 2;
-	
-	//this.rigidBody.position.set(position.x, position.y, position.z);
-	position.copy(this.rigidBody.position);
+	this.rigidBody.position.copy(position);
 	
 	this.rigidBody.angularDamping = WorldState.ANGULAR_DAMPING;
 	this.rigidBody.userData = this;
@@ -388,11 +385,15 @@ PlayerState.prototype.serialize = function() {
 }
 
 PlayerState.prototype.deserialize = function(data) {
-	var r = this.rigidBody;
+	var body = this.rigidBody;
 	
-	r.position.set(data[0], data[1], data[2]);
-	r.quaternion.set(data[3], data[4], data[5], data[6]);
-	r.velocity.set(data[7], data[8], data[9]);
+	body.position.set(data[0], data[1], data[2]);
+	body.previousPosition.set(data[0], data[1], data[2]);
+	body.interpolatedPosition.set(data[0], data[1], data[2]);
+	body.initPosition.set(data[0], data[1], data[2]);
+	
+	body.quaternion.set(data[3], data[4], data[5], data[6]);
+	body.velocity.set(data[7], data[8], data[9]);
 	
 	this.health = data[10];
 	this.isShooting = data[11];
@@ -522,118 +523,33 @@ PlayerState.prototype.handleEvent = function(event, action){
 }
 
 PlayerState.prototype.update = function(dt){
-	this.position = this.rigidBody.position;
-	this.rotationQuat = this.rigidBody.quaternion;
-	this.velocity = this.rigidBody.velocity;
-	//this.rotationQuat.vmult(PlayerState.FORWARD, this.direction);
+	var movement = new CANNON.Vec3(0,0,0);
 	
-	if(this.renderer){
-		this.renderer.update(dt);
+	switch(this.motionDirection){
+		case PlayerState.Direction.FORWARD:
+			if(this.motion != PlayerState.Motion.STOPPED)movement.y = 1;
+			else movement.y = 0;
+		break;
+		case PlayerState.Direction.BACKWARD:
+			if(this.motion != PlayerState.Motion.STOPPED)movement.y = -1;
+			else movement.y = 0;
+		break;
+		case PlayerState.Direction.LEFT:
+			if(this.motion != PlayerState.Motion.STOPPED)movement.x = -1;
+			else movement.x = 0;
+		break;
+		case PlayerState.Direction.RIGHT:
+			if(this.motion != PlayerState.Motion.STOPPED)movement.x = 1;
+			else movement.x = 0;
+		break;
 	}
 	
-	if(this.isAlive){
-		if(this.isShooting){
-			if(this.isReloading){
-				if(this.timeSpentReloading >= PlayerState.RELOAD_TIME){
-					this.isReloading = false;
-					this.roundsInClip = PlayerState.CLIP_SIZE;
-				}
-				this.timeSpentReloading += dt;
-			}
-			else if(PlayerState.FIRE_RATE_PER_SECOND < this.lastShotTime){
-				if(this.renderer){
-					this.renderer.showMuzzleFlash();
-				}
-				
-				var bulletDirection = this.rotationQuat.vmult(PlayerState.FORWARD);
-				//bulletPosition = this.rigidBody.position.vadd(bulletDirection.mult(2.0));
-				this.worldState.addProjectileState(this.rigidBody.position, PlayerState.BULLET_SPEED, bulletDirection, this);
-				this.lastShotTime = 0;
-				this.roundsInClip -= 1;
-				if(this.roundsInClip < 1){
-					console.log('Reloading clip');
-					this.isReloading = true;
-					this.timeSpentReloading = 0;
-				}
-			}
-		}
-		
-		this.lastShotTime += dt;
-		
-		this.combinedDirectionBuffer.set(0, 0, 0);
-		
-		switch(this.motionDirection){
-			case PlayerState.Direction.FORWARD:
-				if(this.motion != PlayerState.Motion.STOPPED)this.combinedDirectionBuffer.y = 1;
-				else this.combinedDirectionBuffer.y = 0;
-			break;
-			case PlayerState.Direction.BACKWARD:
-				if(this.motion != PlayerState.Motion.STOPPED)this.combinedDirectionBuffer.y = -1;
-				else this.combinedDirectionBuffer.y = 0;
-			break;
-			case PlayerState.Direction.LEFT:
-				if(this.motion != PlayerState.Motion.STOPPED)this.combinedDirectionBuffer.x = -1;
-				else this.combinedDirectionBuffer.x = 0;
-			break;
-			case PlayerState.Direction.RIGHT:
-				if(this.motion != PlayerState.Motion.STOPPED)this.combinedDirectionBuffer.x = 1;
-				else this.combinedDirectionBuffer.x = 0;
-			break;
-		}
-
-		this.combinedDirectionBuffer.normalize();
-
-		//this.rotationQuat.vmult(this.combinedDirectionBuffer, PlayerState.combinedDirection);
-
-		if(this.motion == PlayerState.Motion.WALKING){
-			var impulseDirection = new CANNON.Vec3(0,0,0), finalImpulseDir = new CANNON.Vec3(0, 0, 0);
-			//this.position.copy(impulseDirection);
-
-			//impulseDirection = impulseDirection.vsub(this.direction);
-			impulseDirection = impulseDirection.vadd(this.combinedDirectionBuffer);
-			impulseDirection = impulseDirection.mult(((this.isRunning) ? PlayerState.RUNNING_SPEED : PlayerState.WALKING_SPEED));
-
-			this.rotationQuat.vmult(impulseDirection, finalImpulseDir);
-
-			var finalLength = this.rigidBody.velocity.vadd(finalImpulseDir).distanceTo(PlayerState.ORIGIN);
-			var position = new CANNON.Vec3(0,0);
-			this.position.copy(position);
-			//position.y -= 0.5;
-			///this.rigidBody.applyForce(new CANNON.Vec3(0,0,10000), this.position);
-			if(finalLength < ((!this.isRunning) ? PlayerState.MAX_WALKING_SPEED : PlayerState.MAX_RUNNING_SPEED))
-				this.rigidBody.applyForce(finalImpulseDir, position);
-		}
-
-		if(this.rotation == PlayerState.Motion.WALKING){
-			if(this.rotationDirection == PlayerState.Direction.LEFT){
-				this.rigidBody.angularVelocity.z = ((this.isRunning) ? PlayerState.RUNNING_ROT_SPEED : PlayerState.WALKING_ROT_SPEED);
-			} 
-			else {
-				this.rigidBody.angularVelocity.z = ((this.isRunning) ? -PlayerState.RUNNING_ROT_SPEED : -PlayerState.WALKING_ROT_SPEED);
-			}
-			//this.rigidBody.applyImpulse(PlayerState.WALKING_SPEED, this.position);
-		}
-
-		if(this.motion == PlayerState.Motion.STOPPED && this.combinedDirectionBuffer.y == 0 && this.combinedDirectionBuffer.x == 0){
-				this.rigidBody.velocity = new CANNON.Vec3(0,0,0);
-		}
-
-		if(this.rotation == PlayerState.Motion.STOPPED){
-				this.rigidBody.angularVelocity = new CANNON.Vec3(0,0,0);
-		}
-		
-		if(this.motion == PlayerState.Motion.STOPPED && this.rotation == PlayerState.Motion.STOPPED){
-			this.isMakingNoise = false;
-		}
-		else this.isMakingNoise = true;
-
-		if(this.health <= 0 && this.isAlive){
-			console.log('Player has died');
-			this.isAlive = false;
-		}
-	}
+	this.rigidBody.applyForce(movement, CANNON.Vec3.ZERO);
 	
-	//console.log("player", this.ID, this.motion, this.rotation, this.isMakingNoise);
+	if(this.health <= 0 && this.isAlive){
+		console.log('Player has died', this.ID);
+		this.isAlive = false;
+	}
 }
 
 // ** Box State **
@@ -644,7 +560,7 @@ function BoxState(ID, position, extents, mass, material, sleeping) {
 	this.rigidBody = new CANNON.Body({mass: mass, material: material});
 	this.rigidBody.addShape(new CANNON.Box(extents));
 	
-	this.rigidBody.position = position;
+	this.rigidBody.position.copy(position);
 	this.rigidBody.userData = this;
 
 	this.rigidBody.collisionFilterGroup = 1;

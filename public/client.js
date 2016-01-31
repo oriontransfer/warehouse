@@ -11,15 +11,15 @@ function WorldController() {
 	
 	this.scene = new THREE.Scene();
 	
-	var ambientLight = new THREE.AmbientLight(0x111111);
-	//this.scene.add(ambientLight);
+	var ambientLight = new THREE.AmbientLight(0xAAAAAA);
+	this.scene.add(ambientLight);
 	
 	//this.scene.fog = new THREE.Fog(0x59472b, 25, 40);
 	this.scene.fog = new THREE.Fog(0x000000, 25, 40);
 
 	this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 10, 100);
 	this.camera.position.z = 20;
-    this.camera.rotateOnAxis((new THREE.Vector3(1, 0, 0)).normalize(), D2R(45));
+	this.camera.rotateOnAxis((new THREE.Vector3(1, 0, 0)).normalize(), D2R(45));
 	
 	var light = new THREE.SpotLight(0xffffff, 2.5, 50, D2R(72/2), 2.0);
 	light.position.set(10, 10, 10);
@@ -59,24 +59,32 @@ WorldController.prototype.serverMap = function(data) {
 	
 	this.scene.add(this.levelScene);
 	
+	console.log("Server map loading", data);
 	this.currentMap = this.mapController.loadMap(data.name, {
 		rendererState: this.rendererState
 	});
 	
+	this.worldState = this.currentMap.worldState;
+	
 	this.playerGeometryController = new GeometryController(this.levelScene, this.currentMap.worldState.players);
+}
+
+WorldController.prototype.serverStart = function(data) {
+	console.log("Server start received");
+	
+	this.worldState.deserialize(data.worldState);
+	
+	this.currentPlayer = this.worldState.players.values[this.currentPlayerID];
+	
+	if (this.currentPlayer)
+		this.notificationController = new NotificationController(this.worldState, this.currentPlayer, this.levelScene);
 }
 
 WorldController.prototype.serverUpdate = function(data) {
 	if (data.phase == 'running' && this.worldState) {
 		this.worldState.deserialize(data.worldState);
 		
-		if (this.currentPlayer == null) {
-			this.currentPlayer = this.worldState.players.values[this.currentPlayerID];
-		
-			if (this.currentPlayer) {
-				this.notificationController = new NotificationController(this.worldState, this.currentPlayer, this.levelScene);
-			}
-		}
+		console.log("Current Player Position:", this.currentPlayer.rigidBody.position);
 	}
 }
 
@@ -147,29 +155,33 @@ WorldController.FORWARD_ROT = new CANNON.Vec3(0,0,0);
 WorldController.HEALTH_LIGHT_HEIGHT_OFFSET = new CANNON.Vec3(0,0,2);
 
 WorldController.prototype.updateCurrentPlayer = function() {
-	WorldController.FORWARD_ROT = this.currentPlayer.rigidBody.quaternion.vmult(WorldController.FORWARD); //Rotate the camera so we see more of what's infront of the user
-	
-	WorldController.FORWARD_ROT.copy(this.camera.position);
-	this.camera.position = WorldController.FORWARD_ROT.vadd(this.currentPlayer.rigidBody.position);
+	this.camera.position.copy(this.currentPlayer.rigidBody.position);
 	this.camera.position.z = 20;
 	this.camera.position.y -= 18;
 	
-	this.currentPlayer.rigidBody.position.copy(this.playerLight.position);
-	this.playerLight.position.z += 0.6;
+	//WorldController.FORWARD_ROT = this.currentPlayer.rigidBody.quaternion.vmult(WorldController.FORWARD); //Rotate the camera so we see more of what's infront of the user
+	
+	//WorldController.FORWARD_ROT.copy(this.camera.position);
+	//this.camera.position = WorldController.FORWARD_ROT.vadd(this.currentPlayer.rigidBody.position);
+	//this.camera.position.z = 20;
+	//this.camera.position.y -= 18;
+	
+	//this.currentPlayer.rigidBody.position.copy(this.playerLight.position);
+	//this.playerLight.position.z += 0.6;
 
 	//this.currentPlayer.rigidBody.position.copy(this.playerHealthLight.position);
 	//this.playerHealthLight.position = this.playerHealthLight.position.add(WorldController.HEALTH_LIGHT_HEIGHT_OFFSET);
 	//this.playerHealthLight.color.g = Math.sin(this.currentPlayer.health/PlayerState.HEALTH * Math.PI/2);
 	//this.playerHealthLight.color.b = Math.sin(this.currentPlayer.health/PlayerState.HEALTH * Math.PI/2);
 
-	var rotation = new THREE.Quaternion();
+	//var rotation = new THREE.Quaternion();
 	
-	this.currentPlayer.rigidBody.quaternion.copy(rotation);
+	//this.currentPlayer.rigidBody.quaternion.copy(rotation);
 	
-	var direction = new THREE.Vector3(0, 20, 0);
-	direction.applyQuaternion(rotation);
+	//var direction = new THREE.Vector3(0, 20, 0);
+	//direction.applyQuaternion(rotation);
 	
-	this.playerLight.target.position.addVectors(this.currentPlayer.rigidBody.position, direction);
+	//this.playerLight.target.position.addVectors(this.currentPlayer.rigidBody.position, direction);
 }
 
 WorldController.prototype.update = function(dt) {
@@ -198,6 +210,7 @@ WorldController.prototype.render = function(renderer) {
 }
 
 WorldController.prototype.handleEvent = function(event, action) {
+	console.log("Current player handling event", this.currentPlayer, event, action);
 	if (this.currentPlayer)
 		this.currentPlayer.handleEvent(event, action);
 }

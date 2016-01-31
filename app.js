@@ -29,7 +29,7 @@ Server = {
 	physicsRate: 1.0/30.0,
 	
 	// The refresh rate of the server in FPS.
-	updateRate: 1.0/10.0,
+	updateRate: 5.0, //1.0/10.0,
 	
 	message: fs.readFileSync("motd.txt", "utf8"),
 	
@@ -95,7 +95,6 @@ GameController.prototype.reset = function(dt) {
 	this.worldState = this.currentMap.worldState;
 	
 	this.sendTimeout();
-	
 	this.setPhase("preparing");
 }
 
@@ -110,7 +109,6 @@ GameController.prototype.preparing = function(dt) {
 	if (this.serverState.users.length < 1) return;
 	
 	this.timeout -= dt;
-
 	this.sendTimeout();
 	
 	if (this.timeout <= 0) {
@@ -150,8 +148,9 @@ GameController.prototype.spawning = function(dt) {
 		else
 			this.timeout = 60;
 		
+		var worldStateSerialized = this.worldState.serialize();
 		this.serverState.users.forEach(function (user) {
-			user.emit("start");
+			user.emit("start", {worldState: worldStateSerialized});
 		}.bind(this));
 		
 		this.setPhase("running");
@@ -247,6 +246,8 @@ ServerController.prototype.updateClients = function() {
 	this.gameState.update(Server.updateRate);
 	
 	var state = this.gameState.serialize();
+	
+	console.log("updateClients", state);
 	
 	this.users.forEach(function(user) {
 		user.emit('update', state);
